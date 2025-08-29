@@ -5,15 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Rishabh Ghosh</title>
 
-  <!-- Futuristic + Readable Fonts -->
+  <!-- VS Code Font -->
   <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&display=swap" rel="stylesheet">
 
   <style>
     body {
       margin: 0;
-      font-family: 'Inter', sans-serif;
+      font-family: 'Fira Code', monospace; /* VS Code coding font */
       background-color: #0d0d1a;
-      color: #fff;
+      color: #d4d4d4; /* VS Code default text */
       overflow: hidden;
       padding-bottom: 4rem;
     }
@@ -37,7 +37,6 @@
       color: black;
     }
 
-    /* Top-left value/suit */
     .card::before {
       content: attr(data-value) " " attr(data-suit);
       position: absolute;
@@ -46,7 +45,6 @@
       font-size: 12px;
     }
 
-    /* Bottom-right value/suit */
     .card::after {
       content: attr(data-value) " " attr(data-suit);
       position: absolute;
@@ -56,21 +54,15 @@
       transform: rotate(180deg);
     }
 
-    /* Center core (big suit symbol) */
     .core::before {
       content: attr(data-suit);
       font-size: 20px;
     }
 
-    /* Suit coloring */
     .card[data-suit="♥"],
-    .card[data-suit="♦"] {
-      color: red;
-    }
+    .card[data-suit="♦"] { color: red; }
     .card[data-suit="♠"],
-    .card[data-suit="♣"] {
-      color: black;
-    }
+    .card[data-suit="♣"] { color: black; }
 
     @keyframes floatUp {
       from { transform: translateY(110vh) rotate(0deg); }
@@ -88,7 +80,7 @@
       justify-content: center;
       animation: fadeIn 1s ease forwards;
       z-index: 10;
-      font-family: 'Orbitron', sans-serif;
+      font-family: 'Fira Code', monospace;
     }
     .modal-content {
       background: #14142b;
@@ -101,8 +93,8 @@
       transform: scale(0.8);
       animation: popUp 0.6s ease forwards;
     }
-    .modal-content h1 { color: #9b59b6; margin-bottom: 0.5rem; }
-    .modal-content p { color: #ccc; margin-bottom: 1.5rem; }
+    .modal-content h1 { color: #569cd6; margin-bottom: 0.5rem; } /* VS Code keyword blue */
+    .modal-content p { color: #d4d4d4; margin-bottom: 1.5rem; }
     .btn {
       padding: 0.7rem 1.5rem;
       background: #6c5ce7;
@@ -112,7 +104,7 @@
       cursor: pointer;
       font-size: 1rem;
       transition: background 0.3s ease;
-      font-family: 'Orbitron', sans-serif;
+      font-family: 'Fira Code', monospace;
     }
     .btn:hover { background: #8e44ad; }
 
@@ -122,12 +114,14 @@
 
     /* Main */
     #main {
-  background-color: #000;
-  color: #e0e0e0;
-  font-size: 1rem;
-  padding: 2rem;
-  border: 1px solid #333;
-}
+      display: none;
+      padding: 4rem 2rem 2rem;
+      font-size: 1.3rem;
+      font-weight: 500;
+      line-height: 1.6;
+      font-family: 'Fira Code', monospace;
+      color: #d4d4d4;
+    }
 
     /* Bloomberg-style command bar */
     #command-bar {
@@ -137,7 +131,7 @@
       background: #111;
       border-bottom: 2px solid #6c5ce7;
       color: #0f0;
-      font-family: 'Orbitron', monospace;
+      font-family: 'Fira Code', monospace;
       font-size: 1.1rem;
       padding: 0.5rem 1rem;
       display: none;
@@ -157,7 +151,7 @@
       position: fixed;
       top: 0.5rem;
       right: 1rem;
-      font-family: 'Orbitron', monospace;
+      font-family: 'Fira Code', monospace;
       font-size: 1rem;
       color: #0f0;
       z-index: 40;
@@ -169,7 +163,7 @@
       position: fixed;
       top: 2rem;
       right: 1rem;
-      font-family: 'Orbitron', monospace;
+      font-family: 'Fira Code', monospace;
       font-size: 0.9rem;
       color: #6c5ce7;
       z-index: 40;
@@ -206,6 +200,7 @@
       display: inline-block;
       padding: 0 2rem;
       font-size: 1.2rem;
+      color: orange; /* Bloomberg orange */
     }
     .up { color: #00ff88; }
     .down { color: #ff4444; }
@@ -309,7 +304,6 @@
       });
     }
 
-    // Use fallback tickers (replace with live JSON parser later)
     renderTicker(fallbackTickers);
 
     // Bloomberg-style command bar typing
