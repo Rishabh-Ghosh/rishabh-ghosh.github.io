@@ -21,6 +21,8 @@
     /* Floating cards */
     .card {
       --data-value: "?";
+      --suit-symbol: "?";
+
       position: absolute;
       display: flex;
       width: 60px;
@@ -33,10 +35,35 @@
       font-size: 14px;
       font-weight: bold;
       text-align: center;
-      opacity: 0.25; /* 👈 slightly more visible */
+      opacity: 0.25; /* faint but visible */
       animation: floatUp linear infinite;
     }
-    .core::before { content: var(--data-value); }
+
+    /* Top-left value/suit */
+    .card::before {
+      content: var(--data-value) " " var(--suit-symbol);
+      position: absolute;
+      top: 4px;
+      left: 4px;
+      font-size: 12px;
+    }
+
+    /* Bottom-right value/suit */
+    .card::after {
+      content: var(--data-value) " " var(--suit-symbol);
+      position: absolute;
+      bottom: 4px;
+      right: 4px;
+      font-size: 12px;
+      transform: rotate(180deg);
+    }
+
+    /* Center core (big suit symbol) */
+    .core::before {
+      content: var(--suit-symbol);
+      font-size: 20px;
+    }
+
     @keyframes floatUp {
       from { transform: translateY(110vh) rotate(0deg); }
       to { transform: translateY(-120vh) rotate(360deg); }
@@ -201,7 +228,12 @@
   <script>
     // Floating cards
     const background = document.getElementById('background');
-    const suits = ["heart", "spade", "diamond", "club"];
+    const suits = [
+      { name: "heart", symbol: "♥" },
+      { name: "spade", symbol: "♠" },
+      { name: "diamond", symbol: "♦" },
+      { name: "club", symbol: "♣" }
+    ];
     const values = ["A","2","3","4","5","6","7","8","9","10","J","Q","K"];
 
     function random(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
@@ -210,8 +242,8 @@
       el.className = "card";
       const suit = suits[random(0, suits.length-1)];
       const val = values[random(0, values.length-1)];
-      el.setAttribute("data-seed", suit);
       el.style.setProperty("--data-value", `"${val}"`);
+      el.style.setProperty("--suit-symbol", `"${suit.symbol}"`);
       el.innerHTML = `<div class="core"></div>`;
       el.style.left = random(0, 100) + "vw";
       el.style.animationDuration = random(12, 25) + "s";
@@ -262,7 +294,7 @@
       .then(r => r.json())
       .then(data => {
         if (data && data.prices && data.prices.length > 0) {
-          renderTicker(fallbackTickers); // TODO: replace with parsed live values later
+          renderTicker(fallbackTickers); // placeholder until parser added
         } else {
           renderTicker(fallbackTickers);
         }
