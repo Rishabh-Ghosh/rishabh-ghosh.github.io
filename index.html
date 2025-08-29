@@ -20,9 +20,6 @@
 
     /* Floating cards */
     .card {
-      --data-value: "?";
-      --suit-symbol: "?";
-
       position: absolute;
       display: flex;
       width: 60px;
@@ -37,11 +34,12 @@
       text-align: center;
       opacity: 0.25; /* faint but visible */
       animation: floatUp linear infinite;
+      color: black;
     }
 
     /* Top-left value/suit */
     .card::before {
-      content: var(--data-value) " " var(--suit-symbol);
+      content: attr(data-value) " " attr(data-suit);
       position: absolute;
       top: 4px;
       left: 4px;
@@ -50,7 +48,7 @@
 
     /* Bottom-right value/suit */
     .card::after {
-      content: var(--data-value) " " var(--suit-symbol);
+      content: attr(data-value) " " attr(data-suit);
       position: absolute;
       bottom: 4px;
       right: 4px;
@@ -60,8 +58,18 @@
 
     /* Center core (big suit symbol) */
     .core::before {
-      content: var(--suit-symbol);
+      content: attr(data-suit);
       font-size: 20px;
+    }
+
+    /* Suit coloring */
+    .card[data-suit="♥"],
+    .card[data-suit="♦"] {
+      color: red;
+    }
+    .card[data-suit="♠"],
+    .card[data-suit="♣"] {
+      color: black;
     }
 
     @keyframes floatUp {
@@ -153,7 +161,19 @@
       font-size: 1rem;
       color: #0f0;
       z-index: 40;
-      display: none; /* hidden until site loads */
+      display: none;
+    }
+
+    /* Page views */
+    #views {
+      position: fixed;
+      top: 2rem;
+      right: 1rem;
+      font-family: 'Orbitron', monospace;
+      font-size: 0.9rem;
+      color: #6c5ce7;
+      z-index: 40;
+      display: none;
     }
 
     /* Ticker */
@@ -187,8 +207,8 @@
       padding: 0 2rem;
       font-size: 1.2rem;
     }
-    .up { color: #00ff88; }   /* green for ▲ */
-    .down { color: #ff4444; } /* red for ▼ */
+    .up { color: #00ff88; }
+    .down { color: #ff4444; }
   </style>
 </head>
 <body>
@@ -213,9 +233,12 @@
   <!-- Clock -->
   <div id="clock"></div>
 
+  <!-- Page views -->
+  <div id="views"></div>
+
   <!-- Main -->
   <div id="main">
-    <p>Rishabh, Prev at Jane Street, IMC Trading, JP Morgan</p>
+    <p>Prev at Jane Street, IMC Trading, JP Morgan</p>
     <p>Harvard Math 25'</p>
     <button class="btn" onclick="goAbout()">About</button>
   </div>
@@ -226,26 +249,22 @@
   </div>
 
   <script>
-    // Floating cards
+    // Floating cards on right 20%
     const background = document.getElementById('background');
-    const suits = [
-      { name: "heart", symbol: "♥" },
-      { name: "spade", symbol: "♠" },
-      { name: "diamond", symbol: "♦" },
-      { name: "club", symbol: "♣" }
-    ];
+    const suits = ["♥","♠","♦","♣"];
     const values = ["A","2","3","4","5","6","7","8","9","10","J","Q","K"];
 
     function random(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+
     function createCard() {
       const el = document.createElement('span');
       el.className = "card";
       const suit = suits[random(0, suits.length-1)];
       const val = values[random(0, values.length-1)];
-      el.style.setProperty("--data-value", `"${val}"`);
-      el.style.setProperty("--suit-symbol", `"${suit.symbol}"`);
+      el.setAttribute("data-value", val);
+      el.setAttribute("data-suit", suit);
       el.innerHTML = `<div class="core"></div>`;
-      el.style.left = random(0, 100) + "vw";
+      el.style.left = random(80, 100) + "vw"; // only in rightmost 20%
       el.style.animationDuration = random(12, 25) + "s";
       background.appendChild(el);
       setTimeout(() => el.remove(), 26000);
@@ -259,6 +278,7 @@
       document.getElementById('main').style.display = 'block';
       document.getElementById('command-bar').style.display = 'block';
       document.getElementById('clock').style.display = 'block';
+      document.getElementById('views').style.display = 'block';
     }
 
     // Fallback tickers
@@ -289,20 +309,8 @@
       });
     }
 
-    // Try loading from prices.json, else fallback
-    fetch("prices.json")
-      .then(r => r.json())
-      .then(data => {
-        if (data && data.prices && data.prices.length > 0) {
-          renderTicker(fallbackTickers); // placeholder until parser added
-        } else {
-          renderTicker(fallbackTickers);
-        }
-      })
-      .catch(err => {
-        console.error("Failed to load prices.json, using fallback", err);
-        renderTicker(fallbackTickers);
-      });
+    // Use fallback tickers (replace with live JSON parser later)
+    renderTicker(fallbackTickers);
 
     // Bloomberg-style command bar typing
     function goAbout() {
@@ -328,6 +336,13 @@
     }
     setInterval(updateClock, 1000);
     updateClock();
+
+    // Page Views using countapi
+    fetch("https://api.countapi.xyz/hit/rishabh-ghosh.github.io/views")
+      .then(res => res.json())
+      .then(res => {
+        document.getElementById("views").textContent = "Views: " + res.value;
+      });
   </script>
 </body>
 </html>
