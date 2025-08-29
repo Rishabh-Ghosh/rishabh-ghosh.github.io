@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Welcome</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: #0d0d1a;
+      color: #fff;
+      overflow: hidden; /* Prevent scroll before modal closes */
+    }
+
+    /* Modal backdrop */
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: fadeIn 1s ease forwards;
+    }
+
+    /* Modal box */
+    .modal-content {
+      background: #14142b;
+      border: 2px solid #6c5ce7;
+      border-radius: 12px;
+      padding: 2rem;
+      text-align: center;
+      width: 400px;
+      max-width: 90%;
+      transform: scale(0.8);
+      animation: popUp 0.6s ease forwards;
+    }
+
+    .modal-content h1 {
+      color: #9b59b6;
+      margin-bottom: 0.5rem;
+    }
+
+    .modal-content p {
+      color: #ccc;
+      margin-bottom: 1.5rem;
+    }
+
+    .btn {
+      padding: 0.7rem 1.5rem;
+      background: #6c5ce7;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: background 0.3s ease;
+    }
+
+    .btn:hover {
+      background: #8e44ad;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes popUp {
+      from { opacity: 0; transform: scale(0.8); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    /* Hide modal when closed */
+    .hidden {
+      display: none;
+    }
+
+    /* Main site content (hidden at start) */
+    #main {
+      display: none;
+      padding: 2rem;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Modal -->
+  <div id="welcomeModal" class="modal">
+    <div class="modal-content">
+      <h1>Trade Confirmed ✅</h1>
+      <p>Welcome to my website.</p>
+      <button class="btn" onclick="enterSite()">Enter Site</button>
+    </div>
+  </div>
+
+  <!-- Main site content -->
+  <div id="main">
+    <h1>Hello, I’m [Your Name]</h1>
+    <p>This is my homepage. More content coming soon!</p>
+  </div>
+
+  <script>
+    function enterSite() {
+      document.getElementById('welcomeModal').classList.add('hidden');
+      document.body.style.overflow = 'auto';
+      document.getElementById('main').style.display = 'block';
+    }
+  </script>
+
+</body>
+</html>
