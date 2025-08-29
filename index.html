@@ -5,51 +5,110 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Rishabh Ghosh</title>
 
-  <!-- Futuristic Google Font -->
+  <!-- Futuristic Font -->
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
 
   <style>
+    :root {
+      --heart: "♥️";
+      --spade: "♠️";
+      --diamond: "♦️";
+      --club: "♣️";
+      --joker: "🤡";
+
+      --color-red: #e22227;
+      --color-bg-red: #fee3e2;
+
+      --color-black: #1c1a1d;
+      --color-bg-black: #e6e6e6;
+
+      --color-yellow: #de8f5f;
+      --color-bg-yellow: #fff8de;
+
+      --color-white: #fff;
+    }
+
     body {
       margin: 0;
       font-family: 'Orbitron', sans-serif;
       background-color: #0d0d1a;
       color: #fff;
       overflow: hidden;
+      padding-bottom: 4rem; /* space for ticker */
     }
 
-    /* === Background Canvas for Animation === */
-    #background {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      z-index: -1;
-      background: #0d0d1a;
-      overflow: hidden;
-    }
-
-    .ticker, .card {
-      position: absolute;
-      opacity: 0.1;
-      color: #6c5ce7;
-      font-size: 1.2rem;
-      white-space: nowrap;
-      animation: float linear infinite;
-    }
-
+    /* === Floating Cards Background === */
     .card {
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(108,92,231,0.5);
-      border-radius: 8px;
-      padding: 10px 20px;
-      font-size: 0.9rem;
+      --data-value: "?";
+      position: absolute;
+      display: flex;
+      width: 60px;
+      aspect-ratio: 0.7/1;
+      background: var(--color-white);
+      border-radius: 6px;
+      overflow: hidden;
+      border: 1px solid var(--color-black);
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: bold;
+      text-align: center;
+      white-space: pre-wrap;
+      opacity: 0.7;
+      animation: floatUp linear infinite;
     }
 
-    @keyframes float {
+    .card::before,
+    .card::after {
+      position: absolute;
+      background: var(--color-white);
+      z-index: 10;
+      padding: 4px;
+      border-radius: 50%;
+    }
+
+    .card::before { top: 0; left: 0; }
+    .card::after { bottom: 0; right: 0; transform: rotate(-180deg); }
+
+    .core {
+      display: flex;
+      width: 75%;
+      aspect-ratio: inherit;
+      border-radius: 4px;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+    }
+    .core::before {
+      content: var(--data-value);
+    }
+
+    [data-seed="heart"] { color: var(--color-red); }
+    [data-seed="heart"]::before, [data-seed="heart"]::after { content: var(--heart); }
+    [data-seed="heart"] .core { background-color: var(--color-bg-red); }
+
+    [data-seed="spade"] { color: var(--color-black); }
+    [data-seed="spade"]::before, [data-seed="spade"]::after { content: var(--spade); }
+    [data-seed="spade"] .core { background-color: var(--color-bg-black); }
+
+    [data-seed="diamond"] { color: var(--color-red); }
+    [data-seed="diamond"]::before, [data-seed="diamond"]::after { content: var(--diamond); }
+    [data-seed="diamond"] .core { background-color: var(--color-bg-red); }
+
+    [data-seed="club"] { color: var(--color-black); }
+    [data-seed="club"]::before, [data-seed="club"]::after { content: var(--club); }
+    [data-seed="club"] .core { background-color: var(--color-bg-black); }
+
+    [data-seed="joker"] { color: var(--color-yellow); }
+    [data-seed="joker"]::before, [data-seed="joker"]::after { content: var(--joker); }
+    [data-seed="joker"] .core { background-color: var(--color-bg-yellow); }
+
+    @keyframes floatUp {
       from { transform: translateY(110vh) rotate(0deg); }
       to { transform: translateY(-120vh) rotate(360deg); }
     }
 
-    /* === Modal Styling === */
+    /* === Modal === */
     .modal {
       position: fixed;
       top: 0; left: 0;
@@ -61,7 +120,6 @@
       animation: fadeIn 1s ease forwards;
       z-index: 10;
     }
-
     .modal-content {
       background: #14142b;
       border: 2px solid #6c5ce7;
@@ -73,17 +131,8 @@
       transform: scale(0.8);
       animation: popUp 0.6s ease forwards;
     }
-
-    .modal-content h1 {
-      color: #9b59b6;
-      margin-bottom: 0.5rem;
-    }
-
-    .modal-content p {
-      color: #ccc;
-      margin-bottom: 1.5rem;
-    }
-
+    .modal-content h1 { color: #9b59b6; margin-bottom: 0.5rem; }
+    .modal-content p { color: #ccc; margin-bottom: 1.5rem; }
     .btn {
       padding: 0.7rem 1.5rem;
       background: #6c5ce7;
@@ -93,35 +142,49 @@
       cursor: pointer;
       font-size: 1rem;
       transition: background 0.3s ease;
-      font-family: 'Orbitron', sans-serif;
     }
-
-    .btn:hover {
-      background: #8e44ad;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-
-    @keyframes popUp {
-      from { opacity: 0; transform: scale(0.8); }
-      to { opacity: 1; transform: scale(1); }
-    }
-
+    .btn:hover { background: #8e44ad; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes popUp { from { opacity: 0; transform: scale(0.8);} to { opacity: 1; transform: scale(1);} }
     .hidden { display: none; }
+    #main { display: none; padding: 2rem; font-size: 1.2rem; }
 
-    #main {
-      display: none;
-      padding: 2rem;
+    /* === Pure CSS Bottom Ticker === */
+    @keyframes ticker {
+      0% { transform: translate3d(0, 0, 0); }
+      100% { transform: translate3d(-100%, 0, 0); }
+    }
+    .ticker-wrap {
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      overflow: hidden;
+      height: 3rem;
+      background-color: rgba(0,0,0,0.9);
+      padding-left: 100%;
+      box-sizing: content-box;
+      z-index: 20;
+    }
+    .ticker {
+      display: inline-block;
+      height: 3rem;
+      line-height: 3rem;
+      white-space: nowrap;
+      padding-right: 100%;
+      box-sizing: content-box;
+      animation: ticker 30s linear infinite;
+    }
+    .ticker__item {
+      display: inline-block;
+      padding: 0 2rem;
       font-size: 1.2rem;
+      color: #6c5ce7;
     }
   </style>
 </head>
 <body>
 
-  <!-- Background Layer -->
+  <!-- Floating cards background -->
   <div id="background"></div>
 
   <!-- Modal -->
@@ -133,37 +196,40 @@
     </div>
   </div>
 
-  <!-- Main content -->
+  <!-- Main -->
   <div id="main">
     <h1>Hello, I’m Rishabh Ghosh</h1>
     <p>This is my homepage. More content coming soon!</p>
   </div>
 
+  <!-- Bottom Ticker -->
+  <div class="ticker-wrap">
+    <div class="ticker" id="ticker"></div>
+  </div>
+
   <script>
-    // Animate background with tickers + cards
+    // Generate floating random cards
     const background = document.getElementById('background');
-    const tickers = ["AAPL 195.50 ▲", "TSLA 255.20 ▼", "MSFT 430.10 ▲", "BTC 58,250 ▼", "ETH 2,350 ▲"];
-    
-    function random(min, max) { return Math.random() * (max - min) + min; }
+    const suits = ["heart", "spade", "diamond", "club", "joker"];
+    const values = ["A","2","3","4","5","6","7","8","9","10","J","Q","K","JK"];
 
-    function createFloatingElement() {
-      const el = document.createElement('div');
-      if (Math.random() > 0.5) {
-        el.className = 'ticker';
-        el.textContent = tickers[Math.floor(Math.random() * tickers.length)];
-      } else {
-        el.className = 'card';
-        el.textContent = "Order #" + Math.floor(Math.random()*9999);
-      }
+    function random(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+
+    function createCard() {
+      const el = document.createElement('span');
+      el.className = "card";
+      const suit = suits[random(0, suits.length-1)];
+      const val = values[random(0, values.length-1)];
+      el.setAttribute("data-seed", suit);
+      el.style.setProperty("--data-value", `"${val}"`);
+      el.innerHTML = `<div class="core"></div>`;
       el.style.left = random(0, 100) + "vw";
-      el.style.animationDuration = random(8, 20) + "s";
+      el.style.animationDuration = random(12, 25) + "s";
       background.appendChild(el);
-
-      // Remove after animation
-      setTimeout(() => el.remove(), 20000);
+      setTimeout(() => el.remove(), 26000);
     }
 
-    setInterval(createFloatingElement, 1000);
+    setInterval(createCard, 1500);
 
     // Modal logic
     function enterSite() {
@@ -171,6 +237,21 @@
       document.body.style.overflow = 'auto';
       document.getElementById('main').style.display = 'block';
     }
+
+    // Load prices.json dynamically
+    fetch("prices.json")
+      .then(r => r.json())
+      .then(data => {
+        const tickerDiv = document.getElementById("ticker");
+        tickerDiv.innerHTML = "";
+        data.prices.forEach(item => {
+          const el = document.createElement("div");
+          el.className = "ticker__item";
+          el.textContent = item;
+          tickerDiv.appendChild(el);
+        });
+      })
+      .catch(err => console.error("Failed to load prices.json", err));
   </script>
 </body>
 </html>

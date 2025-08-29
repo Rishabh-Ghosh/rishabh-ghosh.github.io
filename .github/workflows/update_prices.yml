@@ -1,0 +1,33 @@
+name: Update Prices
+
+on:
+  schedule:
+    - cron: "0 * * * *"   # every hour
+  workflow_dispatch:       # allow manual trigger from Actions tab
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
+        run: pip install yfinance
+
+      - name: Run update script
+        run: python update_prices.py
+
+      - name: Commit updated prices.json
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add prices.json
+          git commit -m "Update stock prices" || echo "No changes to commit"
+          git push
