@@ -5,68 +5,44 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Rishabh Ghosh</title>
 
-  <!-- Futuristic Font -->
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+  <!-- Futuristic + Readable Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
 
   <style>
-    :root {
-      --heart: "♥️";
-      --spade: "♠️";
-      --diamond: "♦️";
-      --club: "♣️";
-      --joker: "🤡";
-
-      --color-red: #e22227;
-      --color-bg-red: #fee3e2;
-
-      --color-black: #1c1a1d;
-      --color-bg-black: #e6e6e6;
-
-      --color-yellow: #de8f5f;
-      --color-bg-yellow: #fff8de;
-
-      --color-white: #fff;
-    }
-
     body {
       margin: 0;
-      font-family: 'Orbitron', sans-serif;
+      font-family: 'Inter', sans-serif; /* readable for main */
       background-color: #0d0d1a;
       color: #fff;
       overflow: hidden;
-      padding-bottom: 4rem; /* space for ticker */
+      padding-bottom: 4rem;
     }
 
-    /* === Floating Cards Background === */
+    /* Floating cards */
     .card {
       --data-value: "?";
       position: absolute;
       display: flex;
       width: 60px;
       aspect-ratio: 0.7/1;
-      background: var(--color-white);
+      background: #fff;
       border-radius: 6px;
-      overflow: hidden;
-      border: 1px solid var(--color-black);
+      border: 1px solid #1c1a1d;
       align-items: center;
       justify-content: center;
       font-size: 14px;
       font-weight: bold;
       text-align: center;
-      white-space: pre-wrap;
-      opacity: 0.7;
+      opacity: 0.9;
       animation: floatUp linear infinite;
     }
-
-    .card::before,
-    .card::after {
+    .card::before, .card::after {
       position: absolute;
-      background: var(--color-white);
+      background: #fff;
       z-index: 10;
       padding: 4px;
       border-radius: 50%;
     }
-
     .card::before { top: 0; left: 0; }
     .card::after { bottom: 0; right: 0; transform: rotate(-180deg); }
 
@@ -79,36 +55,30 @@
       justify-content: center;
       font-size: 1.5rem;
     }
-    .core::before {
-      content: var(--data-value);
-    }
+    .core::before { content: var(--data-value); }
 
-    [data-seed="heart"] { color: var(--color-red); }
-    [data-seed="heart"]::before, [data-seed="heart"]::after { content: var(--heart); }
-    [data-seed="heart"] .core { background-color: var(--color-bg-red); }
+    [data-seed="heart"] { color: #e22227; }
+    [data-seed="heart"]::before, [data-seed="heart"]::after { content: "♥️"; }
+    [data-seed="heart"] .core { background-color: #fee3e2; }
 
-    [data-seed="spade"] { color: var(--color-black); }
-    [data-seed="spade"]::before, [data-seed="spade"]::after { content: var(--spade); }
-    [data-seed="spade"] .core { background-color: var(--color-bg-black); }
+    [data-seed="spade"] { color: #1c1a1d; }
+    [data-seed="spade"]::before, [data-seed="spade"]::after { content: "♠️"; }
+    [data-seed="spade"] .core { background-color: #e6e6e6; }
 
-    [data-seed="diamond"] { color: var(--color-red); }
-    [data-seed="diamond"]::before, [data-seed="diamond"]::after { content: var(--diamond); }
-    [data-seed="diamond"] .core { background-color: var(--color-bg-red); }
+    [data-seed="diamond"] { color: #e22227; }
+    [data-seed="diamond"]::before, [data-seed="diamond"]::after { content: "♦️"; }
+    [data-seed="diamond"] .core { background-color: #fee3e2; }
 
-    [data-seed="club"] { color: var(--color-black); }
-    [data-seed="club"]::before, [data-seed="club"]::after { content: var(--club); }
-    [data-seed="club"] .core { background-color: var(--color-bg-black); }
-
-    [data-seed="joker"] { color: var(--color-yellow); }
-    [data-seed="joker"]::before, [data-seed="joker"]::after { content: var(--joker); }
-    [data-seed="joker"] .core { background-color: var(--color-bg-yellow); }
+    [data-seed="club"] { color: #1c1a1d; }
+    [data-seed="club"]::before, [data-seed="club"]::after { content: "♣️"; }
+    [data-seed="club"] .core { background-color: #e6e6e6; }
 
     @keyframes floatUp {
       from { transform: translateY(110vh) rotate(0deg); }
       to { transform: translateY(-120vh) rotate(360deg); }
     }
 
-    /* === Modal === */
+    /* Modal */
     .modal {
       position: fixed;
       top: 0; left: 0;
@@ -119,6 +89,7 @@
       justify-content: center;
       animation: fadeIn 1s ease forwards;
       z-index: 10;
+      font-family: 'Orbitron', sans-serif;
     }
     .modal-content {
       background: #14142b;
@@ -142,14 +113,23 @@
       cursor: pointer;
       font-size: 1rem;
       transition: background 0.3s ease;
+      font-family: 'Orbitron', sans-serif;
     }
     .btn:hover { background: #8e44ad; }
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     @keyframes popUp { from { opacity: 0; transform: scale(0.8);} to { opacity: 1; transform: scale(1);} }
     .hidden { display: none; }
-    #main { display: none; padding: 2rem; font-size: 1.2rem; }
 
-    /* === Pure CSS Bottom Ticker === */
+    /* Main */
+    #main {
+      display: none;
+      padding: 2rem;
+      font-size: 1.3rem;
+      font-weight: 500;
+      line-height: 1.6;
+    }
+
+    /* Ticker */
     @keyframes ticker {
       0% { transform: translate3d(0, 0, 0); }
       100% { transform: translate3d(-100%, 0, 0); }
@@ -164,6 +144,7 @@
       padding-left: 100%;
       box-sizing: content-box;
       z-index: 20;
+      font-family: 'Orbitron', sans-serif;
     }
     .ticker {
       display: inline-block;
@@ -184,7 +165,7 @@
 </head>
 <body>
 
-  <!-- Floating cards background -->
+  <!-- Floating cards -->
   <div id="background"></div>
 
   <!-- Modal -->
@@ -198,23 +179,22 @@
 
   <!-- Main -->
   <div id="main">
-    <h1>Hello, I’m Rishabh Ghosh</h1>
-    <p>This is my homepage. More content coming soon!</p>
+    <p>Prev at Jane Street, IMC Trading, JP Morgan</p>
+    <p>Harvard Math 25'</p>
   </div>
 
-  <!-- Bottom Ticker -->
+  <!-- Ticker -->
   <div class="ticker-wrap">
     <div class="ticker" id="ticker"></div>
   </div>
 
   <script>
-    // Generate floating random cards
+    // Floating cards
     const background = document.getElementById('background');
-    const suits = ["heart", "spade", "diamond", "club", "joker"];
-    const values = ["A","2","3","4","5","6","7","8","9","10","J","Q","K","JK"];
+    const suits = ["heart", "spade", "diamond", "club"];
+    const values = ["A","2","3","4","5","6","7","8","9","10","J","Q","K"];
 
     function random(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
-
     function createCard() {
       const el = document.createElement('span');
       el.className = "card";
@@ -228,8 +208,7 @@
       background.appendChild(el);
       setTimeout(() => el.remove(), 26000);
     }
-
-    setInterval(createCard, 1500);
+    setInterval(createCard, 1200);
 
     // Modal logic
     function enterSite() {
@@ -238,20 +217,45 @@
       document.getElementById('main').style.display = 'block';
     }
 
+    // Fallback tickers
+    const fallbackTickers = [
+      "TD 85.20 ▲", "BABA 72.15 ▼", "GAP 18.45 ▲", "ZS 170.80 ▲",
+      "GOOG 142.50 ▲", "TSLA 255.20 ▼", "IBIT 29.10 ▲", "MSTR 690.50 ▲",
+      "BBAI 3.25 ▼", "AMZN 142.80 ▲", "DELL 65.40 ▲", "CRM 225.75 ▼"
+    ];
+
     // Load prices.json dynamically
     fetch("prices.json")
       .then(r => r.json())
       .then(data => {
         const tickerDiv = document.getElementById("ticker");
         tickerDiv.innerHTML = "";
-        data.prices.forEach(item => {
+        if (data.prices && data.prices.length > 0) {
+          data.prices.forEach(item => {
+            const el = document.createElement("div");
+            el.className = "ticker__item";
+            el.textContent = item;
+            tickerDiv.appendChild(el);
+          });
+        } else {
+          fallbackTickers.forEach(item => {
+            const el = document.createElement("div");
+            el.className = "ticker__item";
+            el.textContent = item;
+            tickerDiv.appendChild(el);
+          });
+        }
+      })
+      .catch(err => {
+        console.error("Failed to load prices.json, using fallback", err);
+        const tickerDiv = document.getElementById("ticker");
+        fallbackTickers.forEach(item => {
           const el = document.createElement("div");
           el.className = "ticker__item";
           el.textContent = item;
           tickerDiv.appendChild(el);
         });
-      })
-      .catch(err => console.error("Failed to load prices.json", err));
+      });
   </script>
 </body>
 </html>
