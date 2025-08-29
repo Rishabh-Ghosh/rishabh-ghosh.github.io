@@ -32,7 +32,7 @@
       font-size: 14px;
       font-weight: bold;
       text-align: center;
-      opacity: 0.25; /* faint but visible */
+      opacity: 0.25;
       animation: floatUp linear infinite;
       color: black;
     }
@@ -56,10 +56,20 @@
       transform: rotate(180deg);
     }
 
-    /* Center core (big suit symbol) */
-    .core::before {
-      content: attr(data-suit);
-      font-size: 20px;
+    /* Core for pip grid */
+    .core {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      grid-template-rows: repeat(5, 1fr);
+      width: 100%;
+      height: 100%;
+      justify-items: center;
+      align-items: center;
+    }
+
+    .pip {
+      font-size: 12px;
+      line-height: 1;
     }
 
     /* Suit coloring */
@@ -198,151 +208,4 @@
       height: 3rem;
       line-height: 3rem;
       white-space: nowrap;
-      padding-right: 100%;
-      box-sizing: content-box;
-      animation: ticker 30s linear infinite;
-    }
-    .ticker__item {
-      display: inline-block;
-      padding: 0 2rem;
-      font-size: 1.2rem;
-    }
-    .up { color: #00ff88; }
-    .down { color: #ff4444; }
-  </style>
-</head>
-<body>
-
-  <!-- Floating cards -->
-  <div id="background"></div>
-
-  <!-- Modal -->
-  <div id="welcomeModal" class="modal">
-    <div class="modal-content">
-      <h1>Trade Confirmed ✅</h1>
-      <p>Welcome to my website.</p>
-      <button class="btn" onclick="enterSite()">Enter Site</button>
-    </div>
-  </div>
-
-  <!-- Bloomberg-style command bar -->
-  <div id="command-bar">
-    <span id="command-text"></span><span class="cursor"></span>
-  </div>
-
-  <!-- Clock -->
-  <div id="clock"></div>
-
-  <!-- Page views -->
-  <div id="views"></div>
-
-  <!-- Main -->
-  <div id="main">
-    <p>Prev at Jane Street, IMC Trading, JP Morgan</p>
-    <p>Harvard Math 25'</p>
-    <button class="btn" onclick="goAbout()">About</button>
-  </div>
-
-  <!-- Ticker -->
-  <div class="ticker-wrap">
-    <div class="ticker" id="ticker"></div>
-  </div>
-
-  <script>
-    // Floating cards on right 20%
-    const background = document.getElementById('background');
-    const suits = ["♥","♠","♦","♣"];
-    const values = ["A","2","3","4","5","6","7","8","9","10","J","Q","K"];
-
-    function random(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
-
-    function createCard() {
-      const el = document.createElement('span');
-      el.className = "card";
-      const suit = suits[random(0, suits.length-1)];
-      const val = values[random(0, values.length-1)];
-      el.setAttribute("data-value", val);
-      el.setAttribute("data-suit", suit);
-      el.innerHTML = `<div class="core"></div>`;
-      el.style.left = random(80, 100) + "vw"; // only in rightmost 20%
-      el.style.animationDuration = random(12, 25) + "s";
-      background.appendChild(el);
-      setTimeout(() => el.remove(), 26000);
-    }
-    setInterval(createCard, 1500);
-
-    // Modal logic
-    function enterSite() {
-      document.getElementById('welcomeModal').classList.add('hidden');
-      document.body.style.overflow = 'auto';
-      document.getElementById('main').style.display = 'block';
-      document.getElementById('command-bar').style.display = 'block';
-      document.getElementById('clock').style.display = 'block';
-      document.getElementById('views').style.display = 'block';
-    }
-
-    // Fallback tickers
-    const fallbackTickers = [
-      {sym: "TD", price: 85.20, change: +0.34},
-      {sym: "BABA", price: 72.15, change: -1.12},
-      {sym: "GAP", price: 18.45, change: +0.20},
-      {sym: "ZS", price: 170.80, change: +2.10},
-      {sym: "GOOG", price: 142.50, change: +0.50},
-      {sym: "TSLA", price: 255.20, change: -5.30},
-      {sym: "IBIT", price: 29.10, change: +0.15},
-      {sym: "MSTR", price: 690.50, change: +12.40},
-      {sym: "BBAI", price: 3.25, change: -0.05},
-      {sym: "AMZN", price: 142.80, change: +1.25},
-      {sym: "DELL", price: 65.40, change: +0.40},
-      {sym: "CRM", price: 225.75, change: -3.12},
-    ];
-
-    function renderTicker(data) {
-      const tickerDiv = document.getElementById("ticker");
-      tickerDiv.innerHTML = "";
-      data.forEach(stock => {
-        const el = document.createElement("div");
-        el.className = "ticker__item " + (stock.change >= 0 ? "up" : "down");
-        const arrow = stock.change >= 0 ? "▲" : "▼";
-        el.textContent = `${stock.sym} ${stock.price.toFixed(2)} ${arrow} (${stock.change.toFixed(2)})`;
-        tickerDiv.appendChild(el);
-      });
-    }
-
-    // Use fallback tickers (replace with live JSON parser later)
-    renderTicker(fallbackTickers);
-
-    // Bloomberg-style command bar typing
-    function goAbout() {
-      const text = "RISHABH US DES";
-      const cmd = document.getElementById("command-text");
-      cmd.innerHTML = "";
-      let i = 0;
-      const interval = setInterval(() => {
-        cmd.innerHTML += text[i];
-        i++;
-        if (i >= text.length) {
-          clearInterval(interval);
-          setTimeout(() => window.location.href = "about.html", 800);
-        }
-      }, 120);
-    }
-
-    // Live Clock
-    function updateClock() {
-      const now = new Date();
-      const time = now.toLocaleTimeString('en-US', { hour12: false });
-      document.getElementById('clock').textContent = time;
-    }
-    setInterval(updateClock, 1000);
-    updateClock();
-
-    // Page Views using countapi
-    fetch("https://api.countapi.xyz/hit/rishabh-ghosh.github.io/views")
-      .then(res => res.json())
-      .then(res => {
-        document.getElementById("views").textContent = "Views: " + res.value;
-      });
-  </script>
-</body>
-</html>
+      padding-right: 100
