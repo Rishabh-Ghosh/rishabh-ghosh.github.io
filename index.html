@@ -11,7 +11,7 @@
   <style>
     body {
       margin: 0;
-      font-family: 'Inter', sans-serif; /* readable for main */
+      font-family: 'Inter', sans-serif;
       background-color: #0d0d1a;
       color: #fff;
       overflow: hidden;
@@ -33,46 +33,10 @@
       font-size: 14px;
       font-weight: bold;
       text-align: center;
-      opacity: 0.9;
+      opacity: 0.15; /* 👈 less visible */
       animation: floatUp linear infinite;
     }
-    .card::before, .card::after {
-      position: absolute;
-      background: #fff;
-      z-index: 10;
-      padding: 4px;
-      border-radius: 50%;
-    }
-    .card::before { top: 0; left: 0; }
-    .card::after { bottom: 0; right: 0; transform: rotate(-180deg); }
-
-    .core {
-      display: flex;
-      width: 75%;
-      aspect-ratio: inherit;
-      border-radius: 4px;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.5rem;
-    }
     .core::before { content: var(--data-value); }
-
-    [data-seed="heart"] { color: #e22227; }
-    [data-seed="heart"]::before, [data-seed="heart"]::after { content: "♥️"; }
-    [data-seed="heart"] .core { background-color: #fee3e2; }
-
-    [data-seed="spade"] { color: #1c1a1d; }
-    [data-seed="spade"]::before, [data-seed="spade"]::after { content: "♠️"; }
-    [data-seed="spade"] .core { background-color: #e6e6e6; }
-
-    [data-seed="diamond"] { color: #e22227; }
-    [data-seed="diamond"]::before, [data-seed="diamond"]::after { content: "♦️"; }
-    [data-seed="diamond"] .core { background-color: #fee3e2; }
-
-    [data-seed="club"] { color: #1c1a1d; }
-    [data-seed="club"]::before, [data-seed="club"]::after { content: "♣️"; }
-    [data-seed="club"] .core { background-color: #e6e6e6; }
-
     @keyframes floatUp {
       from { transform: translateY(110vh) rotate(0deg); }
       to { transform: translateY(-120vh) rotate(360deg); }
@@ -116,6 +80,7 @@
       font-family: 'Orbitron', sans-serif;
     }
     .btn:hover { background: #8e44ad; }
+
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     @keyframes popUp { from { opacity: 0; transform: scale(0.8);} to { opacity: 1; transform: scale(1);} }
     .hidden { display: none; }
@@ -123,11 +88,34 @@
     /* Main */
     #main {
       display: none;
-      padding: 2rem;
+      padding: 4rem 2rem 2rem;
       font-size: 1.3rem;
       font-weight: 500;
       line-height: 1.6;
     }
+
+    /* Bloomberg-style command bar */
+    #command-bar {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%;
+      background: #111;
+      border-bottom: 2px solid #6c5ce7;
+      color: #0f0;
+      font-family: 'Orbitron', monospace;
+      font-size: 1.1rem;
+      padding: 0.5rem 1rem;
+      display: none;
+      z-index: 30;
+    }
+    #command-bar span.cursor {
+      display: inline-block;
+      width: 8px;
+      background: #0f0;
+      animation: blink 1s infinite;
+      margin-left: 2px;
+    }
+    @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0; } 100% { opacity: 1; } }
 
     /* Ticker */
     @keyframes ticker {
@@ -159,8 +147,9 @@
       display: inline-block;
       padding: 0 2rem;
       font-size: 1.2rem;
-      color: #6c5ce7;
     }
+    .up { color: #00ff88; }   /* green for ▲ */
+    .down { color: #ff4444; } /* red for ▼ */
   </style>
 </head>
 <body>
@@ -177,10 +166,16 @@
     </div>
   </div>
 
+  <!-- Bloomberg-style command bar -->
+  <div id="command-bar">
+    <span id="command-text"></span><span class="cursor"></span>
+  </div>
+
   <!-- Main -->
   <div id="main">
     <p>Prev at Jane Street, IMC Trading, JP Morgan</p>
     <p>Harvard Math 25'</p>
+    <button class="btn" onclick="goAbout()">About</button>
   </div>
 
   <!-- Ticker -->
@@ -208,54 +203,80 @@
       background.appendChild(el);
       setTimeout(() => el.remove(), 26000);
     }
-    setInterval(createCard, 1200);
+    setInterval(createCard, 1500);
 
     // Modal logic
     function enterSite() {
       document.getElementById('welcomeModal').classList.add('hidden');
       document.body.style.overflow = 'auto';
       document.getElementById('main').style.display = 'block';
+      document.getElementById('command-bar').style.display = 'block';
     }
 
     // Fallback tickers
     const fallbackTickers = [
-      "TD 85.20 ▲", "BABA 72.15 ▼", "GAP 18.45 ▲", "ZS 170.80 ▲",
-      "GOOG 142.50 ▲", "TSLA 255.20 ▼", "IBIT 29.10 ▲", "MSTR 690.50 ▲",
-      "BBAI 3.25 ▼", "AMZN 142.80 ▲", "DELL 65.40 ▲", "CRM 225.75 ▼"
+      {sym: "TD", price: 85.20, change: +0.34},
+      {sym: "BABA", price: 72.15, change: -1.12},
+      {sym: "GAP", price: 18.45, change: +0.20},
+      {sym: "ZS", price: 170.80, change: +2.10},
+      {sym: "GOOG", price: 142.50, change: +0.50},
+      {sym: "TSLA", price: 255.20, change: -5.30},
+      {sym: "IBIT", price: 29.10, change: +0.15},
+      {sym: "MSTR", price: 690.50, change: +12.40},
+      {sym: "BBAI", price: 3.25, change: -0.05},
+      {sym: "AMZN", price: 142.80, change: +1.25},
+      {sym: "DELL", price: 65.40, change: +0.40},
+      {sym: "CRM", price: 225.75, change: -3.12},
     ];
 
-    // Load prices.json dynamically
+    // Render ticker
+    function renderTicker(data) {
+      const tickerDiv = document.getElementById("ticker");
+      tickerDiv.innerHTML = "";
+      data.forEach(stock => {
+        const el = document.createElement("div");
+        el.className = "ticker__item " + (stock.change >= 0 ? "up" : "down");
+        const arrow = stock.change >= 0 ? "▲" : "▼";
+        el.textContent = `${stock.sym} ${stock.price} ${arrow} (${stock.change.toFixed(2)})`;
+        tickerDiv.appendChild(el);
+      });
+    }
+
+    // Try loading from prices.json
     fetch("prices.json")
       .then(r => r.json())
       .then(data => {
-        const tickerDiv = document.getElementById("ticker");
-        tickerDiv.innerHTML = "";
-        if (data.prices && data.prices.length > 0) {
-          data.prices.forEach(item => {
-            const el = document.createElement("div");
-            el.className = "ticker__item";
-            el.textContent = item;
-            tickerDiv.appendChild(el);
+        if (data && data.prices && data.prices.length > 0) {
+          // Convert into {sym, price, change}
+          const parsed = data.prices.map(txt => {
+            const parts = txt.split(" ");
+            return { sym: parts[0], price: parseFloat(parts[1]), change: 0 }; // TODO: extend parser
           });
+          renderTicker(parsed);
         } else {
-          fallbackTickers.forEach(item => {
-            const el = document.createElement("div");
-            el.className = "ticker__item";
-            el.textContent = item;
-            tickerDiv.appendChild(el);
-          });
+          renderTicker(fallbackTickers);
         }
       })
       .catch(err => {
         console.error("Failed to load prices.json, using fallback", err);
-        const tickerDiv = document.getElementById("ticker");
-        fallbackTickers.forEach(item => {
-          const el = document.createElement("div");
-          el.className = "ticker__item";
-          el.textContent = item;
-          tickerDiv.appendChild(el);
-        });
+        renderTicker(fallbackTickers);
       });
+
+    // Bloomberg-style command bar typing
+    function goAbout() {
+      const text = "RISHABH US DES";
+      const cmd = document.getElementById("command-text");
+      cmd.innerHTML = "";
+      let i = 0;
+      const interval = setInterval(() => {
+        cmd.innerHTML += text[i];
+        i++;
+        if (i >= text.length) {
+          clearInterval(interval);
+          setTimeout(() => window.location.href = "about.html", 800);
+        }
+      }, 120);
+    }
   </script>
 </body>
 </html>
