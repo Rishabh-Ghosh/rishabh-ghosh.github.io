@@ -214,7 +214,7 @@
   <!-- Modal -->
   <div id="welcomeModal" class="modal">
     <div class="modal-content">
-      <h1>Trade Confirmed ✅</h1>
+      <h1>Trade Confirmed </h1>
       <p>Welcome to my website.</p>
       <button class="btn" onclick="enterSite()">Enter Site</button>
     </div>
@@ -277,37 +277,48 @@
     }
 
     // Fallback tickers
-    const fallbackTickers = [
-      {sym: "TD", price: 85.20, change: +0.34},
-      {sym: "BABA", price: 72.15, change: -1.12},
-      {sym: "GAP", price: 18.45, change: +0.20},
-      {sym: "ZS", price: 170.80, change: +2.10},
-      {sym: "GOOG", price: 142.50, change: +0.50},
-      {sym: "TSLA", price: 255.20, change: -5.30},
-      {sym: "IBIT", price: 29.10, change: +0.15},
-      {sym: "MSTR", price: 690.50, change: +12.40},
-      {sym: "BBAI", price: 3.25, change: -0.05},
-      {sym: "AMZN", price: 142.80, change: +1.25},
-      {sym: "DELL", price: 65.40, change: +0.40},
-      {sym: "CRM", price: 225.75, change: -3.12},
-      {sym: "SOGP", price: 16.10, change: +4.15},
-      {sym: "UVIX", price: 10.50, change: -2.40},
+// Render ticker
+  function renderTicker(data) {
+    const tickerDiv = document.getElementById("ticker");
+    tickerDiv.innerHTML = "";
+    data.forEach(item => {
+      const el = document.createElement("div");
+      el.className = "ticker__item " + (item.includes("▲") ? "up" : item.includes("▼") ? "down" : "");
+      el.textContent = item;
+      tickerDiv.appendChild(el);
+    });
+  }
 
-    ];
-
-    function renderTicker(data) {
-      const tickerDiv = document.getElementById("ticker");
-      tickerDiv.innerHTML = "";
-      data.forEach(stock => {
-        const el = document.createElement("div");
-        el.className = "ticker__item " + (stock.change >= 0 ? "up" : "down");
-        const arrow = stock.change >= 0 ? "▲" : "▼";
-        el.textContent = `${stock.sym} ${stock.price.toFixed(2)} ${arrow} (${stock.change.toFixed(2)})`;
-        tickerDiv.appendChild(el);
-      });
-    }
-
-    renderTicker(fallbackTickers);
+  // Try fetching live prices.json
+  fetch("docs/prices.json")
+    .then(res => {
+      if (!res.ok) throw new Error("Network error");
+      return res.json();
+    })
+    .then(json => {
+      renderTicker(json.prices);
+      console.log("Loaded live prices:", json);
+    })
+    .catch(err => {
+      console.warn("Falling back to hardcoded tickers:", err);
+      const fallbackTickers = [
+        "TD 85.20 ▲",
+        "BABA 72.15 ▼",
+        "GAP 18.45 ▲",
+        "ZS 170.80 ▲",
+        "GOOG 142.50 ▲",
+        "TSLA 255.20 ▼",
+        "IBIT 29.10 ▲",
+        "MSTR 690.50 ▲",
+        "BBAI 3.25 ▼",
+        "AMZN 142.80 ▲",
+        "DELL 65.40 ▲",
+        "CRM 225.75 ▼",
+        "SOGP 16.10 ▲",
+        "UVIX 10.50 ▼",
+      ];
+      renderTicker(fallbackTickers);
+    });
 
     // Bloomberg-style command bar typing
     function goAbout() {
