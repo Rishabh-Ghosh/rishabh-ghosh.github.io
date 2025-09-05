@@ -38,13 +38,13 @@ symbols = [
 
     # Small caps / Growth / Misc
     "ASAN", "BBAI", "IBIT", "ETHA", "BOXX", "SNOW", "SHOP", "ROKU",
-    "PLTR", "SQ", "COIN", "UBER", "LYFT", "DOCU", "ZM", "PATH",
+    "PLTR", "COIN", "UBER", "LYFT", "DOCU", "ZM", "PATH",
 
     # Utilities / REITs
     "NEE", "DUK", "SO", "D", "EXC", "PLD", "O", "AMT", "CCI",
 
     # International ADRs
-    "BABA", "TCEHY", "NIO", "JD", "PDD", "RIO", "SNP", "TM", "HMC"
+    "BABA", "TCEHY", "NIO", "JD", "PDD", "RIO", "TM", "HMC"
 ]
 
 
