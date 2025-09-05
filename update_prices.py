@@ -7,7 +7,8 @@ symbols = ["AAPL", "TSLA", "MSFT", "BTC-USD", "ETH-USD"]
 prices = []
 for sym in symbols:
     ticker = yf.Ticker(sym)
-    data = ticker.history(period="1d")
+    data = ticker.history(period="2d")  # changed to 2 days
+
     if not data.empty:
         last_price = round(data["Close"].iloc[-1], 2)
         prev_price = round(data["Close"].iloc[-2], 2) if len(data) > 1 else last_price
