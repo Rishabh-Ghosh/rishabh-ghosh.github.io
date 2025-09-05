@@ -5,12 +5,48 @@ from pathlib import Path
 
 # Ensure docs folder exists
 Path("docs").mkdir(parents=True, exist_ok=True)
-
 symbols = [
-    "AAPL", "TSLA", "MSFT", "S", "SPY", "QQQ", "V", "MA",
-    "DAL", "UAL", "ASAN", "BBAI", "IBIT", "ETHA", "C",
-    "JPM", "XOM", "AVGO", "CRM", "BOXX", "TLT"
+    # Tech giants
+    "AAPL", "MSFT", "GOOG", "GOOGL", "AMZN", "META", "NVDA", "TSLA",
+    "AMD", "INTC", "QCOM", "AVGO", "ADBE", "CRM", "ORCL", "CSCO",
+
+    # ETFs & Index funds
+    "SPY", "QQQ", "DIA", "IWM", "TLT", "HYG", "LQD", "XLF", "XLE",
+    "XLK", "XLY", "XLV", "XLI", "XLB", "XLU", "XLRE", "ARKK", "VTI",
+
+    # Banks & Finance
+    "JPM", "BAC", "WFC", "C", "GS", "MS", "BLK", "SCHW", "BX", "V",
+    "MA", "PYPL", "AXP",
+
+    # Airlines & Travel
+    "DAL", "UAL", "AAL", "LUV", "RCL", "CCL", "NCLH", "EXPE", "BKNG",
+
+    # Energy & Industrials
+    "XOM", "CVX", "COP", "SLB", "HAL", "PSX", "BP", "SHEL", "GE",
+    "CAT", "DE", "BA", "MMM", "HON", "RTX", "LMT", "NOC",
+
+    # Consumer & Retail
+    "WMT", "TGT", "COST", "HD", "LOW", "NKE", "SBUX", "MCD", "KO",
+    "PEP", "PG", "CL", "KMB", "UL", "MO", "PM",
+
+    # Healthcare & Pharma
+    "JNJ", "PFE", "MRK", "BMY", "ABBV", "LLY", "AMGN", "GILD",
+    "CVS", "UNH", "HUM", "CI",
+
+    # Telecom & Media
+    "T", "VZ", "TMUS", "DIS", "NFLX", "CMCSA", "CHTR", "PARA",
+
+    # Small caps / Growth / Misc
+    "ASAN", "BBAI", "IBIT", "ETHA", "BOXX", "SNOW", "SHOP", "ROKU",
+    "PLTR", "SQ", "COIN", "UBER", "LYFT", "DOCU", "ZM", "PATH",
+
+    # Utilities / REITs
+    "NEE", "DUK", "SO", "D", "EXC", "PLD", "O", "AMT", "CCI",
+
+    # International ADRs
+    "BABA", "TCEHY", "NIO", "JD", "PDD", "RIO", "SNP", "TM", "HMC"
 ]
+
 
 prices = []
 for sym in symbols:
