@@ -7,7 +7,7 @@ from pathlib import Path
 # Ensure docs folder exists
 Path("docs").mkdir(parents=True, exist_ok=True)
 
-symbols = ["AAPL", "TSLA", "MSFT", "BTC-USD", "ETH-USD"]
+symbols = ["AAPL", "TSLA", "MSFT", "S", "SPY","QQQ","V","MA","DAL","UAL","ASAN","BBAI","IBIT","ETHA","C","JPM","XOM","AVGO","CRM","BOXX","TLT"]
 
 prices = []
 for sym in symbols:
