@@ -455,7 +455,7 @@
 
         // 1. Draw Dotted Mandelbrot Lattice with Interactive Modes
         const glowRadius = 220;
-        const planeGlowRadius = 150;
+        const planeGlowRadius = 260;
 
         const midX = (width / 2) + Math.sin(time * 3.5) * 80 + Math.sin(time * 7) * 25;
         const obiRatio = Math.sin(time * 2.8);
@@ -602,14 +602,13 @@
                     const pdy = plane.y - pt.y;
                     const pdist = Math.sqrt(pdx * pdx + pdy * pdy);
                     if (pdist < planeGlowRadius) {
-                        planeProximity = Math.pow(1 - pdist / planeGlowRadius, 2);
+                        planeProximity = Math.pow(1 - pdist / planeGlowRadius, 1.5);
                     }
                 }
 
                 const lifeState = (isLifeActive && pt.gridI < gridCols && pt.gridJ < gridRows) ? lifeGrid[pt.gridI][pt.gridJ] : 0;
 
                 const pulse = Math.sin(time * 1.5 + pt.x * 0.008 + pt.y * 0.008) * 0.5 + 0.5;
-                const combinedBoost = proximity + planeProximity * 1.6;
 
                 if (lifeState > 0) {
                     const lifeAlpha = Math.min(0.95, 0.55 + (lifeState * 0.08));
@@ -620,12 +619,12 @@
                     ctx.fillStyle = colors.lifeColor(lifeAlpha);
                     ctx.fill();
                 } else {
-                    const alpha = Math.min(0.22, colors.boundaryBaseAlpha * (1 + combinedBoost * 0.8 + pulse * 0.2));
-                    const radius = pt.baseRadius * (1 + combinedBoost * 0.3);
+                    const alpha = Math.min(0.70, colors.boundaryBaseAlpha * (1 + proximity * 0.8 + pulse * 0.2) + planeProximity * 0.58);
+                    const radius = pt.baseRadius * (1 + proximity * 0.3 + planeProximity * 1.6);
 
                     ctx.beginPath();
                     ctx.arc(pt.x, pt.y, radius, 0, Math.PI * 2);
-                    ctx.fillStyle = colors.boundaryColor(alpha);
+                    ctx.fillStyle = planeProximity > 0.08 ? colors.lifeColor(alpha) : colors.boundaryColor(alpha);
                     ctx.fill();
                 }
             }
