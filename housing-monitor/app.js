@@ -42,61 +42,41 @@ function calculateCommuteTo51Astor(lat, lng, neighborhood, borough) {
     const bullet7 = `<span class="mta-bullet mta-7">7</span>`;
     const bulletG = `<span class="mta-bullet mta-g">G</span>`;
 
-    let totalTime = "12 min";
-    let routeHtml = `${bullet6} + 🚶 3 min`;
+    let badgeHtml = `${bullet6}🚶 11 min`;
 
     if (neigh.includes('east village') || neigh.includes('noho') || neigh.includes('greenwich village')) {
         const walkMin = Math.max(4, Math.round(distMiles * 20));
-        totalTime = `${walkMin} min`;
-        routeHtml = `🚶 ${walkMin} min`;
+        badgeHtml = `🚶 ${walkMin} min`;
     } else if (neigh.includes('west village')) {
-        totalTime = "14 min";
-        routeHtml = `🚶 14 min`;
+        badgeHtml = `🚶 14 min`;
     } else if (neigh.includes('soho') || neigh.includes('nolita')) {
-        totalTime = "8 min";
-        routeHtml = `${bullet6} + 🚶 3 min`;
+        badgeHtml = `${bullet6}🚶 8 min`;
     } else if (neigh.includes('flatiron') || neigh.includes('gramercy')) {
-        totalTime = "7 min";
-        routeHtml = `${bullet6} + 🚶 3 min`;
+        badgeHtml = `${bullet6}🚶 7 min`;
     } else if (neigh.includes('chelsea')) {
-        totalTime = "12 min";
-        routeHtml = `${bulletL} + 🚶 4 min`;
+        badgeHtml = `${bulletL}🚶 12 min`;
     } else if (neigh.includes('upper east side')) {
-        totalTime = "16 min";
-        routeHtml = `${bullet6} + 🚶 2 min`;
+        badgeHtml = `${bullet6}🚶 16 min`;
     } else if (neigh.includes('upper west side')) {
-        totalTime = "22 min";
-        routeHtml = `${bullet1} + 🚶 5 min`;
+        badgeHtml = `${bullet1}🚶 22 min`;
     } else if (neigh.includes('dumbo')) {
-        totalTime = "18 min";
-        routeHtml = `${bulletF} + 🚶 5 min`;
+        badgeHtml = `${bulletF}🚶 18 min`;
     } else if (neigh.includes('williamsburg')) {
-        totalTime = "15 min";
-        routeHtml = `${bulletL} + 🚶 5 min`;
+        badgeHtml = `${bulletL}🚶 15 min`;
     } else if (neigh.includes('greenpoint')) {
-        totalTime = "24 min";
-        routeHtml = `${bulletG} + ${bulletL} + 🚶 4 min`;
+        badgeHtml = `${bulletG}${bulletL}🚶 24 min`;
     } else if (neigh.includes('cobble hill')) {
-        totalTime = "20 min";
-        routeHtml = `${bulletF} + 🚶 5 min`;
+        badgeHtml = `${bulletF}🚶 20 min`;
     } else if (neigh.includes('tribeca')) {
-        totalTime = "11 min";
-        routeHtml = `${bullet6} + 🚶 3 min`;
+        badgeHtml = `${bullet6}🚶 11 min`;
     } else if (neigh.includes('long island city')) {
-        totalTime = "18 min";
-        routeHtml = `${bullet7} + ${bullet6} + 🚶 2 min`;
+        badgeHtml = `${bullet7}${bullet6}🚶 18 min`;
     } else {
         const estMin = Math.max(8, Math.round(distMiles * 12 + 5));
-        totalTime = `${estMin} min`;
-        routeHtml = `${bullet6} + 🚶 4 min`;
+        badgeHtml = `${bullet6}🚶 ${estMin} min`;
     }
 
-    return {
-        totalTime: totalTime,
-        miles: `${distMiles} mi`,
-        routeHtml: routeHtml,
-        fullSummary: `<strong>${totalTime}</strong> (${distMiles} mi to 51 Astor Pl) • ${routeHtml}`
-    };
+    return badgeHtml;
 }
 
 function generateZillowUrl(address, neighborhood, borough) {
@@ -320,7 +300,7 @@ function renderList() {
 
         const zillowUrl = item.zillowUrl || generateZillowUrl(item.address, item.neighborhood, item.borough || 'Manhattan');
 
-        const commute = calculateCommuteTo51Astor(
+        const commuteBadge = calculateCommuteTo51Astor(
             item.coordinates ? item.coordinates.lat : 0, 
             item.coordinates ? item.coordinates.lng : 0, 
             item.neighborhood, 
@@ -357,11 +337,9 @@ function renderList() {
                 <span class="meta-dot">•</span>
                 <span>${item.sqft} sqft ($${item.pricePerSqft}/sqft)</span>
                 <span class="meta-dot">•</span>
+                <span title="Commute to 51 Astor Pl">${commuteBadge}</span>
+                <span class="meta-dot">•</span>
                 ${govTagHtml}
-            </div>
-
-            <div class="entry-commute-bar">
-                🏢 <strong>Commute to 51 Astor Pl:</strong> ${commute.time} (${commute.miles}) — ${commute.route}
             </div>
         `;
 
