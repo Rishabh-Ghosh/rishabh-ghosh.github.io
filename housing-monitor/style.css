@@ -423,12 +423,15 @@ html, body {
     font-family: var(--font-serif);
     font-size: 1.08rem;
     font-weight: 300;
-    opacity: 0.88;
+    opacity: 0.92;
     background: rgba(0, 0, 0, 0.03);
-    padding: 0.4rem 0.8rem;
+    padding: 0.45rem 0.85rem;
     border-radius: 4px;
     border-left: 2px solid var(--text-color);
     margin-top: 0.2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -436,6 +439,32 @@ html, body {
         background: rgba(255, 255, 255, 0.04);
     }
 }
+
+/* MTA Subway Bullets */
+.mta-bullet {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 17px;
+    height: 17px;
+    border-radius: 50%;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1;
+    margin: 0 2px;
+    vertical-align: middle;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+.mta-456 { background-color: #00933C; color: #ffffff; }
+.mta-123 { background-color: #EE352E; color: #ffffff; }
+.mta-nrw { background-color: #FCCC0A; color: #000000; }
+.mta-ace { background-color: #0039A6; color: #ffffff; }
+.mta-bdfm { background-color: #FF6319; color: #ffffff; }
+.mta-7 { background-color: #B933AD; color: #ffffff; }
+.mta-l { background-color: #A7A9AC; color: #ffffff; }
+.mta-g { background-color: #6CBE45; color: #ffffff; }
 
 .entry-title {
     font-family: var(--font-serif);
