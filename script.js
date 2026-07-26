@@ -189,8 +189,12 @@
                     const pt = {
                         gridI: i,
                         gridJ: j,
+                        origX: sx,
+                        origY: sy,
                         x: sx,
                         y: sy,
+                        vx: 0,
+                        vy: 0,
                         iter: iter,
                         normIter: iter / maxIter,
                         baseRadius: iter === maxIter ? 1.0 : (iter > 15 ? 1.3 : 0.9)
@@ -377,8 +381,8 @@
         time += 0.005;
         const colors = getColors();
 
-        mouseX += (targetMouseX - mouseX) * 0.03;
-        mouseY += (targetMouseY - mouseY) * 0.03;
+        mouseX += (targetMouseX - mouseX) * 0.015;
+        mouseY += (targetMouseY - mouseY) * 0.015;
 
         ctx.clearRect(0, 0, width, height);
 
@@ -584,17 +588,30 @@
                     ctx.fill();
                 }
             } else {
-                // STANDARD LATTICE / GAME OF LIFE / MOUSE PROXIMITY
+                // STANDARD LATTICE / GAME OF LIFE / SLOW HEAVY PHYSICAL DISPLACEMENT
                 let proximity = 0;
                 if (isMouseOnScreen && !isHoveringGlobe && !isHoveringMathBio) {
-                    const dx = mouseX - pt.x;
-                    const dy = mouseY - pt.y;
+                    const dx = mouseX - pt.origX;
+                    const dy = mouseY - pt.origY;
                     const dist = Math.sqrt(dx * dx + dy * dy);
+                    const dispRadius = 180;
 
-                    if (dist < glowRadius) {
-                        proximity = Math.pow(1 - dist / glowRadius, 2);
+                    if (dist < dispRadius) {
+                        proximity = Math.pow(1 - dist / dispRadius, 2);
+                        const pushForce = Math.pow(1 - dist / dispRadius, 2) * 1.5;
+                        const angle = Math.atan2(dy, dx);
+                        pt.vx += Math.cos(angle) * pushForce * 0.35;
+                        pt.vy += Math.sin(angle) * pushForce * 0.35;
                     }
                 }
+
+                // Heavy spring return to origX, origY with heavy fluid damping
+                pt.vx += (pt.origX - pt.x) * 0.045;
+                pt.vy += (pt.origY - pt.y) * 0.045;
+                pt.vx *= 0.86;
+                pt.vy *= 0.86;
+                pt.x += pt.vx;
+                pt.y += pt.vy;
 
                 let planeProximity = 0;
                 if (plane.active) {
