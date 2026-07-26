@@ -159,8 +159,8 @@
 
     function generateLattice() {
         latticePoints = [];
-        gridCols = 130;
-        gridRows = Math.floor(gridCols / (width / height));
+        gridCols = width < 768 ? 75 : 130;
+        gridRows = Math.max(1, Math.floor(gridCols / (width / height)));
         const maxIter = 40;
 
         lifeGrid = Array(gridCols).fill(0).map(() => Array(gridRows).fill(0));
@@ -833,6 +833,26 @@
     window.addEventListener('mouseleave', () => {
         isMouseOnScreen = false;
     });
+
+    window.addEventListener('touchstart', (e) => {
+        if (e.touches.length > 0) {
+            targetMouseX = e.touches[0].clientX;
+            targetMouseY = e.touches[0].clientY;
+            isMouseOnScreen = true;
+        }
+    }, { passive: true });
+
+    window.addEventListener('touchmove', (e) => {
+        if (e.touches.length > 0) {
+            targetMouseX = e.touches[0].clientX;
+            targetMouseY = e.touches[0].clientY;
+            isMouseOnScreen = true;
+        }
+    }, { passive: true });
+
+    window.addEventListener('touchend', () => {
+        isMouseOnScreen = false;
+    }, { passive: true });
 
     if (nameLink) {
         nameLink.addEventListener('mouseenter', () => { isHoveringName = true; });
