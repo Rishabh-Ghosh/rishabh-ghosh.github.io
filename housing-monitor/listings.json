@@ -15,13 +15,14 @@
     "pricePerSqft": 6.35,
     "propertyType": "Rental",
     "source": "NYC Gov Direct",
-    "sourceUrl": "https://data.cityofnewyork.us/",
+    "sourceUrl": "https://data.cityofnewyork.us/Housing-Development/Building-Registration/hg8x-zxpr",
     "govRegId": "NYC-HPD-882941",
     "verified": true,
     "imageUrl": "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=800&q=80",
     "amenities": ["Doorman", "In-Unit Washer/Dryer", "Pets Allowed", "Hardwood Floors"],
     "detectedTime": "12 mins ago",
-    "coordinates": { "lat": 40.7356, "lng": -74.0084 }
+    "coordinates": { "lat": 40.7356, "lng": -74.0084 },
+    "zillowUrl": "https://www.zillow.com/homes/142-Perry-St-West-Village-Manhattan-NYC_rb/"
   },
   {
     "id": "streeteasy-202",
@@ -45,7 +46,8 @@
     "imageUrl": "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=800&q=80",
     "amenities": ["Private Balcony", "Gym", "Roof Deck", "Storage Unit"],
     "detectedTime": "28 mins ago",
-    "coordinates": { "lat": 40.7025, "lng": -73.9875 }
+    "coordinates": { "lat": 40.7025, "lng": -73.9875 },
+    "zillowUrl": "https://www.zillow.com/homes/85-Adams-St-DUMBO-Brooklyn-NYC_rb/"
   },
   {
     "id": "compass-303",
@@ -69,7 +71,8 @@
     "imageUrl": "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=800&q=80",
     "amenities": ["Fireplace", "Full Service Doorman", "Private Elevator", "Wine Cellar"],
     "detectedTime": "45 mins ago",
-    "coordinates": { "lat": 40.7834, "lng": -73.9556 }
+    "coordinates": { "lat": 40.7834, "lng": -73.9556 },
+    "zillowUrl": "https://www.zillow.com/homes/1150-Park-Ave-Upper-East-Side-Manhattan-NYC_rb/"
   },
   {
     "id": "nyc-gov-104",
@@ -87,13 +90,14 @@
     "pricePerSqft": 5.38,
     "propertyType": "Rental",
     "source": "NYC Gov Direct",
-    "sourceUrl": "https://data.cityofnewyork.us/",
+    "sourceUrl": "https://data.cityofnewyork.us/Housing-Development/Building-Registration/hg8x-zxpr",
     "govRegId": "NYC-HPD-903112",
     "verified": true,
     "imageUrl": "https://images.unsplash.com/photo-1554995207-c18c203602cb?auto=format&fit=crop&w=800&q=80",
     "amenities": ["Exposed Brick", "High Ceilings", "Dishwasher", "Bike Room"],
     "detectedTime": "1 hour ago",
-    "coordinates": { "lat": 40.7182, "lng": -73.9615 }
+    "coordinates": { "lat": 40.7182, "lng": -73.9615 },
+    "zillowUrl": "https://www.zillow.com/homes/220-Wythe-Ave-Williamsburg-Brooklyn-NYC_rb/"
   },
   {
     "id": "streeteasy-205",
@@ -117,7 +121,8 @@
     "imageUrl": "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=800&q=80",
     "amenities": ["Concierge", "Swimming Pool", "Fitness Center", "Tennis Court"],
     "detectedTime": "2 hours ago",
-    "coordinates": { "lat": 40.7468, "lng": -73.9578 }
+    "coordinates": { "lat": 40.7468, "lng": -73.9578 },
+    "zillowUrl": "https://www.zillow.com/homes/4545-Center-Blvd-Long-Island-City-Queens-NYC_rb/"
   },
   {
     "id": "compass-306",
@@ -141,7 +146,8 @@
     "imageUrl": "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80",
     "amenities": ["Private Garden", "Central Air", "Chef's Kitchen", "Washer/Dryer"],
     "detectedTime": "3 hours ago",
-    "coordinates": { "lat": 40.7901, "lng": -73.9782 }
+    "coordinates": { "lat": 40.7901, "lng": -73.9782 },
+    "zillowUrl": "https://www.zillow.com/homes/312-W-88th-St-Upper-West-Side-Manhattan-NYC_rb/"
   },
   {
     "id": "nyc-gov-107",
@@ -159,13 +165,14 @@
     "pricePerSqft": 5.05,
     "propertyType": "Rental",
     "source": "NYC Gov Direct",
-    "sourceUrl": "https://data.cityofnewyork.us/",
+    "sourceUrl": "https://data.cityofnewyork.us/Housing-Development/Building-Registration/hg8x-zxpr",
     "govRegId": "NYC-HPD-774019",
     "verified": true,
     "imageUrl": "https://images.unsplash.com/photo-1493809842364-78817add7ffb?auto=format&fit=crop&w=800&q=80",
     "amenities": ["Wood-Burning Fireplace", "Original Moldings", "Dishwasher", "Cats Allowed"],
     "detectedTime": "4 hours ago",
-    "coordinates": { "lat": 40.6885, "lng": -73.9935 }
+    "coordinates": { "lat": 40.6885, "lng": -73.9935 },
+    "zillowUrl": "https://www.zillow.com/homes/184-Warren-St-Cobble-Hill-Brooklyn-NYC_rb/"
   },
   {
     "id": "streeteasy-208",
@@ -189,6 +196,7 @@
     "imageUrl": "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=800&q=80",
     "amenities": ["Keyed Elevator", "Floor-to-Ceiling Windows", "Marble Countertops", "24hr Doorman"],
     "detectedTime": "5 hours ago",
-    "coordinates": { "lat": 40.7178, "lng": -74.0045 }
+    "coordinates": { "lat": 40.7178, "lng": -74.0045 },
+    "zillowUrl": "https://www.zillow.com/homes/68-Franklin-St-Tribeca-Manhattan-NYC_rb/"
   }
 ]
