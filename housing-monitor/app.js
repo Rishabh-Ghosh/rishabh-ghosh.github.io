@@ -181,11 +181,11 @@ async function loadListings() {
         storedListings = [];
     }
 
-    // Combine and deduplicate
+    // Combine and deduplicate - live and json items take priority
     const combinedMap = new Map();
+    jsonListings.forEach(item => combinedMap.set(item.id || item.address, item));
     liveGovItems.forEach(item => combinedMap.set(item.id || item.address, item));
-    storedListings.forEach(item => combinedMap.set(item.id || item.address, item));
-    jsonListings.forEach(item => {
+    storedListings.forEach(item => {
         if (!combinedMap.has(item.id || item.address)) {
             combinedMap.set(item.id || item.address, item);
         }
@@ -193,11 +193,12 @@ async function loadListings() {
 
     allListings = Array.from(combinedMap.values());
     
-    // Ensure all listings have zillowUrl
+    // Ensure all listings have zillowUrl and historical flags
     allListings.forEach(item => {
         if (!item.zillowUrl) {
             item.zillowUrl = generateZillowUrl(item.address, item.neighborhood, item.borough || 'Manhattan');
         }
+        item.isHistorical = true; // All listings in dataset belong to the 4-day window
     });
 
     saveListingsToStorage();
@@ -225,9 +226,8 @@ function applyFilters() {
     filteredListings = allListings.filter(item => {
         // Source & Historical Archive Filter
         if (activeSource === 'HISTORICAL') {
-            const time = (item.detectedTime || '').toLowerCase();
-            const isHist = item.isHistorical === true || time.includes('day') || time.includes('july') || time.includes('ago') || time.includes('hours');
-            if (!isHist) return false;
+            // Show all records from the 4-day archive window
+            return true;
         } else if (activeSource !== 'ALL') {
             if (item.source !== activeSource) return false;
         }
