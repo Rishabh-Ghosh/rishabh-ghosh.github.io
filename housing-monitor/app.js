@@ -170,18 +170,23 @@ async function loadListings() {
     // Fetch live entries from NYC Open Data SODA API
     const liveGovItems = await fetchLiveNYCOpenData();
 
-    // Load stored entries from localStorage & purge any mock "Main St" testing items
+    // Load stored entries from localStorage
     let storedListings = [];
     try {
         const saved = localStorage.getItem('nyc_housing_monitor_entries');
         if (saved) {
-            storedListings = JSON.parse(saved).filter(item => !item.address.includes('Main St'));
+            const parsed = JSON.parse(saved).filter(item => !item.address.includes('Main St'));
+            if (parsed.length >= 15) {
+                storedListings = parsed;
+            } else {
+                localStorage.removeItem('nyc_housing_monitor_entries');
+            }
         }
     } catch (e) {
         storedListings = [];
     }
 
-    // Combine and deduplicate - live and json items take priority
+    // Combine and deduplicate
     const combinedMap = new Map();
     jsonListings.forEach(item => combinedMap.set(item.id || item.address, item));
     liveGovItems.forEach(item => combinedMap.set(item.id || item.address, item));
@@ -198,7 +203,7 @@ async function loadListings() {
         if (!item.zillowUrl) {
             item.zillowUrl = generateZillowUrl(item.address, item.neighborhood, item.borough || 'Manhattan');
         }
-        item.isHistorical = true; // All listings in dataset belong to the 4-day window
+        item.isHistorical = true;
     });
 
     saveListingsToStorage();
