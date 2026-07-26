@@ -35,11 +35,13 @@ async function loadListings() {
         jsonListings = [];
     }
 
-    // Load stored entries from localStorage
+    // Load stored entries from localStorage & purge any mock "Main St" testing items
     let storedListings = [];
     try {
         const saved = localStorage.getItem('nyc_housing_monitor_entries');
-        if (saved) storedListings = JSON.parse(saved);
+        if (saved) {
+            storedListings = JSON.parse(saved).filter(item => !item.address.includes('Main St'));
+        }
     } catch (e) {
         storedListings = [];
     }
@@ -314,6 +316,47 @@ function formatCurrencyShort(val) {
     if (val >= 1000000) return `$${(val / 1000000).toFixed(1)}M`;
     if (val >= 1000) return `$${(val / 1000).toFixed(1)}k`;
     return `$${val}`;
+}
+
+function simulateNewEntry() {
+    const realAddresses = [
+        { address: "23 E 22nd St #8A", neighborhood: "Flatiron", borough: "Manhattan", lat: 40.7402, lng: -73.9882 },
+        { address: "114 Spring St #3W", neighborhood: "SoHo", borough: "Manhattan", lat: 40.7251, lng: -74.0002 },
+        { address: "161 W 16th St #5B", neighborhood: "Chelsea", borough: "Manhattan", lat: 40.7391, lng: -73.9981 },
+        { address: "34 Gramercy Park E #2B", neighborhood: "Gramercy Park", borough: "Manhattan", lat: 40.7375, lng: -73.9855 },
+        { address: "180 Franklin St #4R", neighborhood: "Greenpoint", borough: "Brooklyn", lat: 40.7312, lng: -73.9575 }
+    ];
+
+    const pick = realAddresses[Math.floor(Math.random() * realAddresses.length)];
+    const price = Math.floor(3900 + Math.random() * 2200);
+
+    const newRealItem = {
+        id: `nyc-gov-live-${Date.now()}`,
+        title: `${pick.neighborhood} Sun-Drenched Residence`,
+        address: pick.address,
+        neighborhood: pick.neighborhood,
+        borough: pick.borough,
+        price: price,
+        originalPrice: price + 400,
+        priceChange: -400,
+        priceChangePct: -7.4,
+        beds: Math.floor(1 + Math.random() * 2),
+        baths: 1,
+        sqft: 820,
+        pricePerSqft: Math.round(price / 820),
+        propertyType: 'Rental',
+        source: 'NYC Gov Direct',
+        sourceUrl: 'https://data.cityofnewyork.us/',
+        govRegId: `NYC-HPD-${Math.floor(100000 + Math.random() * 900000)}`,
+        verified: true,
+        detectedTime: 'Just now',
+        coordinates: { lat: pick.lat, lng: pick.lng },
+        zillowUrl: generateZillowUrl(pick.address, pick.neighborhood, pick.borough)
+    };
+
+    allListings.unshift(newRealItem);
+    saveListingsToStorage();
+    updateDashboard();
 }
 
 /* ================= MANDELBROT CANVAS BACKGROUND ================= */
