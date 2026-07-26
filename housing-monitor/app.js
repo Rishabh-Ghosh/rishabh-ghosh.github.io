@@ -225,7 +225,9 @@ function applyFilters() {
     filteredListings = allListings.filter(item => {
         // Source & Historical Archive Filter
         if (activeSource === 'HISTORICAL') {
-            if (!item.isHistorical && !item.detectedTime.includes('ago') && !item.detectedTime.includes('July')) return false;
+            const time = (item.detectedTime || '').toLowerCase();
+            const isHist = item.isHistorical === true || time.includes('day') || time.includes('july') || time.includes('ago') || time.includes('hours');
+            if (!isHist) return false;
         } else if (activeSource !== 'ALL') {
             if (item.source !== activeSource) return false;
         }
