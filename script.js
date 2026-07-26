@@ -344,9 +344,9 @@
                 bidColor: (a) => `rgba(180, 240, 210, ${a})`,
                 askColor: (a) => `rgba(240, 240, 235, ${a})`,
                 matchColor: (a) => `rgba(180, 240, 210, ${a})`,
-                linePrimary: 'rgba(240, 240, 235, 0.42)',
-                lineSecondary: 'rgba(180, 210, 255, 0.22)',
-                node: 'rgba(255, 255, 255, 0.65)'
+                linePrimary: 'rgba(240, 240, 235, 0.12)',
+                lineSecondary: 'rgba(180, 210, 255, 0.05)',
+                node: 'rgba(255, 255, 255, 0.15)'
             };
         } else {
             return {
@@ -356,9 +356,9 @@
                 bidColor: (a) => `rgba(20, 140, 90, ${a})`,
                 askColor: (a) => `rgba(20, 20, 20, ${a})`,
                 matchColor: (a) => `rgba(20, 140, 90, ${a})`,
-                linePrimary: 'rgba(20, 20, 20, 0.38)',
-                lineSecondary: 'rgba(60, 90, 140, 0.18)',
-                node: 'rgba(20, 20, 20, 0.6)'
+                linePrimary: 'rgba(20, 20, 20, 0.10)',
+                lineSecondary: 'rgba(60, 90, 140, 0.04)',
+                node: 'rgba(20, 20, 20, 0.14)'
             };
         }
     }
@@ -620,8 +620,8 @@
                     ctx.fillStyle = colors.lifeColor(lifeAlpha);
                     ctx.fill();
                 } else {
-                    const alpha = Math.min(0.95, colors.boundaryBaseAlpha * (1 + combinedBoost * 4.5 + pulse * 0.35));
-                    const radius = pt.baseRadius * (1 + combinedBoost * 1.4);
+                    const alpha = Math.min(0.22, colors.boundaryBaseAlpha * (1 + combinedBoost * 0.8 + pulse * 0.2));
+                    const radius = pt.baseRadius * (1 + combinedBoost * 0.3);
 
                     ctx.beginPath();
                     ctx.arc(pt.x, pt.y, radius, 0, Math.PI * 2);
@@ -806,13 +806,13 @@
                 }
 
                 ctx.strokeStyle = isMain ? colors.linePrimary : colors.lineSecondary;
-                ctx.lineWidth = isMain ? (isHoveringName ? 1.0 : 0.85) : 0.55;
+                ctx.lineWidth = isMain ? (isHoveringName ? 0.65 : 0.45) : 0.3;
                 ctx.stroke();
 
                 for (let i = 0; i < orbit.length; i += 3) {
                     const pt = orbit[i];
                     ctx.beginPath();
-                    ctx.arc(pt.sx, pt.sy, isMain ? 1.3 : 0.9, 0, Math.PI * 2);
+                    ctx.arc(pt.sx, pt.sy, isMain ? 0.8 : 0.5, 0, Math.PI * 2);
                     ctx.fillStyle = colors.node;
                     ctx.fill();
                 }
