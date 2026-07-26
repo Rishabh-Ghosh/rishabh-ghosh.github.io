@@ -18,14 +18,60 @@ document.addEventListener('DOMContentLoaded', async () => {
     updateDashboard();
 });
 
+function generateZillowUrl(address, neighborhood, borough) {
+    const cleanStr = `${address} ${neighborhood} ${borough} NYC`
+        .replace(/[#,/.]/g, '')
+        .trim()
+        .replace(/\s+/g, '-');
+    return `https://www.zillow.com/homes/${encodeURIComponent(cleanStr)}_rb/`;
+}
+
 async function loadListings() {
+    let jsonListings = [];
     try {
         const res = await fetch('listings.json');
-        allListings = await res.json();
+        jsonListings = await res.json();
     } catch (e) {
-        allListings = [];
+        jsonListings = [];
     }
+
+    // Load stored entries from localStorage
+    let storedListings = [];
+    try {
+        const saved = localStorage.getItem('nyc_housing_monitor_entries');
+        if (saved) storedListings = JSON.parse(saved);
+    } catch (e) {
+        storedListings = [];
+    }
+
+    // Combine and deduplicate
+    const combinedMap = new Map();
+    storedListings.forEach(item => combinedMap.set(item.id || item.address, item));
+    jsonListings.forEach(item => {
+        if (!combinedMap.has(item.id || item.address)) {
+            combinedMap.set(item.id || item.address, item);
+        }
+    });
+
+    allListings = Array.from(combinedMap.values());
+    
+    // Ensure all listings have zillowUrl
+    allListings.forEach(item => {
+        if (!item.zillowUrl) {
+            item.zillowUrl = generateZillowUrl(item.address, item.neighborhood, item.borough || 'Manhattan');
+        }
+    });
+
+    saveListingsToStorage();
     filteredListings = [...allListings];
+}
+
+function saveListingsToStorage() {
+    try {
+        localStorage.setItem('nyc_housing_monitor_entries', JSON.stringify(allListings));
+    } catch (e) {
+        console.warn('Unable to persist to localStorage');
+    }
 }
 
 function updateDashboard() {
@@ -124,6 +170,8 @@ function renderList() {
             ? `<span class="gov-badge">NYC Gov Direct (${item.govRegId || 'Verified'})</span>`
             : `<span>${item.source}</span>`;
 
+        const zillowUrl = item.zillowUrl || generateZillowUrl(item.address, item.neighborhood, item.borough || 'Manhattan');
+
         row.innerHTML = `
             <div class="entry-row-header">
                 <div class="entry-price-wrap">
@@ -132,9 +180,15 @@ function renderList() {
                     ${priceDropHtml}
                 </div>
 
-                <a href="${item.sourceUrl}" target="_blank" rel="noopener noreferrer" class="entry-source-link">
-                    View on ${item.source} ↗
-                </a>
+                <div class="entry-link-group">
+                    <a href="${zillowUrl}" target="_blank" rel="noopener noreferrer" class="entry-source-link zillow-link">
+                        View on Zillow ↗
+                    </a>
+                    <span class="sep">•</span>
+                    <a href="${item.sourceUrl}" target="_blank" rel="noopener noreferrer" class="entry-source-link">
+                        View on ${item.source} ↗
+                    </a>
+                </div>
             </div>
 
             <h2 class="entry-title">${item.title}</h2>

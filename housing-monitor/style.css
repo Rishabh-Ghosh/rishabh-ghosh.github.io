@@ -373,6 +373,12 @@ html, body {
     margin-left: 0.4rem;
 }
 
+.entry-link-group {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
 .entry-source-link {
     color: var(--text-color);
     text-decoration: none;
@@ -383,6 +389,12 @@ html, body {
     position: relative;
     padding-bottom: 2px;
     transition: opacity var(--transition-speed) ease;
+}
+
+.zillow-link {
+    color: #2563eb;
+    font-weight: 500;
+    opacity: 0.9;
 }
 
 .entry-source-link::after {
