@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NYC Housing Monitor</title>
+
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Minimalist NYC Housing Monitor tracking direct listings & price drops from NYC Gov Direct, StreetEasy, and Compass.">
+
+    <!-- Google Fonts: Cormorant Garamond (Serif) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&display=swap" rel="stylesheet">
+
+    <!-- Leaflet.js Mapping Library CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Mandelbrot Dotted Background Canvas -->
+    <canvas id="mandelbrot-canvas"></canvas>
+
+    <div class="app-container">
+        <!-- ================= MINIMALIST HEADER ================= -->
+        <header class="header">
+            <h1 class="title">
+                <a href="../index.html" class="home-link">Rishabh Ghosh</a>
+                <span class="sep">/</span>
+                <span class="page-name">NYC Housing Monitor</span>
+            </h1>
+
+            <div class="source-links">
+                <button class="source-btn active" data-source="ALL">All Entries</button>
+                <span class="dot">•</span>
+                <button class="source-btn" data-source="NYC Gov Direct">NYC Gov Direct</button>
+                <span class="dot">•</span>
+                <button class="source-btn" data-source="StreetEasy">StreetEasy</button>
+                <span class="dot">•</span>
+                <button class="source-btn" data-source="Compass">Compass</button>
+            </div>
+        </header>
+
+        <!-- ================= MINIMALIST STATS BAR ================= -->
+        <section class="stats-bar">
+            <div class="stat-item">
+                <span class="stat-num" id="stat-total">--</span>
+                <span class="stat-lbl">active</span>
+            </div>
+            <span class="stat-divider">/</span>
+            <div class="stat-item">
+                <span class="stat-num" id="stat-gov">--</span>
+                <span class="stat-lbl">gov verified</span>
+            </div>
+            <span class="stat-divider">/</span>
+            <div class="stat-item">
+                <span class="stat-num" id="stat-median">--</span>
+                <span class="stat-lbl">median price</span>
+            </div>
+            <span class="stat-divider">/</span>
+            <div class="stat-item">
+                <span class="stat-num" id="stat-psqft">--</span>
+                <span class="stat-lbl">avg $/sqft</span>
+            </div>
+            <span class="stat-divider">/</span>
+            <div class="stat-item">
+                <span class="stat-num drop-num" id="stat-topdrop">--</span>
+                <span class="stat-lbl">top price drop</span>
+            </div>
+        </section>
+
+        <!-- ================= MINIMALIST CONTROLS ================= -->
+        <section class="controls">
+            <div class="search-wrap">
+                <input type="text" id="search-input" placeholder="Search neighborhood or address (e.g. West Village, DUMBO, Tribeca)...">
+            </div>
+
+            <div class="filters">
+                <!-- Beds Filter -->
+                <div class="pill-set" id="beds-filter">
+                    <button class="pill active" data-beds="ANY">Any Beds</button>
+                    <button class="pill" data-beds="0">Studio</button>
+                    <button class="pill" data-beds="1">1 Bed</button>
+                    <button class="pill" data-beds="2">2 Beds</button>
+                    <button class="pill" data-beds="3">3+ Beds</button>
+                </div>
+
+                <!-- Sort & View -->
+                <select id="sort-select" class="min-select">
+                    <option value="NEWEST">Sort: Newest Detected</option>
+                    <option value="PRICE_LOW">Price: Low to High</option>
+                    <option value="PRICE_HIGH">Price: High to Low</option>
+                    <option value="PRICE_DROP">Biggest Price Drop %</option>
+                </select>
+
+                <div class="view-toggle">
+                    <button id="view-list" class="toggle-btn active">List</button>
+                    <button id="view-map" class="toggle-btn">Map</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= MAIN ENTRIES CONTAINER ================= -->
+        <main class="content">
+            <!-- List View -->
+            <div id="list-view" class="view-panel active">
+                <div id="entries-list" class="entries-list">
+                    <!-- Dynamic Minimalist Entry Rows Inserted Here -->
+                </div>
+            </div>
+
+            <!-- Map View -->
+            <div id="map-view" class="view-panel">
+                <div id="map-container"></div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Leaflet.js Mapping Library JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+    <!-- Application JS -->
+    <script src="app.js"></script>
+</body>
+</html>
