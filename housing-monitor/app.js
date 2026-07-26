@@ -16,7 +16,37 @@ document.addEventListener('DOMContentLoaded', async () => {
     initEventListeners();
     initMap();
     updateDashboard();
+
+    // Live Ingestion Polling loop every 20 seconds from NYC Gov SODA API
+    setInterval(async () => {
+        const freshItems = await fetchLiveNYCOpenData();
+        let newCount = 0;
+        freshItems.forEach(item => {
+            if (!allListings.some(l => l.id === item.id || l.address === item.address)) {
+                allListings.unshift(item);
+                newCount++;
+            }
+        });
+        if (newCount > 0) {
+            saveListingsToStorage();
+            updateDashboard();
+            showLiveToast(`⚡ ${newCount} new NYC Gov entry ingested!`);
+        }
+    }, 20000);
 });
+
+function showLiveToast(msg) {
+    let toast = document.getElementById('live-toast');
+    if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'live-toast';
+        toast.className = 'live-toast-banner';
+        document.body.appendChild(toast);
+    }
+    toast.textContent = msg;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 4000);
+}
 
 const ASTOR_PLACE_COORDS = { lat: 40.7297, lng: -73.9904 };
 

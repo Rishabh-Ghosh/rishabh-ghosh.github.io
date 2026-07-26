@@ -473,6 +473,30 @@ html, body {
     line-height: 1.35;
 }
 
+/* Live Toast Notification Banner */
+.live-toast-banner {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    background-color: var(--text-color);
+    color: var(--bg-color);
+    font-family: var(--font-serif);
+    font-size: 1.1rem;
+    padding: 0.75rem 1.4rem;
+    border-radius: 6px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+    z-index: 1000;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.4s ease, transform 0.4s ease;
+    pointer-events: none;
+}
+
+.live-toast-banner.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
 .entry-meta {
     font-size: 1.15rem;
     font-weight: 300;
