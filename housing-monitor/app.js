@@ -18,6 +18,120 @@ document.addEventListener('DOMContentLoaded', async () => {
     updateDashboard();
 });
 
+const ASTOR_PLACE_COORDS = { lat: 40.7297, lng: -73.9904 };
+
+function calculateCommuteTo51Astor(lat, lng, neighborhood, borough) {
+    const pLat = lat || 40.7300;
+    const pLng = lng || -73.9900;
+
+    const R = 3958.8; // Radius in miles
+    const dLat = (ASTOR_PLACE_COORDS.lat - pLat) * Math.PI / 180;
+    const dLng = (ASTOR_PLACE_COORDS.lng - pLng) * Math.PI / 180;
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+              Math.cos(pLat * Math.PI / 180) * Math.cos(ASTOR_PLACE_COORDS.lat * Math.PI / 180) *
+              Math.sin(dLng / 2) * Math.sin(dLng / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const distMiles = Math.round((R * c) * 10) / 10;
+
+    const neigh = (neighborhood || '').toLowerCase();
+
+    let transitInfo = {
+        time: "12 min",
+        route: "🚇 6 Train (Astor Pl) or 🚶 Walk",
+        miles: `${distMiles} mi`
+    };
+
+    if (neigh.includes('east village') || neigh.includes('noho') || neigh.includes('greenwich village')) {
+        const walkMin = Math.max(4, Math.round(distMiles * 20));
+        transitInfo = {
+            time: `${walkMin} min walk`,
+            route: `🚶 ${walkMin} min walk directly to 51 Astor Pl`,
+            miles: `${distMiles} mi`
+        };
+    } else if (neigh.includes('west village')) {
+        transitInfo = {
+            time: "14 min walk / 6 min bus",
+            route: `🚶 14 min walk (0.7 mi) OR 🚌 M8 Bus to 8th St / Astor Pl`,
+            miles: `${distMiles} mi`
+        };
+    } else if (neigh.includes('soho') || neigh.includes('nolita')) {
+        transitInfo = {
+            time: "8 min transit",
+            route: `🚇 6 Train (Spring St ➔ Astor Pl) OR 🚶 12 min walk`,
+            miles: `${distMiles} mi`
+        };
+    } else if (neigh.includes('flatiron') || neigh.includes('gramercy')) {
+        transitInfo = {
+            time: "7 min transit / walk",
+            route: `🚇 6 Train (23 St ➔ Astor Pl) OR 🚶 10 min walk via 3rd Ave`,
+            miles: `${distMiles} mi`
+        };
+    } else if (neigh.includes('chelsea')) {
+        transitInfo = {
+            time: "12 min transit",
+            route: `🚇 L Train (14 St/8th Ave ➔ Union Sq) + 4 min walk to Astor Pl`,
+            miles: `${distMiles} mi`
+        };
+    } else if (neigh.includes('upper east side')) {
+        transitInfo = {
+            time: "16 min transit",
+            route: `🚇 6 Local/Express (86 St ➔ Astor Pl)`,
+            miles: `${distMiles} mi`
+        };
+    } else if (neigh.includes('upper west side')) {
+        transitInfo = {
+            time: "22 min transit",
+            route: `🚇 1 Train (86 St ➔ 14 St) + 🚶 6 min walk to Astor Pl`,
+            miles: `${distMiles} mi`
+        };
+    } else if (neigh.includes('dumbo')) {
+        transitInfo = {
+            time: "18 min transit",
+            route: `🚇 F Train (York St ➔ B'way-Lafayette) + 🚶 5 min walk`,
+            miles: `${distMiles} mi`
+        };
+    } else if (neigh.includes('williamsburg')) {
+        transitInfo = {
+            time: "15 min transit",
+            route: `🚇 L Train (Bedford Ave ➔ 14 St/Union Sq) + 🚶 5 min walk`,
+            miles: `${distMiles} mi`
+        };
+    } else if (neigh.includes('greenpoint')) {
+        transitInfo = {
+            time: "24 min transit",
+            route: `🚇 G Train (Greenpoint Ave ➔ Court Sq) + E / L Train to 14th St`,
+            miles: `${distMiles} mi`
+        };
+    } else if (neigh.includes('cobble hill')) {
+        transitInfo = {
+            time: "20 min transit",
+            route: `🚇 F Train (Bergen St ➔ B'way-Lafayette) + 🚶 5 min walk`,
+            miles: `${distMiles} mi`
+        };
+    } else if (neigh.includes('tribeca')) {
+        transitInfo = {
+            time: "11 min transit",
+            route: `🚇 6 Train (Canal St ➔ Astor Pl) OR N/R/W (Canal St ➔ 8 St-NYU)`,
+            miles: `${distMiles} mi`
+        };
+    } else if (neigh.includes('long island city')) {
+        transitInfo = {
+            time: "18 min transit",
+            route: `🚇 7 Train (Vernon Blvd ➔ Grand Central) + 6 Train (Grand Central ➔ Astor Pl)`,
+            miles: `${distMiles} mi`
+        };
+    } else {
+        const estMin = Math.max(8, Math.round(distMiles * 12 + 6));
+        transitInfo = {
+            time: `${estMin} min transit`,
+            route: `🚇 NYC Subway to Astor Pl (6) or 8 St-NYU (N/R/W)`,
+            miles: `${distMiles} mi`
+        };
+    }
+
+    return transitInfo;
+}
+
 function generateZillowUrl(address, neighborhood, borough) {
     const cleanStr = `${address} ${neighborhood} ${borough} NYC`
         .replace(/[#,/.]/g, '')
@@ -239,6 +353,13 @@ function renderList() {
 
         const zillowUrl = item.zillowUrl || generateZillowUrl(item.address, item.neighborhood, item.borough || 'Manhattan');
 
+        const commute = calculateCommuteTo51Astor(
+            item.coordinates ? item.coordinates.lat : 0, 
+            item.coordinates ? item.coordinates.lng : 0, 
+            item.neighborhood, 
+            item.borough
+        );
+
         row.innerHTML = `
             <div class="entry-row-header">
                 <div class="entry-price-wrap">
@@ -270,8 +391,10 @@ function renderList() {
                 <span>${item.sqft} sqft ($${item.pricePerSqft}/sqft)</span>
                 <span class="meta-dot">•</span>
                 ${govTagHtml}
-                <span class="meta-dot">•</span>
-                <span style="opacity:0.6;">Detected ${item.detectedTime}</span>
+            </div>
+
+            <div class="entry-commute-bar">
+                🏢 <strong>Commute to 51 Astor Pl:</strong> ${commute.time} (${commute.miles}) — ${commute.route}
             </div>
         `;
 
