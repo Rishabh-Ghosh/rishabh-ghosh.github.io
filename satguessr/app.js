@@ -613,6 +613,183 @@ function nextRound() {
 
 // ================= Game Over Recap =================
 
+// Leaderboard State & Persistence
+const LEADERBOARD_KEY = 'satguessr_leaderboard';
+
+function getLeaderboard() {
+    try {
+        const stored = localStorage.getItem(LEADERBOARD_KEY);
+        if (stored) {
+            return JSON.parse(stored);
+        }
+    } catch (e) {
+        console.error("Error reading leaderboard:", e);
+    }
+    // Default initial mock high scores if empty
+    return [
+        { name: "Atlas", score: 23450, date: "2026-08-01" },
+        { name: "Meridian", score: 21800, date: "2026-08-02" },
+        { name: "Explorer", score: 19500, date: "2026-08-03" },
+        { name: "GeoNinja", score: 17200, date: "2026-08-03" },
+        { name: "Voyager", score: 15400, date: "2026-08-02" }
+    ];
+}
+
+function saveLeaderboard(lb) {
+    try {
+        localStorage.setItem(LEADERBOARD_KEY, JSON.stringify(lb));
+    } catch (e) {
+        console.error("Error saving leaderboard:", e);
+    }
+}
+
+function renderLeaderboardTable(tableBodyId, maxEntries = 10) {
+    const tableBody = document.getElementById(tableBodyId);
+    if (!tableBody) return;
+    tableBody.innerHTML = '';
+
+    const lb = getLeaderboard();
+    lb.sort((a, b) => b.score - a.score);
+
+    lb.slice(0, maxEntries).forEach((entry, idx) => {
+        const tr = document.createElement('tr');
+        
+        const rankTd = document.createElement('td');
+        rankTd.innerText = `#${idx + 1}`;
+        tr.appendChild(rankTd);
+
+        const nameTd = document.createElement('td');
+        nameTd.innerText = entry.name;
+        tr.appendChild(nameTd);
+
+        const scoreTd = document.createElement('td');
+        scoreTd.innerText = entry.score.toLocaleString();
+        tr.appendChild(scoreTd);
+
+        const dateTd = document.createElement('td');
+        dateTd.innerText = entry.date;
+        tr.appendChild(dateTd);
+
+        tableBody.appendChild(tr);
+    });
+}
+
+function handleScoreSubmit() {
+    const input = document.getElementById('player-name-input');
+    const statusMsg = document.getElementById('submit-status-msg');
+    const submitBtn = document.getElementById('submit-score-btn');
+
+    if (!input) return;
+    const name = input.value.trim();
+    if (!name) {
+        statusMsg.style.color = '#ef4444';
+        statusMsg.innerText = "Please enter your name or handle!";
+        return;
+    }
+
+    const lb = getLeaderboard();
+    const today = new Date().toISOString().split('T')[0];
+    lb.push({ name: name, score: totalScore, date: today });
+    lb.sort((a, b) => b.score - a.score);
+    saveLeaderboard(lb);
+
+    // Disable button & update UI
+    submitBtn.disabled = true;
+    input.disabled = true;
+    statusMsg.style.color = '#10b981';
+    statusMsg.innerText = "Score submitted successfully!";
+
+    // Re-render leaderboards
+    renderLeaderboardTable('gameover-leaderboard-body');
+    renderLeaderboardTable('start-leaderboard-body');
+}
+
+// Background Mandelbrot Canvas Animation
+function initMandelbrotBackground() {
+    const canvas = document.getElementById('mandelbrot-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+
+    let width = 0;
+    let height = 0;
+    let dpr = window.devicePixelRatio || 1;
+
+    const bounds = { minReal: -2.15, maxReal: 0.95, minImag: -1.2, maxImag: 1.2 };
+    let latticePoints = [];
+
+    function resize() {
+        width = window.innerWidth;
+        height = window.innerHeight;
+        dpr = window.devicePixelRatio || 1;
+        canvas.width = width * dpr;
+        canvas.height = height * dpr;
+        ctx.scale(dpr, dpr);
+
+        const aspect = width / height;
+        const realRange = (bounds.maxImag - bounds.minImag) * aspect;
+        const realCenter = -0.6;
+        bounds.minReal = realCenter - realRange / 2;
+        bounds.maxReal = realCenter + realRange / 2;
+        generateLattice();
+    }
+
+    function generateLattice() {
+        latticePoints = [];
+        const gridCols = width < 768 ? 75 : 130;
+        const gridRows = Math.max(1, Math.floor(gridCols / (width / height)));
+        const maxIter = 40;
+
+        for (let i = 0; i < gridCols; i++) {
+            for (let j = 0; j < gridRows; j++) {
+                const sx = (i / gridCols) * width;
+                const sy = (j / gridRows) * height;
+                const real = bounds.minReal + (sx / width) * (bounds.maxReal - bounds.minReal);
+                const imag = bounds.minImag + (sy / height) * (bounds.maxImag - bounds.minImag);
+
+                let zReal = 0, zImag = 0, iter = 0;
+                while (zReal * zReal + zImag * zImag <= 4 && iter < maxIter) {
+                    const nextReal = zReal * zReal - zImag * zImag + real;
+                    const nextImag = 2 * zReal * zImag + imag;
+                    zReal = nextReal;
+                    zImag = nextImag;
+                    iter++;
+                }
+
+                if (iter > 5) {
+                    latticePoints.push({
+                        x: sx,
+                        y: sy,
+                        baseRadius: iter === maxIter ? 1.0 : (iter > 15 ? 1.3 : 0.9),
+                        iter: iter
+                    });
+                }
+            }
+        }
+    }
+
+    let time = 0;
+    function render() {
+        ctx.clearRect(0, 0, width, height);
+        time += 0.015;
+
+        ctx.fillStyle = '#f2f2f0';
+        for (let i = 0; i < latticePoints.length; i++) {
+            const pt = latticePoints[i];
+            const pulse = Math.sin(time + pt.x * 0.01 + pt.y * 0.01) * 0.2 + 0.8;
+            ctx.globalAlpha = (pt.iter / 40) * 0.35 * pulse;
+            ctx.beginPath();
+            ctx.arc(pt.x, pt.y, pt.baseRadius, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        requestAnimationFrame(render);
+    }
+
+    window.addEventListener('resize', resize);
+    resize();
+    render();
+}
+
+// Update showGameOverScreen to initialize submit box and render leaderboard
 function showGameOverScreen() {
     switchScreen('game-over-screen');
     
@@ -621,6 +798,20 @@ function showGameOverScreen() {
     
     const rank = getRank(totalScore);
     document.getElementById('rank-badge').innerText = rank;
+
+    // Reset leaderboard submission UI
+    const submitBtn = document.getElementById('submit-score-btn');
+    const input = document.getElementById('player-name-input');
+    const statusMsg = document.getElementById('submit-status-msg');
+    if (submitBtn && input && statusMsg) {
+        submitBtn.disabled = false;
+        input.disabled = false;
+        input.value = '';
+        statusMsg.innerText = '';
+    }
+    
+    // Render leaderboards
+    renderLeaderboardTable('gameover-leaderboard-body');
     
     // Populate recap table
     const tableBody = document.getElementById('recap-table-body');
@@ -724,4 +915,35 @@ function initRecapMap() {
 
 function restartGame() {
     switchScreen('start-screen');
+    renderLeaderboardTable('start-leaderboard-body');
 }
+
+// Bind DOM Events
+document.addEventListener('DOMContentLoaded', () => {
+    // Start button
+    document.getElementById('start-btn').addEventListener('click', startGame);
+    
+    // Guess button
+    document.getElementById('guess-btn').addEventListener('click', submitGuess);
+    
+    // Map expand toggle
+    document.getElementById('expand-map-btn').addEventListener('click', toggleMapSize);
+    
+    // Next round button
+    document.getElementById('next-round-btn').addEventListener('click', nextRound);
+    
+    // Play again button
+    document.getElementById('play-again-btn').addEventListener('click', restartGame);
+
+    // Leaderboard submit button
+    const submitBtn = document.getElementById('submit-score-btn');
+    if (submitBtn) {
+        submitBtn.addEventListener('click', handleScoreSubmit);
+    }
+
+    // Initialize Mandelbrot Background Animation
+    initMandelbrotBackground();
+
+    // Render Start Screen Leaderboard
+    renderLeaderboardTable('start-leaderboard-body');
+});

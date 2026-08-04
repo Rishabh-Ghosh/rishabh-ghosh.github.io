@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SatGuessr - World Satellite Guessing Game</title>
     
-    <!-- Google Fonts -->
+    <!-- Google Fonts: Cormorant Garamond & Outfit -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
     <!-- Leaflet.js Mapping Library CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
@@ -17,32 +17,51 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <!-- Background Mandelbrot Canvas for Site Theme -->
+    <canvas id="mandelbrot-canvas"></canvas>
+
     <div id="app-container">
         
         <!-- ================= START SCREEN ================= -->
         <section id="start-screen" class="screen active">
             <div class="glass-card start-card animate-fade-in">
                 <div class="logo-container">
-                    <div class="logo-glow"></div>
                     <h1 class="game-title">Sat<span>Guessr</span></h1>
                 </div>
-                <p class="tagline">Can you identify the world's cities purely from their satellite shapes?</p>
+                <p class="tagline">Identify the world's cities purely from their satellite shapes.</p>
                 
                 <div class="rules-container">
-                    <h3>How to Play</h3>
+                    <h3>Rules of Exploration</h3>
                     <ul>
-                        <li><span class="icon">🌍</span> You are placed at a random city's satellite view.</li>
-                        <li><span class="icon">🔍</span> Pan and zoom the satellite map to spot landmarks, rivers, coastlines, or street patterns.</li>
-                        <li><span class="icon">📍</span> Place a pin on the small world map in the corner to guess where you are.</li>
-                        <li><span class="icon">⏱️</span> You have <strong>45 seconds</strong> per round!</li>
-                        <li><span class="icon">🔥</span> There are <strong>5 rounds</strong>. The 5th (final) round counts for <strong>double points</strong>!</li>
+                        <li><span class="icon">🌍</span> Placed at a random satellite view among <strong>1,650+ world cities</strong>.</li>
+                        <li><span class="icon">🔍</span> Pan & zoom to spot coastlines, rivers, harbors, or urban grids.</li>
+                        <li><span class="icon">📍</span> Pin your guess on the world map inset.</li>
+                        <li><span class="icon">⏱️</span> <strong>45 seconds</strong> per round across <strong>5 rounds</strong> (Round 5 = 2x points!).</li>
                     </ul>
                 </div>
                 
                 <button id="start-btn" class="glow-btn">Start Exploration</button>
                 
+                <!-- Global Leaderboard Preview on Start Screen -->
+                <div class="start-leaderboard-container">
+                    <h3>Top Explorers</h3>
+                    <table class="leaderboard-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Name</th>
+                                <th>Score</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody id="start-leaderboard-body">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+
                 <div class="attribution">
-                    Data provided by <a href="https://simplemaps.com/data/world-cities" target="_blank" rel="noopener">Simplemaps</a>. Tiles &copy; Esri & OpenStreetMap.
+                    Data via <a href="https://simplemaps.com/data/world-cities" target="_blank" rel="noopener">Simplemaps</a>. Tiles &copy; Esri & OpenStreetMap.
                 </div>
             </div>
         </section>
@@ -132,8 +151,39 @@
                     <span id="final-score" class="final-score-value">18,450</span>
                     <span id="rank-badge" class="rank-badge">Master Cartographer</span>
                 </div>
+
+                <!-- Submit Leaderboard Score Section -->
+                <div id="leaderboard-submit-container" class="leaderboard-submit-box">
+                    <h3>Submit Score to Leaderboard</h3>
+                    <div class="submit-input-group">
+                        <input type="text" id="player-name-input" placeholder="Enter your name / handle" maxlength="20" />
+                        <button id="submit-score-btn" class="glow-btn">Submit</button>
+                    </div>
+                    <p id="submit-status-msg" class="status-msg"></p>
+                </div>
+
+                <!-- Global Leaderboard Section -->
+                <div class="leaderboard-section">
+                    <h3>Leaderboard</h3>
+                    <div class="table-container">
+                        <table class="recap-table leaderboard-table">
+                            <thead>
+                                <tr>
+                                    <th>Rank</th>
+                                    <th>Explorer</th>
+                                    <th>Score</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody id="gameover-leaderboard-body">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
                 
                 <!-- Map showing recap of all rounds -->
+                <h3>Voyage Map Recap</h3>
                 <div id="recap-map-container">
                     <div id="recap-map"></div>
                 </div>
