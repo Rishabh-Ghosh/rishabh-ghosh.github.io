@@ -463,36 +463,38 @@ a:hover {
 
 /* Custom Marker Styling */
 .guess-marker {
-    background: none;
-    border: none;
+    background: none !important;
+    border: none !important;
+    width: 30px !important;
+    height: 42px !important;
 }
 
 .marker-pin {
-    width: 30px;
-    height: 30px;
-    border-radius: 50% 50% 50% 0;
-    background: var(--color-danger);
-    position: absolute;
-    transform: rotate(-45deg);
-    left: 50%;
-    top: 50%;
-    margin: -15px 0 0 -15px;
-    box-shadow: 0 0 12px rgba(239, 68, 68, 0.6);
+    width: 30px !important;
+    height: 30px !important;
+    border-radius: 50% 50% 50% 0 !important;
+    background: #ef4444 !important;
+    position: absolute !important;
+    transform: rotate(-45deg) !important;
+    left: 50% !important;
+    top: 50% !important;
+    margin: -15px 0 0 -15px !important;
+    box-shadow: 0 0 12px rgba(239, 68, 68, 0.8) !important;
 }
 
 .marker-pin::after {
-    content: '';
-    width: 14px;
-    height: 14px;
-    margin: 8px 0 0 8px;
-    background: #ffffff;
-    position: absolute;
-    border-radius: 50%;
+    content: '' !important;
+    width: 12px !important;
+    height: 12px !important;
+    margin: 9px 0 0 9px !important;
+    background: #0d0d0d !important;
+    position: absolute !important;
+    border-radius: 50% !important;
 }
 
 .target-marker .marker-pin {
-    background: var(--color-accent);
-    box-shadow: 0 0 12px var(--color-accent-glow);
+    background: #10b981 !important;
+    box-shadow: 0 0 12px rgba(16, 185, 129, 0.8) !important;
 }
 
 /* ================= Modals & Overlays ================= */
