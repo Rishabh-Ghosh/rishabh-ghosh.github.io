@@ -250,10 +250,19 @@ a:hover {
 .rules-container li {
     font-size: 14px;
     color: var(--text-muted);
-    margin-bottom: 10px;
+    margin-bottom: 12px;
     display: flex;
     align-items: center;
     line-height: 1.5;
+}
+
+.rules-container .icon {
+    margin-right: 10px;
+    display: inline-block;
+}
+
+.rules-container strong {
+    margin: 0 4px;
 }
 
 .rules-container li:last-child {
@@ -741,7 +750,8 @@ a:hover {
 }
 
 .recap-table th, .recap-table td {
-    padding: 12px 18px;
+    padding: 10px 14px;
+    text-align: left;
 }
 
 .recap-table th {
@@ -768,18 +778,26 @@ a:hover {
     background: rgba(255, 255, 255, 0.01);
 }
 
-.recap-table td:first-child {
+.recap-table td:first-child, .recap-table th:first-child {
+    width: 12%;
     font-weight: 700;
-    color: var(--color-secondary);
+    color: var(--text-main);
 }
 
-.recap-table td:nth-child(2) {
+.recap-table td:nth-child(2), .recap-table th:nth-child(2) {
+    width: 40%;
     font-weight: 500;
 }
 
-.recap-table td:last-child {
-    font-weight: 700;
+.recap-table td:nth-child(3), .recap-table th:nth-child(3) {
+    width: 25%;
+    font-weight: 600;
     color: var(--text-main);
+}
+
+.recap-table td:nth-child(4), .recap-table th:nth-child(4) {
+    width: 23%;
+    color: var(--text-muted);
 }
 
 .game-over-card .glow-btn {
