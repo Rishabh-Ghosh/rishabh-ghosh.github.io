@@ -793,6 +793,8 @@ function initMandelbrotBackground() {
 // Update showGameOverScreen to initialize submit box and render leaderboard
 function showGameOverScreen() {
     switchScreen('game-over-screen');
+    const goScreen = document.getElementById('game-over-screen');
+    if (goScreen) goScreen.scrollTop = 0;
     
     // Update text
     document.getElementById('final-score').innerText = totalScore.toLocaleString();
