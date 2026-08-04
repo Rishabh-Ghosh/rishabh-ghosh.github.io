@@ -469,6 +469,7 @@ function submitGuessWithCoords(guessLatLng) {
     const finalScore = isRound5 ? baseScore * 2 : baseScore;
     
     totalScore += finalScore;
+    document.getElementById('total-score').innerText = totalScore.toLocaleString();
     
     // Store result
     roundResults.push({
