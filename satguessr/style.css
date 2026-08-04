@@ -471,13 +471,13 @@ a:hover {
     width: 30px;
     height: 30px;
     border-radius: 50% 50% 50% 0;
-    background: var(--color-secondary);
+    background: var(--color-danger);
     position: absolute;
     transform: rotate(-45deg);
     left: 50%;
     top: 50%;
     margin: -15px 0 0 -15px;
-    box-shadow: 0 0 10px var(--color-secondary-glow);
+    box-shadow: 0 0 12px rgba(239, 68, 68, 0.6);
 }
 
 .marker-pin::after {
@@ -485,14 +485,14 @@ a:hover {
     width: 14px;
     height: 14px;
     margin: 8px 0 0 8px;
-    background: var(--bg-main);
+    background: #ffffff;
     position: absolute;
     border-radius: 50%;
 }
 
 .target-marker .marker-pin {
     background: var(--color-accent);
-    box-shadow: 0 0 10px var(--color-accent-glow);
+    box-shadow: 0 0 12px var(--color-accent-glow);
 }
 
 /* ================= Modals & Overlays ================= */
