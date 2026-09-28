@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chess Opening Prep & Engine Analyzer | Rishabh Ghosh</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header>
+        <a href="../index.html" class="site-title">
+            <span class="pawn-icon">♟</span>
+            <span>Chess Opening Prep & Analyzer</span>
+        </a>
+        <a href="../index.html" class="back-link">← Back to Portfolio</a>
+    </header>
+
+    <div class="main-wrapper">
+        <!-- Left Panel: Opening Selector & Mode -->
+        <aside class="left-panel">
+            <div class="panel-card">
+                <h3>Select Mode</h3>
+                <div class="mode-toggle">
+                    <button class="mode-btn active" id="modeTheoryBtn">📖 Theory</button>
+                    <button class="mode-btn" id="modePracticeBtn">🎯 Practice</button>
+                </div>
+            </div>
+
+            <div class="panel-card">
+                <h3>Repertoire Lines</h3>
+                <div class="opening-list" id="openingList">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+
+            <div class="panel-card">
+                <h3>📜 Master Games JSON</h3>
+                <div class="opening-list" id="masterGamesList">
+                    <!-- Master games dynamically loaded from master_games.json -->
+                </div>
+                <div style="margin-top: 10px; display: flex; gap: 6px;">
+                    <button class="btn-ctrl" id="exportJsonBtn" style="flex: 1; font-size: 11px;">📤 Export JSON</button>
+                    <button class="btn-ctrl" id="importJsonBtn" style="flex: 1; font-size: 11px;">📥 Import JSON</button>
+                </div>
+                <input type="file" id="jsonFileInput" accept=".json" style="display: none;">
+            </div>
+        </aside>
+
+        <!-- Center Panel: Board & Eval Bar -->
+        <main class="center-panel">
+            <div class="board-container-wrapper">
+                <!-- Stockfish Eval Bar -->
+                <div class="eval-bar-container">
+                    <div class="eval-text-badge" id="evalText">+0.0</div>
+                    <div class="eval-bar-fill" id="evalBarFill" style="height: 50%;"></div>
+                </div>
+
+                <!-- SVG Board -->
+                <div id="boardContainer"></div>
+            </div>
+
+            <div class="board-controls">
+                <button class="btn-ctrl btn-green" id="startDrillBtn">▶ Start Drill</button>
+                <button class="btn-ctrl" id="prevMoveBtn">◀ Prev</button>
+                <button class="btn-ctrl" id="nextMoveBtn">▶ Next</button>
+                <button class="btn-ctrl" id="resetLineBtn">↺ Reset Line</button>
+                <button class="btn-ctrl" id="flipBoardBtn">🔄 Flip Board</button>
+                <button class="btn-ctrl" id="toggleEvalBtn">⚡ Engine Eval: ON</button>
+            </div>
+        </main>
+
+        <!-- Right Panel: Commentary & Move Tree -->
+        <section class="right-panel">
+            <div class="panel-card">
+                <h3 id="openingTitle">Rossolimo Defense</h3>
+                <div class="commentary-box" id="commentaryBox">
+                    Select a line or move to view theory annotations.
+                </div>
+                <ul class="plans-list" id="plansList"></ul>
+            </div>
+
+            <div class="panel-card">
+                <h3>Move History</h3>
+                <div class="move-history-box" id="moveHistoryBox">
+                    <span class="move-chip">Start of Game</span>
+                </div>
+            </div>
+
+            <div class="panel-card" id="candidatesCard" style="display: none;">
+                <h3>White Candidate Lines</h3>
+                <div class="opening-list" id="candidatesList">
+                    <!-- Dynamic White Candidate Lines -->
+                </div>
+            </div>
+
+            <div class="panel-card" id="practiceFeedbackCard" style="display: none;">
+                <h3>Practice Feedback</h3>
+                <div id="practiceFeedback" style="font-family: var(--font-mono); font-size: 13px;">
+                    Play the correct theory move for your repertoire!
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Scripts -->
+    <script src="openings_data.js"></script>
+    <script src="chess_engine.js"></script>
+    <script src="stockfish_eval.js"></script>
+    <script src="stockfish_engine.js"></script>
+    <script src="svg_pieces.js"></script>
+    <script src="board_ui.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

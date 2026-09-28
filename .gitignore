@@ -1,1 +1,6 @@
 worldcities.csv
+.venv/
+*.venv/
+chess-prep/.venv/
+__pycache__/
+*.pyc
