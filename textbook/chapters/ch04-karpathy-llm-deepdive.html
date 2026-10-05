@@ -1024,56 +1024,342 @@ Therefore, 23 * 17 = 391."</code></pre>
 
     <!-- Interactive Simulation Scripts -->
     <script>
+    // ==========================================
+    // Real Autoregressive Token Sampling Engine
+    // ==========================================
     (function() {
-        // Pre-defined token distributions for prompts
-        const tokenData = {
-            paris: [
-                { token: " Paris", logit: 6.2, prob: 0.82 },
-                { token: " also", logit: 3.4, prob: 0.05 },
-                { token: " widely", logit: 3.1, prob: 0.04 },
-                { token: " the", logit: 2.8, prob: 0.03 },
-                { token: " known", logit: 2.4, prob: 0.02 },
-                { token: " often", logit: 2.1, prob: 0.015 },
-                { token: " considered", logit: 1.8, prob: 0.01 },
-                { token: " beautiful", logit: 1.4, prob: 0.007 },
-                { token: " one", logit: 1.1, prob: 0.005 },
-                { token: " located", logit: 0.8, prob: 0.003 }
+        // Multi-step Markov / N-Gram transition database for dynamic context prediction
+        const transitionGraph = {
+            // --- PROMPT 1: PARIS ---
+            "The capital of France is": [
+                { token: " Paris", logit: 6.8 },
+                { token: " also", logit: 3.4 },
+                { token: " widely", logit: 3.1 },
+                { token: " known", logit: 2.5 },
+                { token: " the", logit: 2.1 },
+                { token: " located", logit: 1.6 }
             ],
-            dog: [
-                { token: " tennis", logit: 5.8, prob: 0.45 },
-                { token: " squirrel", logit: 5.5, prob: 0.33 },
-                { token: " rabbit", logit: 4.2, prob: 0.09 },
-                { token: " ball", logit: 3.9, prob: 0.06 },
-                { token: " frisbee", logit: 3.2, prob: 0.03 },
-                { token: " stick", logit: 2.8, prob: 0.02 },
-                { token: " shadow", logit: 2.1, prob: 0.01 },
-                { token: " goose", logit: 1.6, prob: 0.006 },
-                { token: " neighbor", logit: 1.2, prob: 0.003 },
-                { token: " cat", logit: 0.9, prob: 0.001 }
+            " Paris": [
+                { token: ",", logit: 5.9 },
+                { token: ".", logit: 5.2 },
+                { token: " and", logit: 4.1 },
+                { token: " which", logit: 3.8 },
+                { token: " situated", logit: 2.2 }
             ],
-            math: [
-                { token: " 4", logit: 6.5, prob: 0.65 },
-                { token: " 3", logit: 4.8, prob: 0.12 },
-                { token: " 5", logit: 4.2, prob: 0.07 },
-                { token: " 2", logit: 4.0, prob: 0.06 },
-                { token: "\n", logit: 3.8, prob: 0.05 },
-                { token: " 4.", logit: 3.1, prob: 0.025 },
-                { token: " four", logit: 2.6, prob: 0.015 },
-                { token: " ?", logit: 1.9, prob: 0.006 },
-                { token: " 10", logit: 1.2, prob: 0.003 },
-                { token: " 0", logit: 0.8, prob: 0.001 }
+            " Paris,": [
+                { token: " which", logit: 6.2 },
+                { token: " the", logit: 4.9 },
+                { token: " a", logit: 4.2 },
+                { token: " located", logit: 3.1 },
+                { token: " renowned", logit: 2.6 }
             ],
-            code: [
-                { token: "\n   ", logit: 6.1, prob: 0.72 },
-                { token: " if", logit: 4.3, prob: 0.12 },
-                { token: "\"\"\"", logit: 3.8, prob: 0.07 },
-                { token: " a,", logit: 3.2, prob: 0.04 },
-                { token: " return", logit: 2.9, prob: 0.03 },
-                { token: " #", logit: 2.1, prob: 0.01 },
-                { token: " pass", logit: 1.6, prob: 0.006 },
-                { token: " dp", logit: 1.2, prob: 0.003 },
-                { token: " assert", logit: 0.9, prob: 0.001 },
-                { token: " memo", logit: 0.6, prob: 0.001 }
+            " which": [
+                { token: " is", logit: 6.9 },
+                { token: " has", logit: 4.1 },
+                { token: " boasts", logit: 3.6 },
+                { token: " remains", logit: 2.8 }
+            ],
+            " is": [
+                { token: " the", logit: 5.8 },
+                { token: " home", logit: 5.1 },
+                { token: " located", logit: 4.9 },
+                { token: " widely", logit: 3.8 },
+                { token: " celebrated", logit: 3.1 }
+            ],
+            " the": [
+                { token: " largest", logit: 5.9 },
+                { token: " most", logit: 5.6 },
+                { token: " cultural", logit: 4.8 },
+                { token: " historic", logit: 4.2 },
+                { token: " political", logit: 3.5 }
+            ],
+            " largest": [
+                { token: " city", logit: 6.9 },
+                { token: " metropolitan", logit: 4.5 },
+                { token: " urban", logit: 3.8 }
+            ],
+            " most": [
+                { token: " populous", logit: 6.4 },
+                { token: " visited", logit: 5.6 },
+                { token: " famous", logit: 4.9 },
+                { token: " iconic", logit: 3.8 }
+            ],
+            " populous": [
+                { token: " city", logit: 7.1 },
+                { token: " urban", logit: 3.9 },
+                { token: " region", logit: 3.2 }
+            ],
+            " visited": [
+                { token: " destination", logit: 6.1 },
+                { token: " city", logit: 5.8 },
+                { token: " capital", logit: 4.2 }
+            ],
+            " city": [
+                { token: " in", logit: 6.8 },
+                { token: " of", logit: 4.9 },
+                { token: " and", logit: 4.1 },
+                { token: ".", logit: 3.8 }
+            ],
+            " in": [
+                { token: " France", logit: 6.9 },
+                { token: " Europe", logit: 5.4 },
+                { token: " Western", logit: 4.2 },
+                { token: " the", logit: 3.9 }
+            ],
+            " France": [
+                { token: ".", logit: 6.9 },
+                { token: ",", logit: 4.8 },
+                { token: " with", logit: 3.9 },
+                { token: " and", logit: 3.2 }
+            ],
+            " Europe": [
+                { token: ".", logit: 6.5 },
+                { token: ",", logit: 4.9 },
+                { token: " with", logit: 3.8 }
+            ],
+            ".": [
+                { token: " It", logit: 5.8 },
+                { token: " The", logit: 5.2 },
+                { token: " Today", logit: 4.1 },
+                { token: " Known", logit: 3.5 }
+            ],
+            " It": [
+                { token: " is", logit: 6.2 },
+                { token: " has", logit: 4.8 },
+                { token: " attracts", logit: 4.5 },
+                { token: " remains", logit: 3.8 }
+            ],
+            " attracts": [
+                { token: " millions", logit: 6.8 },
+                { token: " tourists", logit: 5.1 },
+                { token: " visitors", logit: 4.9 }
+            ],
+            " millions": [
+                { token: " of", logit: 7.4 },
+                { token: " each", logit: 3.5 }
+            ],
+            " of": [
+                { token: " visitors", logit: 6.2 },
+                { token: " international", logit: 5.1 },
+                { token: " tourists", logit: 4.8 }
+            ],
+            " visitors": [
+                { token: " every", logit: 5.9 },
+                { token: " each", logit: 5.1 },
+                { token: " annually", logit: 4.8 },
+                { token: " from", logit: 3.9 }
+            ],
+            " annually": [
+                { token: ".", logit: 6.8 },
+                { token: " to", logit: 4.1 }
+            ],
+
+            // --- PROMPT 2: HEQING KWEK LEE (DOG) ---
+            "Heqing Kwek Lee chased the": [
+                { token: " tennis", logit: 6.2 },
+                { token: " yellow", logit: 5.1 },
+                { token: " squirrel", logit: 4.8 },
+                { token: " frisbee", logit: 3.9 },
+                { token: " neighbor's", logit: 2.8 }
+            ],
+            " tennis": [
+                { token: " ball", logit: 7.5 },
+                { token: " shoe", logit: 3.8 },
+                { token: " court", logit: 2.9 }
+            ],
+            " yellow": [
+                { token: " tennis", logit: 6.5 },
+                { token: " ball", logit: 5.9 },
+                { token: " frisbee", logit: 4.2 }
+            ],
+            " squirrel": [
+                { token: " up", logit: 6.8 },
+                { token: " across", logit: 5.4 },
+                { token: " into", logit: 4.5 },
+                { token: " through", logit: 3.2 }
+            ],
+            " frisbee": [
+                { token: " across", logit: 6.1 },
+                { token: " through", logit: 4.9 },
+                { token: " before", logit: 3.8 }
+            ],
+            " ball": [
+                { token: " across", logit: 6.4 },
+                { token: " into", logit: 5.2 },
+                { token: " through", logit: 4.6 },
+                { token: " down", logit: 3.9 }
+            ],
+            " up": [
+                { token: " the", logit: 7.1 },
+                { token: " an", logit: 4.2 }
+            ],
+            " across": [
+                { token: " the", logit: 7.2 },
+                { token: " our", logit: 4.1 },
+                { token: " a", logit: 3.8 }
+            ],
+            " grassy": [
+                { token: " yard", logit: 6.8 },
+                { token: " lawn", logit: 5.4 },
+                { token: " field", logit: 4.5 }
+            ],
+            " yard": [
+                { token: " at", logit: 6.1 },
+                { token: " while", logit: 5.2 },
+                { token: " barking", logit: 4.6 },
+                { token: ".", logit: 3.9 }
+            ],
+            " at": [
+                { token: " full", logit: 7.2 },
+                { token: " top", logit: 5.4 },
+                { token: " breakneck", logit: 4.1 }
+            ],
+            " full": [
+                { token: " speed", logit: 7.5 },
+                { token: " sprint", logit: 4.8 },
+                { token: " stride", logit: 3.9 }
+            ],
+            " speed": [
+                { token: ",", logit: 5.8 },
+                { token: " while", logit: 5.2 },
+                { token: " until", logit: 4.5 },
+                { token: ".", logit: 4.1 }
+            ],
+            " while": [
+                { token: " wagging", logit: 6.8 },
+                { token: " barking", logit: 5.6 },
+                { token: " holding", logit: 4.2 }
+            ],
+            " wagging": [
+                { token: " his", logit: 7.2 },
+                { token: " its", logit: 3.8 }
+            ],
+            " his": [
+                { token: " golden", logit: 6.1 },
+                { token: " tail", logit: 5.9 },
+                { token: " ears", logit: 3.5 }
+            ],
+            " tail": [
+                { token: " enthusiastically", logit: 6.1 },
+                { token: " proudly", logit: 5.4 },
+                { token: " furiously", logit: 4.9 },
+                { token: ".", logit: 4.2 }
+            ],
+
+            // --- PROMPT 3: MATH (BASE MODEL DRILL) ---
+            "2 + 2 = ": [
+                { token: " 4", logit: 6.9 },
+                { token: " 3", logit: 4.5 },
+                { token: " 4.", logit: 3.8 },
+                { token: " 5", logit: 2.8 },
+                { token: " four", logit: 2.2 }
+            ],
+            " 4": [
+                { token: "\n", logit: 6.2 },
+                { token: "\n3 + 3 = ", logit: 5.8 },
+                { token: ".", logit: 4.2 },
+                { token: " and", logit: 3.5 }
+            ],
+            "\n": [
+                { token: "3 + 3 = ", logit: 6.9 },
+                { token: "4 + 4 = ", logit: 5.4 },
+                { token: "5 + 5 = ", logit: 4.8 },
+                { token: "1 + 1 = ", logit: 3.9 }
+            ],
+            "3 + 3 = ": [
+                { token: " 6", logit: 7.2 },
+                { token: " 5", logit: 4.1 },
+                { token: " 7", logit: 3.2 }
+            ],
+            " 6": [
+                { token: "\n", logit: 6.5 },
+                { token: "\n4 + 4 = ", logit: 5.9 },
+                { token: ".", logit: 4.1 }
+            ],
+            "\n4 + 4 = ": [
+                { token: " 8", logit: 7.4 },
+                { token: " 7", logit: 3.8 }
+            ],
+            "4 + 4 = ": [
+                { token: " 8", logit: 7.4 },
+                { token: " 7", logit: 3.8 }
+            ],
+            " 8": [
+                { token: "\n", logit: 6.5 },
+                { token: "\n5 + 5 = ", logit: 5.8 },
+                { token: ".", logit: 3.9 }
+            ],
+            "\n5 + 5 = ": [
+                { token: " 10", logit: 7.6 },
+                { token: " 9", logit: 3.5 }
+            ],
+            "5 + 5 = ": [
+                { token: " 10", logit: 7.6 },
+                { token: " 9", logit: 3.5 }
+            ],
+            " 10": [
+                { token: "\n", logit: 6.4 },
+                { token: "\n6 + 6 = ", logit: 5.6 },
+                { token: ".", logit: 4.2 }
+            ],
+            "\n6 + 6 = ": [
+                { token: " 12", logit: 7.8 }
+            ],
+            "6 + 6 = ": [
+                { token: " 12", logit: 7.8 }
+            ],
+            " 12": [
+                { token: "\n", logit: 6.2 },
+                { token: ".", logit: 4.8 }
+            ],
+
+            // --- PROMPT 4: CODE (PYTHON FIBONACCI) ---
+            "def fibonacci(n):": [
+                { token: "\n    if", logit: 6.8 },
+                { token: '\n    """', logit: 4.9 },
+                { token: "\n    #", logit: 3.8 },
+                { token: "\n    a,", logit: 3.1 }
+            ],
+            "\n    if": [
+                { token: " n", logit: 7.2 },
+                { token: " (n", logit: 4.5 },
+                { token: " not", logit: 3.2 }
+            ],
+            " n": [
+                { token: " <=", logit: 6.8 },
+                { token: " <", logit: 5.4 },
+                { token: " ==", logit: 4.9 }
+            ],
+            " <=": [
+                { token: " 1:", logit: 7.2 },
+                { token: " 0:", logit: 4.8 }
+            ],
+            " 1:": [
+                { token: "\n        return", logit: 7.4 },
+                { token: "\n        return n", logit: 5.8 }
+            ],
+            "\n        return": [
+                { token: " n", logit: 7.5 },
+                { token: " 1", logit: 4.2 }
+            ],
+            "\n        return n": [
+                { token: "\n    return", logit: 7.1 },
+                { token: "\n    else:", logit: 4.9 }
+            ],
+            "\n    return": [
+                { token: " fibonacci(n - 1)", logit: 7.5 },
+                { token: " fibonacci(n-1)", logit: 6.2 }
+            ],
+            " fibonacci(n - 1)": [
+                { token: " +", logit: 7.8 },
+                { token: " *", logit: 3.1 }
+            ],
+            " +": [
+                { token: " fibonacci(n - 2)", logit: 7.9 }
+            ],
+            " fibonacci(n - 2)": [
+                { token: "\n", logit: 6.8 },
+                { token: "\n\nprint(fibonacci(10))", logit: 5.2 }
             ]
         };
 
@@ -1092,25 +1378,55 @@ Therefore, 23 * 17 = 391."</code></pre>
         const btnReset = document.getElementById("btn-reset-stream");
 
         let currentPromptKey = "paris";
-        let promptBaseText = {
+        const promptBaseText = {
             paris: "The capital of France is",
             dog: "Heqing Kwek Lee chased the",
             math: "2 + 2 = ",
             code: "def fibonacci(n):"
         };
 
+        // Context-aware dynamic logit predictor
+        function getCandidatesForCurrentContext() {
+            const currentText = streamOutput.textContent;
+
+            // Try exact suffix match across known transitions
+            for (let suffix in transitionGraph) {
+                if (currentText.endsWith(suffix)) {
+                    return transitionGraph[suffix];
+                }
+            }
+
+            // Secondary search: check last word
+            const words = currentText.trim().split(/\s+/);
+            const lastWord = " " + words[words.length - 1];
+            if (transitionGraph[lastWord]) {
+                return transitionGraph[lastWord];
+            }
+
+            // General fallback distribution: realistic contextual tokens
+            return [
+                { token: " and", logit: 4.8 },
+                { token: " the", logit: 4.4 },
+                { token: " with", logit: 4.1 },
+                { token: " in", logit: 3.9 },
+                { token: " is", logit: 3.7 },
+                { token: ".", logit: 3.5 },
+                { token: " of", logit: 3.2 }
+            ];
+        }
+
         function computeAdjustedProbs() {
-            const T = parseFloat(tempSlider.value);
+            const T = Math.max(parseFloat(tempSlider.value), 0.05);
             const topP = parseFloat(toppSlider.value);
-            const list = tokenData[currentPromptKey];
+            const rawCandidates = getCandidatesForCurrentContext();
 
             // Softmax with temperature T
-            let expVals = list.map(item => Math.exp(item.logit / T));
+            let expVals = rawCandidates.map(item => Math.exp(item.logit / T));
             let sumExp = expVals.reduce((a, b) => a + b, 0);
             let rawProbs = expVals.map(val => val / sumExp);
 
             // Pair with token
-            let pairs = list.map((item, idx) => ({
+            let pairs = rawCandidates.map((item, idx) => ({
                 token: item.token,
                 prob: rawProbs[idx]
             }));
@@ -1189,12 +1505,13 @@ Therefore, 23 * 17 = 391."</code></pre>
             });
         }
 
+        // Samples a token, appends it, and immediately recomputes the new distribution for the next step!
         function sampleOneToken() {
             const items = computeAdjustedProbs();
             const valid = items.filter(p => p.inTopP);
             const r = Math.random();
             let cum = 0;
-            let picked = valid[0];
+            let picked = valid[0] || items[0];
 
             for (let item of valid) {
                 cum += item.normProb;
@@ -1204,8 +1521,12 @@ Therefore, 23 * 17 = 391."</code></pre>
                 }
             }
 
+            // Append newly sampled token
             streamOutput.textContent += (picked.token === '\n' ? '\n' : picked.token);
             streamOutput.scrollTop = streamOutput.scrollHeight;
+
+            // CRUCIAL: Immediately recompute logits for new context and redraw the bar chart!
+            drawDistribution();
         }
 
         tempSlider.addEventListener('input', () => {
@@ -1228,24 +1549,45 @@ Therefore, 23 * 17 = 391."</code></pre>
 
         let streamInterval = null;
         btnAutoStream.addEventListener('click', () => {
-            if (streamInterval) clearInterval(streamInterval);
+            if (streamInterval) {
+                clearInterval(streamInterval);
+                streamInterval = null;
+                btnAutoStream.textContent = "Stream 10 Tokens";
+                btnAutoStream.disabled = false;
+                return;
+            }
+
+            btnAutoStream.disabled = true;
+            btnAutoStream.textContent = "Streaming...";
             let count = 0;
+
             streamInterval = setInterval(() => {
-                sampleOneToken();
+                sampleOneToken(); // Appends token + recomputes logits + redraws canvas chart
                 count++;
-                if (count >= 10) clearInterval(streamInterval);
-            }, 120);
+                if (count >= 10) {
+                    clearInterval(streamInterval);
+                    streamInterval = null;
+                    btnAutoStream.disabled = false;
+                    btnAutoStream.textContent = "Stream 10 Tokens";
+                }
+            }, 260); // 260ms delay so user can visually follow the recomputed probability bars
         });
 
         btnReset.addEventListener('click', () => {
-            if (streamInterval) clearInterval(streamInterval);
+            if (streamInterval) {
+                clearInterval(streamInterval);
+                streamInterval = null;
+                btnAutoStream.disabled = false;
+                btnAutoStream.textContent = "Stream 10 Tokens";
+            }
             streamOutput.textContent = promptBaseText[currentPromptKey];
             drawDistribution();
         });
 
         // Initial draw
         drawDistribution();
-    
+    })();
+
     // ==========================================
     // 100-Question Mastery Crucible Quiz Engine
     // ==========================================
@@ -2679,8 +3021,6 @@ Therefore, 23 * 17 = 391."</code></pre>
         // Initial Load: sample 10 adaptive questions
         currentActiveQuestions = sampleAdaptiveQuestions(false);
         renderCurrentRound();
-    })();
-
     })();
     </script>
 
