@@ -342,7 +342,28 @@
                         \[ \mathcal{L}(\boldsymbol{\theta}) = -\frac{1}{B \cdot T} \sum_{i=1}^B \sum_{t=1}^T \log P_{\boldsymbol{\theta}}\left( x_{t+1}^{*(i)} \,\middle|\, x_1^{(i)}, \dots, x_t^{(i)} \right) \]
                     </div>
                     <p>
-                        Using reverse-mode automatic differentiation (backpropagation), we compute the parameter gradient \(\nabla_{\boldsymbol{\theta}} \mathcal{L}\) and take an AdamW optimizer step:
+                        Using 
+                        <span class="term-tooltip"><strong>reverse-mode automatic differentiation</strong>
+                            <span class="tooltip-bubble">
+                                <span class="tooltip-title">Reverse-Mode AD (Backpropagation)</span>
+                                <strong>Why Reverse?</strong> In a model with 70 billion parameters and 1 scalar loss, Forward AD would require 70 billion forward sweeps. Reverse-Mode AD sweeps backward from the loss in a <em>single pass</em>, computing exact sensitivities for all 70 billion weights simultaneously!
+                            </span>
+                        </span> (backpropagation), we compute the 
+                        <span class="term-tooltip"><strong>parameter gradient \(\nabla_{\boldsymbol{\theta}} \mathcal{L}\)</strong>
+                            <span class="tooltip-bubble">
+                                <span class="tooltip-title">The Parameter Gradient Vector</span>
+                                A vector of the exact same shape as \(\boldsymbol{\theta}\). For every individual weight, its gradient \(\frac{\partial \mathcal{L}}{\partial \theta_i}\) answers: <em>"If I increase this weight by a tiny nudge \(\epsilon\), by how much does our error jump?"</em>
+                            </span>
+                        </span> 
+                        and take an 
+                        <span class="term-tooltip"><strong>AdamW optimizer step</strong>
+                            <span class="tooltip-bubble">
+                                <span class="tooltip-title">What is AdamW?</span>
+                                <strong>Adam (Adaptive Moments):</strong> Tracks momentum (1st moment \(m_t\)) and per-parameter velocity (2nd moment \(v_t\)) to scale step sizes individually.
+                                <br><br>
+                                <strong>The "W" (Decoupled Weight Decay):</strong> Pulls weights gently toward zero (\(\boldsymbol{\theta} \leftarrow (1 - \eta \lambda)\boldsymbol{\theta}\)) to prevent explosive weights and overfitting.
+                            </span>
+                        </span>:
                         \[ \boldsymbol{\theta} \leftarrow \boldsymbol{\theta} - \eta \cdot \text{AdamW}(\nabla_{\boldsymbol{\theta}} \mathcal{L}) \]
                     </p>
 
