@@ -79,7 +79,7 @@
 
                 <!-- Dog Dialogue 1 -->
                 <div class="dog-dialogue">
-                    <div class="dog-dialogue-header">🐾 Conversations with Heqing Kwek Lee: The All-You-Can-Eat Buffet Dilemma</div>
+                    <div class="dog-dialogue-header">Conversations with Heqing Kwek Lee: The All-You-Can-Eat Buffet Dilemma</div>
                     <p><span class="dog-speaker">Heqing Kwek Lee:</span> "Professor, I've been reflecting on your Recurrent Neural Networks while staring at my dinner dish. The recurrent method is like making me stand at the entrance of a pet food factory, where a conveyor belt pushes kibbles past my snout one at a time. I have to chew kibble #1 before I can look at kibble #2, and by kibble #500, my tongue is numb and I’ve completely forgotten the aroma of kibble #1!"</p>
                     <p><span class="dog-speaker">Professor:</span> "A vivid analogy, Heqing Kwek Lee. In computer science, that is known as sequential dependency. It yields an execution span of \(\mathcal{O}(T)\) sequential operations, rendering parallel GPU hardware 95% idle."</p>
                     <p><span class="dog-speaker">Heqing Kwek Lee:</span> "Now imagine instead of a conveyor belt, the chef lays out an arena filled with 500 open buffet bowls simultaneously! My eyes and nose can sweep across all 500 bowls in a single instant! If bowl #37 is steak and bowl #412 is a bone, my brain computes an instant cross-attentive affinity between them, completely ignoring the 498 bowls of steamed celery in between!"</p>
@@ -188,7 +188,7 @@
 
                 <!-- Dog Dialogue 2 -->
                 <div class="dog-dialogue">
-                    <div class="dog-dialogue-header">🐾 Conversations with Heqing Kwek Lee: The Overheated Canine Ear</div>
+                    <div class="dog-dialogue-header">Conversations with Heqing Kwek Lee: The Overheated Canine Ear</div>
                     <p><span class="dog-speaker">Heqing Kwek Lee:</span> "So the division by \(\sqrt{d_k}\) is like putting a volume governor on a loudspeaker so the amplifier doesn't clip into pure static!"</p>
                     <p><span class="dog-speaker">Professor:</span> "Precisely. If your key dimension is 128, without that factor, the loud logits scream at +25 and the soft ones drop to -25. The Softmax exponential \(\exp(25) \approx 7.2 \times 10^{10}\) completely drowns out everything else, causing gradient starvation."</p>
                     <p><span class="dog-speaker">Heqing Kwek Lee:</span> "Very sensible. But wait, Professor! If you compute \(\mathbf{Q}\mathbf{K}^\top\), the matrix multiplication treats every row and column as unordered vectors. If I swap word #2 with word #500, the attention weights are identical! Words aren't an unordered bag of dog biscuits; word order matters!"</p>
@@ -276,7 +276,7 @@
 
                 <!-- Dog Dialogue 3 -->
                 <div class="dog-dialogue">
-                    <div class="dog-dialogue-header">🐾 Conversations with Heqing Kwek Lee: The Rotating Clock Dials</div>
+                    <div class="dog-dialogue-header">Conversations with Heqing Kwek Lee: The Rotating Clock Dials</div>
                     <p><span class="dog-speaker">Heqing Kwek Lee:</span> "Wait! Each pair of dimensions is like a clock hand spinning around its own dial? The first pair of dimensions spins wildly fast like a second hand, while the last pair creeps along slowly like an hour hand?"</p>
                     <p><span class="dog-speaker">Professor:</span> "A magnificent visualization, Heqing Kwek Lee. Fast hands encode fine-grained syntax and immediate adjacent word pairs (bigrams, trigrams). Slow hands encode long-range semantic thematic shifts across thousands of tokens."</p>
                     <p><span class="dog-speaker">Heqing Kwek Lee:</span> "And because rotations preserve Euclidean vector norms (\(\|\mathbf{R}\mathbf{x}\| = \|\mathbf{x}\|\)), rotating a vector doesn't artificially stretch or shrink its energy! The geometry is purely isometric."</p>
@@ -423,7 +423,7 @@ if __name__ == "__main__":
 
                 <!-- Dog Dialogue 4 -->
                 <div class="dog-dialogue">
-                    <div class="dog-dialogue-header">🐾 Conversations with Heqing Kwek Lee: The Quadratic Catastrophe</div>
+                    <div class="dog-dialogue-header">Conversations with Heqing Kwek Lee: The Quadratic Catastrophe</div>
                     <p><span class="dog-speaker">Heqing Kwek Lee:</span> "Professor, the code is elegant, but look at that attention weight matrix: \(\mathbf{Q}\mathbf{K}^\top \in \mathbb{R}^{N \times N}\). If our sequence length \(N\) is 1,000 tokens, \(N^2 = 1,000,000\). If \(N = 128,000\) tokens (like modern LLMs), \(N^2 \approx 16.3 \text{ billion}\) matrix entries per layer!"</p>
                     <p><span class="dog-speaker">Professor:</span> "Indeed, Heqing Kwek Lee. The memory footprint scales as \(\mathcal{O}(N^2)\). In 2017, this limited sequences to 512 or 1024 tokens. How humanity scaled transformers to hundreds of billions of parameters and 128k context windows required two major revolutions: <em>Scaling Laws</em> (Chapter 4) and <em>Hardware SRAM Tiling via FlashAttention</em> (Chapter 5)."</p>
                     <p><span class="dog-speaker">Heqing Kwek Lee:</span> "Then let us proceed to the scaling wars! I want to know how many gigabytes of bacon it takes to train a frontier model."</p>

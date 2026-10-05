@@ -77,7 +77,7 @@
 
                 <!-- Dog Dialogue 1 -->
                 <div class="dog-dialogue">
-                    <div class="dog-dialogue-header">🐾 Conversations with Heqing Kwek Lee: The Scent Vector Hypothesis</div>
+                    <div class="dog-dialogue-header">Conversations with Heqing Kwek Lee: The Scent Vector Hypothesis</div>
                     <p><span class="dog-speaker">Professor:</span> "You look deep in thought, Heqing Kwek Lee. Staring out the window at the snow?"</p>
                     <p><span class="dog-speaker">Heqing Kwek Lee:</span> "I am contemplating human linguistic failure, Professor. Back when you traded options and panicked over gamma spikes, you'd yell 'Hedge quickly!' until it sounded like my name. You humans use discrete, clunky symbols. You have separate words like <em>'kibble'</em>, <em>'steak'</em>, <em>'bone'</em>, and <em>'bacon'</em>. If you feed those to a computer as strings, the computer thinks 'steak' and 'bacon' have zero in common because their character ASCII values do not overlap."</p>
                     <p><span class="dog-speaker">Professor:</span> "That was indeed the dominant paradigm in computational linguistics for half a century. We encoded every word as an orthogonal <span class="term-tooltip"><strong>one-hot vector</strong><span class="tooltip-bubble"><span class="tooltip-title">One-Hot Representation</span>A sparse binary vector of dimension \(|V|\) with a single \(1\) at the word's dictionary index and \(0\) everywhere else: \(\mathbf{e}_i = [0, \dots, 0, 1, 0, \dots, 0]^\top\).</span></span>."</p>
@@ -183,7 +183,7 @@
 
                 <!-- Dog Dialogue 2 -->
                 <div class="dog-dialogue">
-                    <div class="dog-dialogue-header">🐾 Conversations with Heqing Kwek Lee: The 50,000-Dog Bowl Buffet</div>
+                    <div class="dog-dialogue-header">Conversations with Heqing Kwek Lee: The 50,000-Dog Bowl Buffet</div>
                     <p><span class="dog-speaker">Heqing Kwek Lee:</span> "Let me see if I grasp this computational catastrophe, Professor. You want to reward the model when 'dog' appears near 'bark'."</p>
                     <p><span class="dog-speaker">Professor:</span> "Correct."</p>
                     <p><span class="dog-speaker">Heqing Kwek Lee:</span> "And in order to calculate that reward, your algorithm forces the GPU to run around all of Northern California, sniffing 50,000 other dog bowls containing celery, cardboard boxes, old sneakers, used motor oil, and calculus textbooks, just to compute the normalizing denominator?"</p>
@@ -367,7 +367,7 @@
 
                 <!-- Dog Dialogue 3 -->
                 <div class="dog-dialogue">
-                    <div class="dog-dialogue-header">🐾 Conversations with Heqing Kwek Lee: Canine Olfactory Algebra</div>
+                    <div class="dog-dialogue-header">Conversations with Heqing Kwek Lee: Canine Olfactory Algebra</div>
                     <p><span class="dog-speaker">Heqing Kwek Lee:</span> "Wait a minute, Professor. Did someone explicitly code an 'Is-A-Monarch' feature into the neural network?"</p>
                     <p><span class="dog-speaker">Professor:</span> "Not at all. The network was only given raw text sequences and asked to differentiate real context pairs from noise."</p>
                     <p><span class="dog-speaker">Heqing Kwek Lee:</span> "Then how did it know that subtracting 'Man' from 'King' isolates the abstract concept of <em>Royalty</em>, and adding 'Woman' yields 'Queen'?"</p>
@@ -447,9 +447,9 @@
                             Interactive Vector Space: Analogy Engine (\(\mathbb{R}^2\) Projection)
                         </h4>
                         <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-                            <button id="btnKingQueen" class="home-btn" style="cursor: pointer; font-size: 0.82rem; padding: 0.35rem 0.75rem;">👑 King - Man + Woman = Queen</button>
-                            <button id="btnDogCat" class="home-btn" style="cursor: pointer; font-size: 0.82rem; padding: 0.35rem 0.75rem;">🐾 Dog - Bark + Meow = Cat</button>
-                            <button id="btnSgnsStep" class="home-btn" style="cursor: pointer; font-size: 0.82rem; padding: 0.35rem 0.75rem;">⚡ 1 SGNS Gradient Step</button>
+                            <button id="btnKingQueen" class="home-btn" style="cursor: pointer; font-size: 0.82rem; padding: 0.35rem 0.75rem;">King - Man + Woman = Queen</button>
+                            <button id="btnDogCat" class="home-btn" style="cursor: pointer; font-size: 0.82rem; padding: 0.35rem 0.75rem;">Dog - Bark + Meow = Cat</button>
+                            <button id="btnSgnsStep" class="home-btn" style="cursor: pointer; font-size: 0.82rem; padding: 0.35rem 0.75rem;">1 SGNS Gradient Step</button>
                             <button id="btnResetCanvas" class="home-btn" style="cursor: pointer; font-size: 0.82rem; padding: 0.35rem 0.75rem; opacity: 0.8;">↺ Reset</button>
                         </div>
                     </div>
@@ -699,7 +699,7 @@
 
                         document.getElementById('canvasOpText').innerText = "SGNS Step: Attracted 'Dog' → 'Bark', Repelled from 'Squirrel'";
                         document.getElementById('canvasCoordText').innerText = `Dog: [${dog.x.toFixed(2)}, ${dog.y.toFixed(2)}]`;
-                        document.getElementById('canvasSimText').innerText = "Gradient Force Applied ✓";
+                        document.getElementById('canvasSimText').innerText = "Gradient Force Applied (Complete)";
                         render();
                     });
 
@@ -719,7 +719,7 @@
                 <!-- Dog Dialogue 2 -->
                 <!-- Dog Dialogue 4 -->
                 <div class="dog-dialogue">
-                    <div class="dog-dialogue-header">🐾 Conversations with Heqing Kwek Lee: The Vanishing Scent Trail</div>
+                    <div class="dog-dialogue-header">Conversations with Heqing Kwek Lee: The Vanishing Scent Trail</div>
                     <p><span class="dog-speaker">Heqing Kwek Lee:</span> "Splendid! Now our words are continuous vectors, and our analogies form parallelograms in \(\mathbb{R}^d\). But words don't just sit in a bowl like dry kibble; they arrive in sequences! When you yell: <em>'Heqing Kwek Lee, do NOT eat the roasted duck on the table!'</em>, the word order is the difference between an existential reprimand and a delectable feast!"</p>
                     <p><span class="dog-speaker">Professor:</span> "Right. Natural language is an ordered stochastic process. To model sequences, researchers in the 1980s and 90s turned to <strong>Recurrent Neural Networks (RNNs)</strong>. At each time step \(t\), the network takes the current word vector \(\mathbf{x}_t\) and updates its internal hidden state: \(\mathbf{h}_t = \tanh(\mathbf{W}_{hh} \mathbf{h}_{t-1} + \mathbf{W}_{xh} \mathbf{x}_t + \mathbf{b}_h)\)."</p>
                     <p><span class="dog-speaker">Heqing Kwek Lee:</span> "So \(\mathbf{h}_t\) is the dog's internal working memory? If I catch the scent of a rabbit at time \(t=1\), walk across the yard at \(t=2\), find a stick at \(t=3\), chase a butterfly at \(t=4\)... when I arrive at the fence at \(t=50\), do I still remember the rabbit?"</p>
@@ -1022,7 +1022,7 @@ if __name__ == "__main__":
 
                 <!-- Dog Dialogue 5 -->
                 <div class="dog-dialogue">
-                    <div class="dog-dialogue-header">🐾 Conversations with Heqing Kwek Lee: Epilogue — The Sequential GPU Bottleneck</div>
+                    <div class="dog-dialogue-header">Conversations with Heqing Kwek Lee: Epilogue — The Sequential GPU Bottleneck</div>
                     <p><span class="dog-speaker">Heqing Kwek Lee:</span> "Let me summarize Lake Tahoe, Professor. Mikolov turned words into continuous manifolds, Levy & Goldberg proved it was implicit matrix factorization of shifted PMI, and Schmidhuber's LSTM saved our gradients from vanishing into numerical oblivion using an additive cell highway."</p>
                     <p><span class="dog-speaker">Professor:</span> "A flawless synthesis, Heqing."</p>
                     <p><span class="dog-speaker">Heqing Kwek Lee:</span> "Thank you. But there is a glaring, tragic flaw in this entire 2013 paradigm. Notice equation (4):
