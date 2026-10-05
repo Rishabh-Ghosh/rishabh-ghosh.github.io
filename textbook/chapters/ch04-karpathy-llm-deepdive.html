@@ -367,6 +367,97 @@
                         \[ \boldsymbol{\theta} \leftarrow \boldsymbol{\theta} - \eta \cdot \text{AdamW}(\nabla_{\boldsymbol{\theta}} \mathcal{L}) \]
                     </p>
 
+                    <!-- Deep-Dive Breakdown of Backprop & AdamW -->
+                    <div class="math-breakdown" style="border-left: 4px solid var(--text-accent); background: var(--bg-sidebar);">
+                        <div class="math-breakdown-title">🔬 Under the Hood: Knobs, Blame Scores, Reverse-Mode Sweeps, &amp; AdamW</div>
+                        <p>
+                            What is actually happening inside the silicon when we execute that single optimization line? Let us dismantle the physics into four intuitive pieces:
+                        </p>
+
+                        <div class="concept-grid" style="margin: 1rem 0;">
+                            <div class="concept-card">
+                                <h4>1. The 70 Billion Knobs (\(\boldsymbol{\theta}\))</h4>
+                                <p>
+                                    Think of the LLM as a colossal mixing console with <strong>70 billion slider knobs</strong> (weights and biases stored in GPU VRAM).
+                                    At step 0, every knob is set to a random number. Speaking into the microphone yields deafening white noise.
+                                    <em>The goal of training:</em> Turn these 70 billion knobs until the static turns into Shakespeare, Python compilers, and medical diagnoses.
+                                </p>
+                            </div>
+
+                            <div class="concept-card">
+                                <h4>2. The Blame Score (\(\mathcal{L}\))</h4>
+                                <p>
+                                    \(\mathcal{L}\) is a single scalar number measuring <strong>how surprised and wrong the model was</strong>.
+                                    Given <em>"The capital of France is"</em>, the true next token is <em>" Paris"</em>.
+                                    If the model assigns only a \(0.001\%\) probability to <em>" Paris"</em>, the loss is enormous (\(-\log(10^{-5}) \approx 11.5\)).
+                                    If it assigns \(99\%\), the loss collapses close to zero (\(-\log(0.99) \approx 0.01\)).
+                                </p>
+                            </div>
+
+                            <div class="concept-card">
+                                <h4>3. The Gradient (\(\nabla_{\boldsymbol{\theta}} \mathcal{L}\))</h4>
+                                <p>
+                                    A list of 70 billion directional arrows. For every individual knob \(\theta_i\), the partial derivative \(\frac{\partial \mathcal{L}}{\partial \theta_i}\) answers:
+                                    <em>"If I nudge this specific knob slightly up, will our error go UP or DOWN, and by how much?"</em>
+                                    <br>&bull; If \(+3.5\): Nudging up increases error &rarr; nudge it <strong>down</strong>.
+                                    <br>&bull; If \(-8.2\): Nudging up decreases error &rarr; nudge it <strong>up</strong>.
+                                </p>
+                            </div>
+
+                            <div class="concept-card">
+                                <h4>4. The Reverse-Mode Miracle</h4>
+                                <p>
+                                    <strong>Why not wiggle each knob forward?</strong> Wiggling 70 billion knobs one by one would require 70 billion forward passes per word (thousands of years).
+                                    Because we have 70 billion inputs (\(\boldsymbol{\theta}\)) but only <em>one single scalar output</em> (\(\mathcal{L}\)), the multivariable chain rule allows us to sweep <strong>backward</strong> from the loss, computing exact sensitivities for all 70 billion knobs in a <strong>single backward pass</strong>!
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="math-breakdown-title" style="font-size: 1.15rem; margin-top: 1.5rem;">Why Vanilla Gradient Descent Fails &amp; Why We Need AdamW</div>
+                        <p>
+                            Why can't we just take simple steps: \(\boldsymbol{\theta} \leftarrow \boldsymbol{\theta} - \eta \nabla \mathcal{L}\)?
+                            Because the loss landscape of a 70-billion-parameter Transformer is a treacherous, chaotic canyon.
+                            Common words (<em>"the"</em>, <em>"and"</em>) create steep vertical cliffs, while rare concepts (<em>"symplectic"</em>, <em>"neuroblastoma"</em>) form flat, sluggish plains.
+                            A single uniform step size \(\eta\) will explode on the cliffs and crawl on the plains. <strong>AdamW provides three crucial flight-control systems:</strong>
+                        </p>
+
+                        <div class="table-container">
+                            <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem; margin: 1rem 0;">
+                                <thead>
+                                    <tr style="background: var(--bg-card); border-bottom: 2px solid var(--border-color); text-align: left;">
+                                        <th style="padding: 0.6rem;">Mechanism</th>
+                                        <th style="padding: 0.6rem;">Intuition</th>
+                                        <th style="padding: 0.6rem;">Mathematical Formula</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr style="border-bottom: 1px solid var(--border-color);">
+                                        <td style="padding: 0.6rem;"><strong>1. Momentum (\(m_t\))</strong></td>
+                                        <td style="padding: 0.6rem;"><strong>A heavy rolling boulder:</strong> Keeps an exponential moving average of past gradient directions. Dampens erratic zig-zags on noisy mini-batches and barrels through local ripples.</td>
+                                        <td style="padding: 0.6rem;">\(m_t = \beta_1 m_{t-1} + (1 - \beta_1) g_t\)</td>
+                                    </tr>
+                                    <tr style="border-bottom: 1px solid var(--border-color);">
+                                        <td style="padding: 0.6rem;"><strong>2. Per-Parameter Velocity (\(v_t\))</strong></td>
+                                        <td style="padding: 0.6rem;"><strong>Individual cruise control:</strong> Tracks running variance (\(g_t^2\)). If a parameter experiences massive frequent gradients, divide by \(\sqrt{v_t}\) to <em>slow down</em>. If gradients are tiny and rare, divide by a tiny number to <em>speed up</em>!</td>
+                                        <td style="padding: 0.6rem;">\(v_t = \beta_2 v_{t-1} + (1 - \beta_2) g_t^2\)</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 0.6rem;"><strong>3. Decoupled Weight Decay ("W")</strong></td>
+                                        <td style="padding: 0.6rem;"><strong>A gentle gravity tether:</strong> Constantly shrinks all weights slightly toward zero: \(\boldsymbol{\theta} \leftarrow (1 - \eta \lambda)\boldsymbol{\theta}\). Prevents weights from exploding to infinity or memorizing training data. (Loshchilov &amp; Hutter, 2017).</td>
+                                        <td style="padding: 0.6rem;">\(\boldsymbol{\theta}_{t+1} = \boldsymbol{\theta}_t - \eta \left( \frac{\hat{m}_t}{\sqrt{\hat{v}_t} + \epsilon} + \lambda \boldsymbol{\theta}_t \right)\)</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <p style="margin-top: 1rem; font-weight: 600;">
+                            🔄 <strong>The 3-Step Rhythm of Silicon Learning:</strong>
+                            <br>1. <strong>Forward Pass:</strong> The network guesses the next word across billions of tokens and tallies its total surprise (\(\mathcal{L}\)).
+                            <br>2. <strong>Reverse Pass (Backprop):</strong> The surprise signal flows backward through all 80+ layers, calculating the exact blame for every single connection (\(\nabla_{\boldsymbol{\theta}} \mathcal{L}\)).
+                            <br>3. <strong>AdamW Step:</strong> AdamW checks its rolling momentum and velocity for all 70 billion parameters, scales each step size individually, applies weight decay gravity, and nudges every knob so the model is slightly less surprised next time!
+                        </p>
+                    </div>
+
                     <p><strong>The Trajectory of Training (Andrej Karpathy's <code>llm.c</code> Experience):</strong></p>
                     <ul>
                         <li><strong>Step 1 (Initialization):</strong> The loss begins at \(\mathcal{L} \approx \log |\mathcal{V}| = \log(100{,}277) \approx 11.51\). Output text is total gibberish (random characters and symbols).</li>
