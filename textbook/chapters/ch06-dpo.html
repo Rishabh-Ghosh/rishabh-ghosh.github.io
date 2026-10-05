@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chapter 6: Direct Preference Optimization (DPO) | Rishabh Ghosh</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- KaTeX -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body);"></script>
+    
+    <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+    <!-- Header Navigation -->
+    <header class="top-header">
+        <a href="../index.html" class="brand-link">
+            <span>Rishabh Ghosh</span>
+            <span style="font-weight: 300; opacity: 0.6;">/ LLM & Post-Training Textbook</span>
+        </a>
+        <div class="header-meta">
+            <span class="badge badge-univ">Harvard CS288 · Stanford CS329H</span>
+            <a href="../index.html" class="home-btn">← Table of Contents</a>
+        </div>
+    </header>
+
+    <div class="layout-container">
+        
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-title">Chapters</div>
+            <ul class="nav-list">
+                <li class="nav-item"><a href="ch01-architectures.html"><span class="nav-chapter-num">01.</span>Architectures & Attention</a></li>
+                <li class="nav-item"><a href="../index.html"><span class="nav-chapter-num">02.</span>Pre-Training & Systems</a></li>
+                <li class="nav-item"><a href="../index.html"><span class="nav-chapter-num">03.</span>SFT & PEFT (LoRA)</a></li>
+                <li class="nav-item"><a href="../index.html"><span class="nav-chapter-num">04.</span>Preference Modeling</a></li>
+                <li class="nav-item"><a href="../index.html"><span class="nav-chapter-num">05.</span>RLHF & PPO</a></li>
+                <li class="nav-item"><a href="ch06-dpo.html" class="active"><span class="nav-chapter-num">06.</span>DPO & Direct Alignment</a></li>
+                <li class="nav-item"><a href="ch07-reasoning-grpo.html"><span class="nav-chapter-num">07.</span>Reasoning & GRPO (DeepSeek-R1)</a></li>
+                <li class="nav-item"><a href="../index.html"><span class="nav-chapter-num">08.</span>Long-Context & RAG</a></li>
+                <li class="nav-item"><a href="../index.html"><span class="nav-chapter-num">09.</span>Evaluation & Safety</a></li>
+                <li class="nav-item"><a href="../index.html"><span class="nav-chapter-num">10.</span>Multimodal & VLA Robotics</a></li>
+            </ul>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            
+            <header class="chapter-header">
+                <div class="chapter-badge-container">
+                    <span class="badge">NeurIPS 2023</span>
+                    <span class="badge">ICLR</span>
+                    <span class="badge badge-univ">Harvard CS288</span>
+                    <span class="badge badge-univ">Stanford</span>
+                </div>
+                <span class="chapter-number">Chapter 06</span>
+                <h1 class="chapter-title">Direct & Implicit Preference Optimization (DPO)</h1>
+                <p class="chapter-subtitle">
+                    Mathematical derivation of Direct Preference Optimization (Rafailov et al., 2023), implicit reward transformations, loss gradient mechanics, and reference-free extensions (IPO, KTO, SimPO).
+                </p>
+            </header>
+
+            <section>
+                <h2>6.1 The RLHF Constrained Optimization Problem</h2>
+                <p>
+                    In traditional RLHF (Christiano et al., 2017; Ziegler et al., 2019), policy optimization seeks a language model policy \( \pi_\theta \) that maximizes an explicit reward function \( r^\phi(x,y) \) subject to a KL-divergence penalty against a reference policy \( \pi_{\text{ref}} \):
+                </p>
+                <div class="math-block">
+                    \[ \max_{\pi_\theta} \mathbb{E}_{x \sim \mathcal{D}, y \sim \pi_\theta(y|x)} \left[ r^\phi(x,y) \right] - \beta \mathbb{D}_{\text{KL}}\left( \pi_\theta(y|x) \parallel \pi_{\text{ref}}(y|x) \right) \]
+                </div>
+                <p>
+                    Expanding the KL divergence definition:
+                </p>
+                <div class="math-block">
+                    \[ \max_{\pi_\theta} \mathbb{E}_{x \sim \mathcal{D}} \left[ \sum_{y} \pi_\theta(y|x) \left( r^\phi(x,y) - \beta \log \frac{\pi_\theta(y|x)}{\pi_{\text{ref}}(y|x)} \right) \right] \]
+                </div>
+                <p>
+                    Rearranging terms inside the expectation:
+                </p>
+                <div class="math-block">
+                    \[ = \max_{\pi_\theta} \mathbb{E}_{x \sim \mathcal{D}} \left[ \beta \sum_{y} \pi_\theta(y|x) \log \left( \frac{\pi_{\text{ref}}(y|x) \exp\left(\frac{1}{\beta} r^\phi(x,y)\right)}{\pi_\theta(y|x)} \right) \right] \]
+                </div>
+
+                <h2>6.2 Deriving the Optimal Policy in Closed Form</h2>
+                <p>
+                    Define the unnormalized target distribution \( Z(x) \):
+                </p>
+                <div class="math-block">
+                    \[ Z(x) = \sum_{y} \pi_{\text{ref}}(y|x) \exp\left(\frac{1}{\beta} r^\phi(x,y)\right) \]
+                </div>
+                <p>
+                    Defining the valid probability distribution \( \pi^*(y|x) = \frac{1}{Z(x)} \pi_{\text{ref}}(y|x) \exp\left(\frac{1}{\beta} r^\phi(x,y)\right) \), the optimization objective becomes:
+                </p>
+                <div class="math-block">
+                    \[ \max_{\pi_\theta} \mathbb{E}_{x \sim \mathcal{D}} \left[ \beta \log Z(x) - \beta \mathbb{D}_{\text{KL}}\left( \pi_\theta(y|x) \parallel \pi^*(y|x) \right) \right] \]
+                </div>
+                <p>
+                    Because KL divergence is non-negative and equals zero if and only if the distributions match, the exact global optimum policy \( \pi^* \) satisfies:
+                </p>
+                <div class="math-block">
+                    \[ \pi_\theta(y|x) = \frac{1}{Z(x)} \pi_{\text{ref}}(y|x) \exp\left(\frac{1}{\beta} r^\phi(x,y)\right) \]
+                </div>
+
+                <h2>6.3 Substituting Implicit Rewards into Bradley-Terry Preference Loss</h2>
+                <p>
+                    Taking the logarithm of both sides of the optimal policy equation and solving directly for the reward function \( r^\phi(x,y) \):
+                </p>
+                <div class="math-block">
+                    \[ r^\phi(x,y) = \beta \log \frac{\pi_\theta(y|x)}{\pi_{\text{ref}}(y|x)} + \beta \log Z(x) \]
+                </div>
+                <p>
+                    Now recall the **Bradley-Terry preference model** (Bradley & Terry, 1952), which models human preference likelihood for winning response \( y_w \) over losing response \( y_l \) given prompt \( x \):
+                </p>
+                <div class="math-block">
+                    \[ P(y_w \succ y_l \mid x) = \sigma \left( r^\phi(x, y_w) - r^\phi(x, y_l) \right) \]
+                </div>
+                <p>
+                    Substituting our implicit reward formula into the Bradley-Terry preference probability, the partition function term \( \beta \log Z(x) \) cancels out completely!
+                </p>
+                <div class="math-block">
+                    \[ r^\phi(x, y_w) - r^\phi(x, y_l) = \beta \log \frac{\pi_\theta(y_w|x)}{\pi_{\text{ref}}(y_w|x)} - \beta \log \frac{\pi_\theta(y_l|x)}{\pi_{\text{ref}}(y_l|x)} \]
+                </div>
+                <p>
+                    This yields the complete **Direct Preference Optimization (DPO)** objective function:
+                </p>
+                <div class="math-block">
+                    \[ \mathcal{L}_{\text{DPO}}(\theta; \pi_{\text{ref}}) = -\mathbb{E}_{(x, y_w, y_l) \sim \mathcal{D}} \left[ \log \sigma \left( \beta \log \frac{\pi_\theta(y_w|x)}{\pi_{\text{ref}}(y_w|x)} - \beta \log \frac{\pi_\theta(y_l|x)}{\pi_{\text{ref}}(y_l|x)} \right) \right] \]
+                </div>
+
+                <h2>6.4 Gradient Dynamics & Intuitively Understanding DPO</h2>
+                <p>
+                    Taking the derivative of \( \mathcal{L}_{\text{DPO}}(\theta) \) with respect to policy parameters \( \theta \):
+                </p>
+                <div class="math-block">
+                    \[ \nabla_\theta \mathcal{L}_{\text{DPO}}(\theta) = -\beta \mathbb{E}_{(x, y_w, y_l)} \left[ \underbrace{\sigma \left( \hat{r}_\theta(x, y_l) - \hat{r}_\theta(x, y_w) \right)}_{\text{Weighting factor / Error margin}} \left( \nabla_\theta \log \pi_\theta(y_w|x) - \nabla_\theta \log \pi_\theta(y_l|x) \right) \right] \]
+                </div>
+                <p>
+                    Key gradient properties:
+                </p>
+                <ul>
+                    <li>Increases the log-likelihood of winning response $y_w$ while decreasing log-likelihood of losing response $y_l$.</li>
+                    <li>The gradient step is weighted by $\sigma(\hat{r}_\theta(y_l) - \hat{r}_\theta(y_w))$, which scales up when the model incorrectly ranks $y_l > y_w$ and scales down when the model is already confident.</li>
+                    <li>Eliminates the need to train or store an explicit Reward Model network or execute PPO sampling loops!</li>
+                </ul>
+
+                <h3>PyTorch Production Implementation: DPO Loss</h3>
+<pre><code>import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
+def compute_dpo_loss(
+    policy_chosen_logps: torch.Tensor,
+    policy_rejected_logps: torch.Tensor,
+    ref_chosen_logps: torch.Tensor,
+    ref_rejected_logps: torch.Tensor,
+    beta: float = 0.1,
+    label_smoothing: float = 0.0
+) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    """
+    Computes DPO loss for a batch of chosen (winning) and rejected (losing) completions.
+    """
+    # Log-ratios of policy probabilities vs reference probabilities
+    pi_logratios = policy_chosen_logps - policy_rejected_logps
+    ref_logratios = ref_chosen_logps - ref_rejected_logps
+
+    logits = pi_logratios - ref_logratios
+    
+    if label_smoothing > 0.0:
+        # Robust DPO variant with label smoothing
+        losses = -F.logsigmoid(beta * logits) * (1 - label_smoothing) - F.logsigmoid(-beta * logits) * label_smoothing
+    else:
+        losses = -F.logsigmoid(beta * logits)
+
+    # Compute implicit rewards for logging and monitoring
+    chosen_rewards = beta * (policy_chosen_logps - ref_chosen_logps).detach()
+    rejected_rewards = beta * (policy_rejected_logps - ref_rejected_logps).detach()
+
+    return losses.mean(), chosen_rewards.mean(), rejected_rewards.mean()
+</code></pre>
+
+                <h2>6.5 Advanced Variants: IPO, KTO, ORPO & SimPO</h2>
+                <table style="width: 100%; border-collapse: collapse; margin: 1.5rem 0; font-size: 0.92rem;">
+                    <thead>
+                        <tr style="background-color: var(--bg-sidebar); border-bottom: 2px solid var(--border-color); text-align: left;">
+                            <th style="padding: 0.6rem;">Algorithm</th>
+                            <th style="padding: 0.6rem;">Objective Focus</th>
+                            <th style="padding: 0.6rem;">Key Innovation</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr style="border-bottom: 1px solid var(--border-color);">
+                            <td style="padding: 0.6rem;"><strong>IPO</strong> (Azar et al., 2023)</td>
+                            <td style="padding: 0.6rem;">Square Error Regularization</td>
+                            <td style="padding: 0.6rem;">Prevents greedy over-fitting in DPO by penalizing squared log ratios.</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid var(--border-color);">
+                            <td style="padding: 0.6rem;"><strong>KTO</strong> (Ethayarajh et al., 2024)</td>
+                            <td style="padding: 0.6rem;">Unpaired Utility Function</td>
+                            <td style="padding: 0.6rem;">Applies Prospect Theory (Kahneman-Tversky) to binary good/bad feedback without pairs.</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid var(--border-color);">
+                            <td style="padding: 0.6rem;"><strong>ORPO</strong> (Hong et al., 2024)</td>
+                            <td style="padding: 0.6rem;">Odds-Ratio Penalty</td>
+                            <td style="padding: 0.6rem;">Combines SFT negative log-likelihood loss with Odds Ratio penalty in one stage without reference model.</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 0.6rem;"><strong>SimPO</strong> (Meng et al., 2024)</td>
+                            <td style="padding: 0.6rem;">Length-Normalized Margin</td>
+                            <td style="padding: 0.6rem;">Eliminates reference model entirely; uses target margin $\gamma$ with sequence-length normalized probabilities.</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <footer class="chapter-footer-nav">
+                    <a href="ch01-architectures.html" class="nav-link-btn">← Prev: Chapter 01 (Architectures)</a>
+                    <a href="ch07-reasoning-grpo.html" class="nav-link-btn">Next: Chapter 07 (GRPO & Reasoning) →</a>
+                </footer>
+
+            </section>
+        </main>
+    </div>
+
+</body>
+</html>

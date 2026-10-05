@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Conference Memoirs of a Veteran AI Scholar | Rishabh Ghosh</title>
+    
+    <!-- Google Fonts: Cormorant Garamond -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- KaTeX -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body);"></script>
+    
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Header Navigation -->
+    <header class="top-header">
+        <a href="../index.html" class="brand-link">
+            <span>Rishabh Ghosh</span>
+            <span style="font-weight: 300; opacity: 0.6;">/ Research Textbook & Memoirs</span>
+        </a>
+        <div class="header-meta">
+            <span class="badge badge-univ">Stanford · CMU · Berkeley · Harvard · MIT</span>
+            <a href="../index.html" class="home-btn">← Main Site</a>
+        </div>
+    </header>
+
+    <!-- Main Layout -->
+    <div class="layout-container" style="max-width: 1200px; margin: var(--header-height) auto 0 auto;">
+        
+        <main class="main-content" style="margin-left: 0; max-width: 100%;">
+            <section class="hero-hub">
+                <div class="chapter-badge-container" style="justify-content: center; margin-bottom: 1.2rem;">
+                    <span class="badge">NeurIPS</span>
+                    <span class="badge">ICML</span>
+                    <span class="badge">ICLR</span>
+                    <span class="badge">CoRL</span>
+                    <span class="badge">CVPR</span>
+                    <span class="badge">UAI</span>
+                    <span class="badge">JMLR</span>
+                    <span class="badge">TMLR</span>
+                </div>
+                <h1 class="hero-title">The Conference Memoirs of a Veteran AI Scholar</h1>
+                <p class="hero-desc">
+                    A first-person, story-driven, mathematically formal textbook narrated by an aging AI researcher 
+                    attending landmark conferences over decades. Blending personal conference floor memoirs and technical opinions with formal mathematical derivations (tailored for a Mathematics graduate) and ground-zero Python/PyTorch implementations.
+                </p>
+                <div style="font-style: italic; color: var(--text-muted); font-family: var(--font-serif); font-size: 1.1rem; max-width: 700px; margin: 0 auto;">
+                    "I have sat in cold conference halls from NIPS 1988 to NeurIPS 2024. I watched perceptrons stumble, saw vectors discover meaning in Lake Tahoe, stood in Long Beach as transformers were born, and watched DPO and DeepSeek collapse complex reinforcement learning into pure mathematical elegance."
+                </div>
+            </section>
+
+            <section class="chapter-grid" style="margin-top: 3rem;">
+                
+                <!-- Chapter 1 -->
+                <a href="chapters/ch01-perceptron-memoirs.html" class="chapter-card">
+                    <div>
+                        <span class="card-ch-num">CHAPTER 01 · EARLY NIPS / ICML</span>
+                        <h3 class="card-title">The Perceptron Debates & Backprop Epiphany</h3>
+                        <p class="card-desc">
+                            "Sitting through early NIPS sessions, watching Rosenblatt’s perceptron struggle with XOR, and the electric atmosphere when backpropagation proved vector calculus could optimize neural manifolds."
+                        </p>
+                    </div>
+                    <div class="chapter-badge-container">
+                        <span class="badge badge-univ">Math Foundations</span>
+                        <span class="badge">Python/NumPy</span>
+                    </div>
+                </a>
+
+                <!-- Chapter 2 -->
+                <a href="chapters/ch02-word2vec-memoirs.html" class="chapter-card">
+                    <div>
+                        <span class="card-ch-num">CHAPTER 02 · NIPS 2013 (LAKE TAHOE)</span>
+                        <h3 class="card-title">Lake Tahoe 2013: Word Vectors & Memory Decay</h3>
+                        <p class="card-desc">
+                            "Heqing Kwek Lee wonders if squirrel scents form a vector space. Standing in a crowded Tahoe poster session for Mikolov's Word2Vec, SGNS derivations, and why RNN singular values decay exponentially."
+                        </p>
+                    </div>
+                    <div class="chapter-badge-container">
+                        <span class="badge badge-univ">Stanford CS224N</span>
+                        <span class="badge">Information Theory</span>
+                    </div>
+                </a>
+
+                <!-- Chapter 3 -->
+                <a href="chapters/ch03-attention-memoirs.html" class="chapter-card">
+                    <div>
+                        <span class="card-ch-num">CHAPTER 03 · NIPS 2017 (LONG BEACH)</span>
+                        <h3 class="card-title">Long Beach 2017: "Attention Is All You Need"</h3>
+                        <p class="card-desc">
+                            "Sitting in the main hall when Google presented Attention Is All You Need. Throwing away sequential loops for parallel QKV self-attention matrices and complex RoPE rotations."
+                        </p>
+                    </div>
+                    <div class="chapter-badge-container">
+                        <span class="badge badge-univ">Stanford CS336</span>
+                        <span class="badge">PyTorch MHA</span>
+                    </div>
+                </a>
+
+                <!-- Chapter 4 -->
+                <a href="chapters/ch03-attention-memoirs.html" class="chapter-card">
+                    <div>
+                        <span class="card-ch-num">CHAPTER 04 · NeurIPS & ACL 2018–2020</span>
+                        <h3 class="card-title">BERT, GPT-3 & The Scaling Law Debate</h3>
+                        <p class="card-desc">
+                            "The fierce conference battles between BERT bidirectional encoders and GPT decoder purists. Watching GPT-3 prove in-context learning, and analyzing Kaplan vs Chinchilla scaling laws."
+                        </p>
+                    </div>
+                    <div class="chapter-badge-container">
+                        <span class="badge badge-univ">MIT 6.S192</span>
+                        <span class="badge">Scaling Frontiers</span>
+                    </div>
+                </a>
+
+                <!-- Chapter 5 -->
+                <a href="chapters/ch03-attention-memoirs.html" class="chapter-card">
+                    <div>
+                        <span class="card-ch-num">CHAPTER 05 · NeurIPS SYSTEMS TRACKS</span>
+                        <h3 class="card-title">FlashAttention & GPU Memory Anatomy</h3>
+                        <p class="card-desc">
+                            "Watching Tri Dao explain that memory IO, not math, was the hidden bottleneck of attention. GPU SRAM vs HBM tiling, FSDP, Megatron matrix splitting, and building a Mini-GPT in PyTorch."
+                        </p>
+                    </div>
+                    <div class="chapter-badge-container">
+                        <span class="badge badge-univ">Hardware Systems</span>
+                        <span class="badge">FlashAttention</span>
+                    </div>
+                </a>
+
+                <!-- Chapter 6 -->
+                <a href="chapters/ch07-dpo-memoirs.html" class="chapter-card">
+                    <div>
+                        <span class="card-ch-num">CHAPTER 06 · NeurIPS 2021/2022</span>
+                        <h3 class="card-title">InstructGPT, LoRA & Parameter Efficiency</h3>
+                        <p class="card-desc">
+                            "My amusement at multi-billion parameter base models autocompleting prompts instead of answering. Edward Hu’s low-rank matrix update math allowing 70B fine-tuning on modest GPUs."
+                        </p>
+                    </div>
+                    <div class="chapter-badge-container">
+                        <span class="badge badge-univ">CMU 11-711</span>
+                        <span class="badge">LoRA / QLoRA</span>
+                    </div>
+                </a>
+
+                <!-- Chapter 7 -->
+                <a href="chapters/ch07-dpo-memoirs.html" class="chapter-card">
+                    <div>
+                        <span class="card-ch-num">CHAPTER 07 · NeurIPS 2023 (NEW ORLEANS)</span>
+                        <h3 class="card-title">New Orleans 2023: The Alignment Epiphany (DPO)</h3>
+                        <p class="card-desc">
+                            "My delight in New Orleans when DPO proved that optimal preference policies could be derived in closed form, replacing fragile 4-model PPO loops with elegant implicit reward math."
+                        </p>
+                    </div>
+                    <div class="chapter-badge-container">
+                        <span class="badge badge-univ">Harvard CS288</span>
+                        <span class="badge">DPO Derivations</span>
+                    </div>
+                </a>
+
+                <!-- Chapter 8 -->
+                <a href="chapters/ch08-grpo-memoirs.html" class="chapter-card">
+                    <div>
+                        <span class="card-ch-num">CHAPTER 08 · ICLR / ICML 2024–2025</span>
+                        <h3 class="card-title">DeepSeek-R1, GRPO & System 2 Reasoning</h3>
+                        <p class="card-desc">
+                            "The shift to System 2 deliberate reasoning. DeepSeek’s GRPO eliminating Critic networks, rule-based verification, and watching emergent self-correction and reflection tokens appear."
+                        </p>
+                    </div>
+                    <div class="chapter-badge-container">
+                        <span class="badge badge-univ">Frontier RL</span>
+                        <span class="badge">GRPO Code</span>
+                    </div>
+                </a>
+
+                <!-- Chapter 9 -->
+                <a href="chapters/ch08-grpo-memoirs.html" class="chapter-card">
+                    <div>
+                        <span class="card-ch-num">CHAPTER 09 · SAFETY WORKSHOPS</span>
+                        <h3 class="card-title">Long-Context, RAG & Mechanistic Interpretability</h3>
+                        <p class="card-desc">
+                            "Navigating context extensions, HNSW vector database indexing, FAISS, automated judges, refusal directions in activation space, and Sparse Autoencoders (SAEs)."
+                        </p>
+                    </div>
+                    <div class="chapter-badge-container">
+                        <span class="badge badge-univ">UC Berkeley CS285</span>
+                        <span class="badge">AI Safety</span>
+                    </div>
+                </a>
+
+                <!-- Chapter 10 -->
+                <a href="chapters/ch08-grpo-memoirs.html" class="chapter-card">
+                    <div>
+                        <span class="card-ch-num">CHAPTER 10 · CVPR & CoRL TRACKS</span>
+                        <h3 class="card-title">Multimodal LLMs & Embodied VLA Robotics</h3>
+                        <p class="card-desc">
+                            "Visiting CVPR and CoRL to watch visual patches project into LLM embedding spaces, and Vision-Language-Action (VLA) models control physical robot manipulation policies."
+                        </p>
+                    </div>
+                    <div class="chapter-badge-container">
+                        <span class="badge badge-univ">CVPR / CoRL</span>
+                        <span class="badge">VLA Policies</span>
+                    </div>
+                </a>
+
+            </section>
+        </main>
+    </div>
+
+</body>
+</html>

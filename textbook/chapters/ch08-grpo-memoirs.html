@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chapter 8: ICLR 2025 — DeepSeek-R1, GRPO & Reasoning | Rishabh Ghosh</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- KaTeX -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body);"></script>
+    
+    <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+    <!-- Header Navigation -->
+    <header class="top-header">
+        <a href="../index.html" class="brand-link">
+            <span>Rishabh Ghosh</span>
+            <span style="font-weight: 300; opacity: 0.6;">/ Research Textbook & Memoirs</span>
+        </a>
+        <div class="header-meta">
+            <span class="badge badge-univ">Frontier Reasoning RL</span>
+            <a href="../index.html" class="home-btn">← Table of Contents</a>
+        </div>
+    </header>
+
+    <div class="layout-container">
+        
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-title">Memoirs & Chapters</div>
+            <ul class="nav-list">
+                <li class="nav-item"><a href="ch01-perceptron-memoirs.html"><span class="nav-chapter-num">01.</span>Perceptrons & Backpropagation</a></li>
+                <li class="nav-item"><a href="ch02-word2vec-memoirs.html"><span class="nav-chapter-num">02.</span>Lake Tahoe 2013: Word Vectors</a></li>
+                <li class="nav-item"><a href="ch03-attention-memoirs.html"><span class="nav-chapter-num">03.</span>Long Beach 2017: Attention</a></li>
+                <li class="nav-item"><a href="../index.html"><span class="nav-chapter-num">04.</span>BERT, GPT-3 & Scaling Laws</a></li>
+                <li class="nav-item"><a href="../index.html"><span class="nav-chapter-num">05.</span>FlashAttention & Systems</a></li>
+                <li class="nav-item"><a href="../index.html"><span class="nav-chapter-num">06.</span>InstructGPT & LoRA</a></li>
+                <li class="nav-item"><a href="ch07-dpo-memoirs.html"><span class="nav-chapter-num">07.</span>New Orleans 2023: DPO Alignment</a></li>
+                <li class="nav-item"><a href="ch08-grpo-memoirs.html" class="active"><span class="nav-chapter-num">08.</span>ICLR 2025: DeepSeek-R1 & GRPO</a></li>
+                <li class="nav-item"><a href="../index.html"><span class="nav-chapter-num">09.</span>Long-Context, RAG & Safety</a></li>
+                <li class="nav-item"><a href="../index.html"><span class="nav-chapter-num">10.</span>CVPR & CoRL: Multimodal VLA</a></li>
+            </ul>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            
+            <header class="chapter-header">
+                <div class="chapter-badge-container">
+                    <span class="badge">ICLR 2025</span>
+                    <span class="badge">ICML 2025</span>
+                    <span class="badge badge-univ">Reasoning RL</span>
+                    <span class="badge badge-univ">DeepSeek-R1</span>
+                </div>
+                <span class="chapter-number">Chapter 08 · Conference Memoir</span>
+                <h1 class="chapter-title">ICLR 2025: DeepSeek-R1, GRPO & System 2 Reasoning</h1>
+                <p class="chapter-subtitle">
+                    Reflections on the frontier of AI research: Group Relative Policy Optimization (GRPO), Process-Supervised Reward Models (PRMs), emergent self-correction, and PyTorch implementation.
+                </p>
+            </header>
+
+            <section>
+                <blockquote>
+                    "In recent years at ICLR and ICML, a profound paradigm shift has taken place: the transition from intuitive 'System 1' text generation to deliberate 'System 2' reasoning. For a long time, researchers believed that teaching LLMs to solve Olympiad math or write complex code required massive human-annotated reasoning datasets. But when DeepSeek unveiled their work on DeepSeek-R1 and Group Relative Policy Optimization (GRPO), I was stunned by the elegance of their approach. By discarding the massive Critic network entirely and sampling groups of candidate completions scored against objective rule-based verifiers, pure Reinforcement Learning induced emergent self-correction, reflection, and long thinking traces without a single piece of human instruction data!"
+                    <br><br>
+                    — <em>From the Memoirs of a Veteran AI Scholar</em>
+                </blockquote>
+
+                <h2>8.1 The Mathematics of Group Relative Policy Optimization (GRPO)</h2>
+                <p>
+                    In standard PPO, a Critic network matching the scale of the Actor (e.g., 70B+ parameters) estimates baseline values \(V(s)\). <strong>GRPO</strong> (Shao et al., 2024/2025) eliminates the Critic network completely.
+                </p>
+                <p>
+                    For each prompt query \(q\), GRPO samples a group of \(G\) candidate completion outputs \(\{o_1, o_2, \dots, o_G\}\) from the old policy \(\pi_{\text{old}}\). Rewards \(\{r_1, r_2, \dots, r_G\}\) are assigned via rule-based execution or reward models. The advantage \(A_i\) for completion \(o_i\) is computed by normalizing relative to the group:
+                </p>
+                <div class="math-block">
+                    \[ A_i = \frac{r_i - \text{mean}(\{r_1, \dots, r_G\})}{\text{std}(\{r_1, \dots, r_G\}) + \epsilon} \]
+                </div>
+                <p>
+                    The complete GRPO clipped surrogate objective maximizes relative advantages while penalizing KL divergence against a reference model \(\pi_{\text{ref}}\):
+                </p>
+                <div class="math-block">
+                    \[ \mathcal{L}_{\text{GRPO}}(\theta) = \frac{1}{G} \sum_{i=1}^G \min \left( \frac{\pi_\theta(o_i|q)}{\pi_{\text{old}}(o_i|q)} A_i, \text{clip}\left(\frac{\pi_\theta(o_i|q)}{\pi_{\text{old}}(o_i|q)}, 1-\epsilon, 1+\epsilon\right) A_i \right) - \beta \mathbb{D}_{\text{KL}}(\pi_\theta \parallel \pi_{\text{ref}}) \]
+                </div>
+
+                <h2>8.2 Ground-Zero PyTorch Implementation: GRPO Advantages & Surrogate Loss</h2>
+
+<pre><code>import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
+def compute_grpo_advantages(rewards: torch.Tensor, eps: float = 1e-8) -> torch.Tensor:
+    """
+    Computes group-relative normalized advantages.
+    rewards shape: (B, G) where B is batch size of prompts and G is group size.
+    """
+    mean_r = rewards.mean(dim=-1, keepdim=True)
+    std_r = rewards.std(dim=-1, keepdim=True)
+    advantages = (rewards - mean_r) / (std_r + eps)
+    return advantages  # Shape: (B, G)
+
+def grpo_surrogate_loss(
+    policy_seq_logps: torch.Tensor,  # (B, G) sum of log probabilities per sequence
+    old_seq_logps: torch.Tensor,     # (B, G)
+    advantages: torch.Tensor,        # (B, G)
+    clip_eps: float = 0.2
+) -> torch.Tensor:
+    """
+    Computes GRPO clipped surrogate policy loss.
+    """
+    ratios = torch.exp(policy_seq_logps - old_seq_logps)
+    
+    surr1 = ratios * advantages
+    surr2 = torch.clamp(ratios, 1.0 - clip_eps, 1.0 + clip_eps) * advantages
+    
+    loss = -torch.min(surr1, surr2).mean()
+    return loss
+
+# --- Verification ---
+if __name__ == "__main__":
+    # 2 prompts, group size 4 completions each
+    sample_rewards = torch.tensor([[1.0, 0.0, 0.0, 0.0],  # Prompt 1: 1 correct answer out of 4
+                                   [1.0, 1.0, 0.0, 0.0]]) # Prompt 2: 2 correct answers out of 4
+    
+    advs = compute_grpo_advantages(sample_rewards)
+    print("Calculated GRPO Advantages:\n", advs)
+</code></pre>
+
+                <footer class="chapter-footer-nav">
+                    <a href="ch07-dpo-memoirs.html" class="nav-link-btn">← Prev: Chapter 07 (New Orleans 2023 - DPO)</a>
+                    <a href="../index.html" class="nav-link-btn">Table of Contents →</a>
+                </footer>
+
+            </section>
+        </main>
+    </div>
+
+</body>
+</html>

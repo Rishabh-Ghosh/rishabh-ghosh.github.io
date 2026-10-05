@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chapter 1: Foundations of LLM Architectures | Rishabh Ghosh</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- KaTeX -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body);"></script>
+    
+    <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+    <!-- Header Navigation -->
+    <header class="top-header">
+        <a href="../index.html" class="brand-link">
+            <span>Rishabh Ghosh</span>
+            <span style="font-weight: 300; opacity: 0.6;">/ LLM & Post-Training Textbook</span>
+        </a>
+        <div class="header-meta">
+            <span class="badge badge-univ">Stanford CS336 · CMU 11-711</span>
+            <a href="../index.html" class="home-btn">← Table of Contents</a>
+        </div>
+    </header>
+
+    <div class="layout-container">
+        
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-title">Chapters</div>
+            <ul class="nav-list">
+                <li class="nav-item"><a href="ch01-architectures.html" class="active"><span class="nav-chapter-num">01.</span>Architectures & Attention</a></li>
+                <li class="nav-item"><a href="../index.html"><span class="nav-chapter-num">02.</span>Pre-Training & Systems</a></li>
+                <li class="nav-item"><a href="../index.html"><span class="nav-chapter-num">03.</span>SFT & PEFT (LoRA)</a></li>
+                <li class="nav-item"><a href="../index.html"><span class="nav-chapter-num">04.</span>Preference Modeling</a></li>
+                <li class="nav-item"><a href="../index.html"><span class="nav-chapter-num">05.</span>RLHF & PPO</a></li>
+                <li class="nav-item"><a href="ch06-dpo.html"><span class="nav-chapter-num">06.</span>DPO & Direct Alignment</a></li>
+                <li class="nav-item"><a href="ch07-reasoning-grpo.html"><span class="nav-chapter-num">07.</span>Reasoning & GRPO (DeepSeek-R1)</a></li>
+                <li class="nav-item"><a href="../index.html"><span class="nav-chapter-num">08.</span>Long-Context & RAG</a></li>
+                <li class="nav-item"><a href="../index.html"><span class="nav-chapter-num">09.</span>Evaluation & Safety</a></li>
+                <li class="nav-item"><a href="../index.html"><span class="nav-chapter-num">10.</span>Multimodal & VLA Robotics</a></li>
+            </ul>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            
+            <header class="chapter-header">
+                <div class="chapter-badge-container">
+                    <span class="badge">NeurIPS</span>
+                    <span class="badge">ICLR</span>
+                    <span class="badge badge-univ">Stanford CS336</span>
+                    <span class="badge badge-univ">CMU 11-711</span>
+                </div>
+                <span class="chapter-number">Chapter 01</span>
+                <h1 class="chapter-title">Foundations of Large Language Model Architectures</h1>
+                <p class="chapter-subtitle">
+                    Deconstructing modern Transformer variants, Scaled Dot-Product Attention, Grouped-Query Attention (GQA), Rotary Embeddings (RoPE), SwiGLU, RMSNorm, State Space Models (Mamba), and Sparse Mixture-of-Experts (MoE).
+                </p>
+            </header>
+
+            <section>
+                <h2>1.1 The Scaled Dot-Product Attention Paradigm</h2>
+                <p>
+                    The fundamental building block of modern Autoregressive Language Models is the **Scaled Dot-Product Attention** mechanism (Vaswani et al., 2017). Given an input sequence representation matrix \( X \in \mathbb{R}^{N \times d_{\text{model}}} \), linear projections map \( X \) to Query, Key, and Value matrices:
+                </p>
+                <div class="math-block">
+                    \[ Q = X W_Q, \quad K = X W_K, \quad V = X W_V \]
+                </div>
+                <p>
+                    where \( W_Q, W_K \in \mathbb{R}^{d_{\text{model}} \times d_k} \) and \( W_V \in \mathbb{R}^{d_{\text{model}} \times d_v} \). The scaled dot-product attention maps Queries and Keys to attention weights via Softmax:
+                </p>
+                <div class="math-block">
+                    \[ \text{Attention}(Q, K, V) = \text{Softmax}\left( \frac{Q K^\top}{\sqrt{d_k}} + M \right) V \]
+                </div>
+                <p>
+                    where \( M \in \mathbb{R}^{N \times N} \) is the causal masking matrix enforcing autoregressive constraints:
+                </p>
+                <div class="math-block">
+                    \[ M_{i,j} = \begin{cases} 0 & \text{if } i \geq j \\ -\infty & \text{if } i < j \end{cases} \]
+                </div>
+
+                <h2>1.2 Multi-Query (MQA) & Grouped-Query Attention (GQA)</h2>
+                <p>
+                    In high-throughput inference systems (e.g. vLLM, TensorRT-LLM), key-value memory bandwidth is the primary bottleneck. Standard Multi-Head Attention (MHA) maintains independent Key and Value heads for all \( H \) query heads, requiring \( 2 \times H \times d_k \) KV cache elements per token layer.
+                </p>
+                <p>
+                    **Grouped-Query Attention (GQA)** (Ainslie et al., 2023) divides query heads into \( G \) groups, sharing a single Key and Value head across all queries within each group:
+                </p>
+                <ul>
+                    <li>**MHA ($G=H$)**: Each query head has its own KV head. Maximum expressivity, highest KV cache memory requirement.</li>
+                    <li>**GQA ($1 < G < H$)**: $G$ KV heads shared across $H/G$ query heads each. Optimal quality-throughput balance (e.g., Llama-3, Mistral).</li>
+                    <li>**MQA ($G=1$)**: A single KV head shared across all $H$ query heads. Minimal memory footprint, slight drop in complex reasoning tasks.</li>
+                </ul>
+
+                <h3>PyTorch Implementation: Grouped-Query Attention</h3>
+<pre><code>import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
+class GroupedQueryAttention(nn.Module):
+    def __init__(self, d_model: int, num_heads: int, num_kv_heads: int):
+        super().__init__()
+        self.d_model = d_model
+        self.num_heads = num_heads
+        self.num_kv_heads = num_kv_heads
+        self.head_dim = d_model // num_heads
+        self.num_queries_per_kv = num_heads // num_kv_heads
+
+        self.q_proj = nn.Linear(d_model, num_heads * self.head_dim, bias=False)
+        self.k_proj = nn.Linear(d_model, num_kv_heads * self.head_dim, bias=False)
+        self.v_proj = nn.Linear(d_model, num_kv_heads * self.head_dim, bias=False)
+        self.out_proj = nn.Linear(num_heads * self.head_dim, d_model, bias=False)
+
+    def forward(self, x: torch.Tensor, mask: torch.Tensor = None) -> torch.Tensor:
+        B, N, _ = x.shape
+        q = self.q_proj(x).view(B, N, self.num_heads, self.head_dim).transpose(1, 2)
+        k = self.k_proj(x).view(B, N, self.num_kv_heads, self.head_dim).transpose(1, 2)
+        v = self.v_proj(x).view(B, N, self.num_kv_heads, self.head_dim).transpose(1, 2)
+
+        # Expand Key and Value heads to match Query head count
+        k = k.repeat_interleave(self.num_queries_per_kv, dim=1)
+        v = v.repeat_interleave(self.num_queries_per_kv, dim=1)
+
+        scores = torch.matmul(q, k.transpose(-2, -1)) / (self.head_dim ** 0.5)
+        if mask is not None:
+            scores = scores + mask
+        attn_weights = F.softmax(scores, dim=-1)
+        out = torch.matmul(attn_weights, v).transpose(1, 2).contiguous().view(B, N, -1)
+        return self.out_proj(out)
+</code></pre>
+
+                <h2>1.3 Rotary Position Embeddings (RoPE)</h2>
+                <p>
+                    Rotary Position Embedding (Su et al., 2021) encodes relative positional information by multiplying query and key vectors with a complex rotation matrix. For a 2D vector \( x = [x_1, x_2]^\top \) at position \( m \):
+                </p>
+                <div class="math-block">
+                    \[ R_{\Theta, m}^{(2)} x = \begin{pmatrix} \cos m\theta & -\sin m\theta \\ \sin m\theta & \cos m\theta \end{pmatrix} \begin{pmatrix} x_1 \\ x_2 \end{pmatrix} \]
+                </div>
+                <p>
+                    Because inner products under rotation preserve inner product relations under position shifts:
+                </p>
+                <div class="math-block">
+                    \[ \langle R_{\Theta, m} q, R_{\Theta, n} k \rangle = q^\top R_{\Theta, n-m} k \]
+                </div>
+                <p>
+                    RoPE naturally captures relative distance \( n - m \) without requiring explicit position bias matrices in the attention map.
+                </p>
+
+                <h2>1.4 Modern Activation Functions & Normalization: RMSNorm & SwiGLU</h2>
+                <p>
+                    Standard Transformer architectures used LayerNorm (Ba et al., 2016). Modern architectures (Llama-3, DeepSeek, Qwen) replace LayerNorm with **Root Mean Square Normalization (RMSNorm)** (Zhang & Sennrich, 2019) to eliminate mean calculation overhead:
+                </p>
+                <div class="math-block">
+                    \[ \bar{a}_i = \frac{a_i}{\text{RMS}(a)} \gamma_i, \quad \text{where } \text{RMS}(a) = \sqrt{ \frac{1}{d} \sum_{i=1}^d a_i^2 + \epsilon } \]
+                </div>
+                <p>
+                    For Feed-Forward Networks (FFN), **SwiGLU** (Shazeer, 2020) replaces standard GELU/ReLU projections:
+                </p>
+                <div class="math-block">
+                    \[ \text{SwiGLU}(x) = \left( \text{Swish}_{\beta}(x W) \right) \otimes (x V) W_2 \]
+                </div>
+
+                <h2>1.5 Beyond Standard Attention: Mamba State Space Models & Mixture of Experts (MoE)</h2>
+                <p>
+                    As context lengths scale past 128k tokens, quadratic attention memory \( \mathcal{O}(N^2) \) poses severe hardware challenges.
+                </p>
+                <ul>
+                    <li>**State Space Models (Mamba)**: Selective State Space Models (Gu & Dao, 2023) parameterize continuous linear systems \( h'(t) = A h(t) + B x(t) \) with input-dependent discretization parameters \( (\Delta, B, C) \), achieving linear time \( \mathcal{O}(N) \) sequence processing.</li>
+                    <li>**Sparse Mixture of Experts (DeepSeek-V2/V3, Mixtral)**: Replaces dense FFN layers with top-$k$ router routing over $E$ expert networks:
+                        <div class="math-block">
+                            \[ y = \sum_{i \in \text{TopK}(g(x), k)} \text{Softmax}(g(x))_i \cdot E_i(x) \]
+                        </div>
+                    </li>
+                </ul>
+
+                <footer class="chapter-footer-nav">
+                    <a href="../index.html" class="nav-link-btn">← Table of Contents</a>
+                    <a href="ch06-dpo.html" class="nav-link-btn">Next: Chapter 06 (DPO) →</a>
+                </footer>
+
+            </section>
+        </main>
+    </div>
+
+</body>
+</html>

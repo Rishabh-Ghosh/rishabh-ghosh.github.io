@@ -1,0 +1,1048 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chapter 2: Lake Tahoe 2013 — Word Vectors & Memory Decay | Rishabh Ghosh</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- KaTeX -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body);"></script>
+    
+    <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+    <!-- Header Navigation -->
+    <header class="top-header">
+        <a href="../index.html" class="brand-link">
+            <span>Rishabh Ghosh</span>
+            <span style="font-weight: 300; opacity: 0.6;">/ Research Textbook & Memoirs</span>
+        </a>
+        <div class="header-meta">
+            <span class="badge badge-univ">Stanford CS224N</span>
+            <a href="../index.html" class="home-btn">← Table of Contents</a>
+        </div>
+    </header>
+
+    <div class="layout-container">
+        
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-title">Memoirs & Chapters</div>
+            <ul class="nav-list">
+                <li class="nav-item"><a href="ch01-perceptron-memoirs.html"><span class="nav-chapter-num">01.</span>Perceptrons & Backpropagation</a></li>
+                <li class="nav-item"><a href="ch02-word2vec-memoirs.html" class="active"><span class="nav-chapter-num">02.</span>Lake Tahoe 2013: Word Vectors</a></li>
+                <li class="nav-item"><a href="ch03-attention-memoirs.html"><span class="nav-chapter-num">03.</span>Long Beach 2017: Attention</a></li>
+                <li class="nav-item"><a href="../index.html"><span class="nav-chapter-num">04.</span>BERT, GPT-3 & Scaling Laws</a></li>
+                <li class="nav-item"><a href="../index.html"><span class="nav-chapter-num">05.</span>FlashAttention & Systems</a></li>
+                <li class="nav-item"><a href="../index.html"><span class="nav-chapter-num">06.</span>InstructGPT & LoRA</a></li>
+                <li class="nav-item"><a href="ch07-dpo-memoirs.html"><span class="nav-chapter-num">07.</span>New Orleans 2023: DPO Alignment</a></li>
+                <li class="nav-item"><a href="ch08-grpo-memoirs.html"><span class="nav-chapter-num">08.</span>ICLR 2025: DeepSeek-R1 & GRPO</a></li>
+                <li class="nav-item"><a href="../index.html"><span class="nav-chapter-num">09.</span>Long-Context, RAG & Safety</a></li>
+                <li class="nav-item"><a href="../index.html"><span class="nav-chapter-num">10.</span>CVPR & CoRL: Multimodal VLA</a></li>
+            </ul>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            
+            <header class="chapter-header">
+                <div class="chapter-badge-container">
+                    <span class="badge">NIPS 2013</span>
+                    <span class="badge">Lake Tahoe</span>
+                    <span class="badge badge-univ">Stanford CS224N</span>
+                    <span class="badge badge-univ">Distributed Semantics</span>
+                    <span class="badge badge-univ">Spectral Dynamics & Embeddings</span>
+                </div>
+                <span class="chapter-number">Chapter 02 · Conference Memoir</span>
+                <h1 class="chapter-title">Lake Tahoe 2013: Word Vectors & Memory Decay</h1>
+                <p class="chapter-subtitle">
+                    In which Heqing Kwek Lee discovers that scents form continuous vector manifolds, Tomas Mikolov shocks NIPS with vector arithmetic, and recurrent networks suffer from exponential singular value amnesia.
+                </p>
+            </header>
+
+            <section>
+                <blockquote>
+                    "In December 2013, the machine learning world converged upon Harrah's and MontBleu casinos on the snow-laden shores of Lake Tahoe for NIPS. Downstairs, blackjack dealers shuffled cards under fluorescent chandeliers; upstairs, in the cavernous exhibition halls, the future of artificial intelligence was quietly splitting wide open. The poster sessions were packed shoulder-to-shoulder, but around one poster in particular—Tomas Mikolov, Kai Chen, Greg Corrado, and Jeffrey Dean presenting <em>'Distributed Representations of Words and Phrases'</em>—the crowd stood six rows deep. For fifty years, symbolic AI and classical NLP had treated human vocabulary as discrete, mutually orthogonal atomic tokens. If you had 50,000 words, you lived in a 50,000-dimensional coordinate space where 'dog' and 'hound' were as totally orthogonal as 'dog' and 'thermodynamics'. But Mikolov showed that by training a shallow two-layer network to predict neighboring words from continuous contexts, words spontaneously organized into a smooth Riemannian manifold where vector arithmetic captured human semantics: \(\mathbf{v}_{\text{King}} - \mathbf{v}_{\text{Man}} + \mathbf{v}_{\text{Woman}} \approx \mathbf{v}_{\text{Queen}}\). It was linear algebra asserting total dominion over human linguistics."
+                    <br><br>
+                    — <em>From the Memoirs of a Veteran AI Scholar</em>
+                </blockquote>
+
+                <!-- Dog Dialogue 1 -->
+                <div class="dog-dialogue">
+                    <div class="dog-dialogue-header">🐾 Conversations with Heqing Kwek Lee: The Scent Vector Hypothesis</div>
+                    <p><span class="dog-speaker">Professor:</span> "You look deep in thought, Heqing Kwek Lee. Staring out the window at the snow?"</p>
+                    <p><span class="dog-speaker">Heqing Kwek Lee:</span> "I am contemplating human linguistic failure, Professor. Back when you traded options and panicked over gamma spikes, you'd yell 'Hedge quickly!' until it sounded like my name. You humans use discrete, clunky symbols. You have separate words like <em>'kibble'</em>, <em>'steak'</em>, <em>'bone'</em>, and <em>'bacon'</em>. If you feed those to a computer as strings, the computer thinks 'steak' and 'bacon' have zero in common because their character ASCII values do not overlap."</p>
+                    <p><span class="dog-speaker">Professor:</span> "That was indeed the dominant paradigm in computational linguistics for half a century. We encoded every word as an orthogonal <span class="term-tooltip"><strong>one-hot vector</strong><span class="tooltip-bubble"><span class="tooltip-title">One-Hot Representation</span>A sparse binary vector of dimension \(|V|\) with a single \(1\) at the word's dictionary index and \(0\) everywhere else: \(\mathbf{e}_i = [0, \dots, 0, 1, 0, \dots, 0]^\top\).</span></span>."</p>
+                    <p><span class="dog-speaker">Heqing Kwek Lee:</span> "That is canine blasphemy! To my nose, odors do not live in discrete buckets. Scents exist in a continuous, multi-dimensional olfactory vector space! A slice of roast beef has coordinates: \((+0.95 \text{ savory}, +0.89 \text{ lipid}, -0.92 \text{ citrus})\). A strip of bacon is merely three millimeters away in smell-space! Furthermore, when I dig in the yard, my olfactory cortex executes vector subtraction:
+                    \[ \mathbf{v}_{\text{Bone}} - \mathbf{v}_{\text{Ground}} + \mathbf{v}_{\text{Tree}} \approx \mathbf{v}_{\text{Squirrel}} \]
+                    because a squirrel is fundamentally an animated tree-bone covered in fluff!"</p>
+                    <p><span class="dog-speaker">Professor:</span> "Your canine olfactory algebra is identical to the geometric epiphany Tomas Mikolov presented at Lake Tahoe. Let's prove why discrete representations fail mathematically."</p>
+                </div>
+
+                <h2>Act I: The Orthogonality Curse of One-Hot Representations</h2>
+                <p>
+                    Let our vocabulary be a finite discrete dictionary \(\mathcal{V} = \{w_1, w_2, \dots, w_{|\mathcal{V}|}\}\). In classical natural language processing, each word \(w_i\) is mapped to the standard canonical basis vector \(\mathbf{e}_i \in \mathbb{R}^{|\mathcal{V}|}\):
+                </p>
+                <div class="math-block">
+                    \[ \mathbf{e}_i = [0, \dots, 0, \underbrace{1}_{i\text{-th entry}}, 0, \dots, 0]^\top \]
+                </div>
+                
+                <div class="math-breakdown">
+                    <div class="math-breakdown-title">Geometric Breakdown: The Metric Collapse of One-Hot Spaces</div>
+                    <p>
+                        Consider the standard <span class="term-tooltip"><strong>Euclidean inner product</strong><span class="tooltip-bubble"><span class="tooltip-title">Euclidean Dot Product</span>The canonical bilinear form \(\langle \mathbf{x}, \mathbf{y} \rangle = \mathbf{x}^\top \mathbf{y} = \sum_{k=1}^d x_k y_k\), inducing the standard Euclidean norm \(\|\mathbf{x}\|_2 = \sqrt{\langle \mathbf{x}, \mathbf{x} \rangle}\).</span></span> on \(\mathbb{R}^{|\mathcal{V}|}\):
+                        \[ \langle \mathbf{e}_i, \mathbf{e}_j \rangle = \mathbf{e}_i^\top \mathbf{e}_j = \delta_{ij} = \begin{cases} 1 & \text{if } i = j \\ 0 & \text{if } i \neq j \end{cases} \]
+                    </p>
+                    <p>
+                        Now inspect the two primary geometric distance metrics between any two distinct words \(w_i \neq w_j\):
+                    </p>
+                    <ul>
+                        <li><strong>1. <span class="term-tooltip">Cosine Similarity<span class="tooltip-bubble"><span class="tooltip-title">Cosine Similarity</span>The normalized inner product measuring the cosine of the angle between two vectors: \(\cos(\theta) = \frac{\mathbf{u}^\top \mathbf{v}}{\|\mathbf{u}\|_2 \|\mathbf{v}\|_2} \in [-1, 1]\). Measures directional alignment independent of magnitude.</span></span>:</strong>
+                            \[ \cos \theta(\mathbf{e}_i, \mathbf{e}_j) = \frac{\langle \mathbf{e}_i, \mathbf{e}_j \rangle}{\|\mathbf{e}_i\|_2 \|\mathbf{e}_j\|_2} = \frac{0}{1 \cdot 1} = 0 \implies \theta = \frac{\pi}{2} \; (90^\circ) \]
+                        </li>
+                        <li><strong>2. Euclidean Distance:</strong>
+                            \[ \|\mathbf{e}_i - \mathbf{e}_j\|_2 = \sqrt{\sum_{k=1}^{|\mathcal{V}|} (e_{i,k} - e_{j,k})^2} = \sqrt{1^2 + (-1)^2} = \sqrt{2} \]
+                        </li>
+                    </ul>
+                    <p>
+                        <strong>The Topological Disaster:</strong> In this space, the pair \(\{\text{"hound"}, \text{"dog"}\}\) has an inner product of exactly \(0\) and a distance of \(\sqrt{2}\). The pair \(\{\text{"dog"}, \text{"refrigerator"}\}\) has an identical inner product of \(0\) and an identical distance of \(\sqrt{2}\). 
+                    </p>
+                    <p>
+                        Because every word vector is strictly orthogonal to every other word vector, the space has <strong>zero metric gradient</strong>. A statistical model or neural network that learns a weight update for \(\mathbf{e}_{\text{dog}}\) learns literally <em>nothing</em> about \(\mathbf{e}_{\text{hound}}\). To generalize, we must project these sparse basis vectors into a dense, continuous latent manifold \(\mathbb{R}^d\) where semantic similarity corresponds to geometric proximity.
+                    </p>
+                </div>
+
+                <h2>Act II: Continuous Embeddings & The Softmax Partition Bottleneck</h2>
+                <p>
+                    To escape the orthogonality curse, we turn to the <strong>Distributional Hypothesis</strong>, articulated by Zellig Harris (1954) and John Rupert Firth (1957):
+                </p>
+                <div class="math-block">
+                    \[ \text{"You shall know a word by the company it keeps."} \]
+                </div>
+                <p>
+                    Instead of representing each word as an isolated basis vector, we embed each word \(w \in \mathcal{V}\) as a dense vector in a low-dimensional Hilbert space \(\mathbb{R}^d\), where \(d \ll |\mathcal{V}|\) (typically \(d \in [100, 300]\)). To capture asymmetric context dynamics, Word2Vec assigns <em>two separate vectors</em> to each token:
+                </p>
+                <ul>
+                    <li>\(\mathbf{v}_w \in \mathbb{R}^d\): The <strong>center target word representation</strong> (when the token sits at the center of the sliding window).</li>
+                    <li>\(\mathbf{u}_c \in \mathbb{R}^d\): The <strong>context representation</strong> (when the token appears within a neighborhood radius \(m\) of the center word).</li>
+                </ul>
+
+                <h3>CBOW vs. Skip-Gram Architectures</h3>
+                <p>
+                    Mikolov et al. (2013) proposed two complementary architectures:
+                </p>
+                <ol>
+                    <li><strong>Continuous Bag-of-Words (CBOW):</strong> Takes the average of context word vectors \(\bar{\mathbf{u}} = \frac{1}{2m} \sum_{-m \leq j \leq m, j \neq 0} \mathbf{u}_{w_{t+j}}\) and predicts the center word \(\mathbf{v}_{w_t}\). Efficient for smaller datasets; smooths over distributional noise.</li>
+                    <li><strong>Skip-Gram:</strong> Inverts the direction: takes a single center word \(\mathbf{v}_{w_t}\) and predicts each neighboring context word \(\mathbf{u}_{w_{t+j}}\) within window radius \(m\). Excels at representing rare tokens and subtle semantic distinctions.</li>
+                </ol>
+
+                <h3>The Softmax Partition Bottleneck</h3>
+                <p>
+                    Under the Skip-Gram formulation, the probability of observing context word \(c\) given center word \(w\) is modeled via the categorical <span class="term-tooltip"><strong>Softmax function</strong><span class="tooltip-bubble"><span class="tooltip-title">Softmax Function</span>The normalized exponential map \(\text{Softmax}(\mathbf{z})_i = \frac{e^{z_i}}{\sum_j e^{z_j}}\), mapping real-valued logits to a valid probability distribution on the simplex \(\Delta^{|\mathcal{V}|-1}\).</span></span>:
+                </p>
+                <div class="math-block">
+                    \[ P(c \mid w) = \frac{\exp(\mathbf{u}_c^\top \mathbf{v}_w)}{\sum_{w' \in \mathcal{V}} \exp(\mathbf{u}_{w'}^\top \mathbf{v}_w)} \]
+                </div>
+                <p>
+                    To train the model, we maximize the log-likelihood across a corpus of length \(T\):
+                    \[ \mathcal{J}(\boldsymbol{\theta}) = \frac{1}{T} \sum_{t=1}^T \sum_{-m \leq j \leq m, j \neq 0} \log P(w_{t+j} \mid w_t) \]
+                </p>
+
+                <div class="math-breakdown">
+                    <div class="math-breakdown-title">The Mathematical Catastrophe: Why Full Softmax is Intractable</div>
+                    <p>
+                        Inspect the gradient of \(\log P(c \mid w)\) with respect to the center word vector \(\mathbf{v}_w\):
+                    </p>
+                    <div class="math-block">
+                        \[ \nabla_{\mathbf{v}_w} \log P(c \mid w) = \nabla_{\mathbf{v}_w} \left( \mathbf{u}_c^\top \mathbf{v}_w - \log \sum_{w' \in \mathcal{V}} \exp(\mathbf{u}_{w'}^\top \mathbf{v}_w) \right) \]
+                    </div>
+                    <p>
+                        Applying the chain rule to the second term:
+                    </p>
+                    <div class="math-block">
+                        \[ \nabla_{\mathbf{v}_w} \log P(c \mid w) = \mathbf{u}_c - \frac{\sum_{w' \in \mathcal{V}} \exp(\mathbf{u}_{w'}^\top \mathbf{v}_w) \mathbf{u}_{w'}}{\sum_{w'' \in \mathcal{V}} \exp(\mathbf{u}_{w''}^\top \mathbf{v}_w)} = \mathbf{u}_c - \sum_{w' \in \mathcal{V}} P(w' \mid w) \mathbf{u}_{w'} \]
+                    </div>
+                    <div class="math-block">
+                        \[ \boxed{\nabla_{\mathbf{v}_w} \log P(c \mid w) = \mathbf{u}_c - \mathbb{E}_{w' \sim P(\cdot \mid w)} [\mathbf{u}_{w'}]} \]
+                    </div>
+                    <p>
+                        <strong>The Complexity Wall:</strong> Look at the expectation \(\mathbb{E}_{w' \sim P(\cdot \mid w)} [\mathbf{u}_{w'}]\). To compute a single gradient update for a single word pair, you must evaluate the dot product \(\mathbf{u}_{w'}^\top \mathbf{v}_w\) and sum across <strong>every single word \(w' \in \mathcal{V}\) in the entire vocabulary</strong>!
+                    </p>
+                    <p>
+                        For a modest real-world dictionary where \(|\mathcal{V}| = 100{,}000\) to \(1{,}000{,}000\), computing this normalization constant (the statistical mechanics <span class="term-tooltip"><strong>partition function</strong><span class="tooltip-bubble"><span class="tooltip-title">Partition Function \(Z\)</span>In thermodynamics and probability, \(Z = \sum_{s} e^{-E(s)/k_B T}\). Calculating the global normalizing denominator over astronomical state spaces makes exact inference intractable.</span></span> \(Z\)) requires millions of floating-point operations per token. On a corpus of 10 billion words, naive Softmax gradient descent would take years of compute.
+                    </p>
+                </div>
+
+                <!-- Dog Dialogue 2 -->
+                <div class="dog-dialogue">
+                    <div class="dog-dialogue-header">🐾 Conversations with Heqing Kwek Lee: The 50,000-Dog Bowl Buffet</div>
+                    <p><span class="dog-speaker">Heqing Kwek Lee:</span> "Let me see if I grasp this computational catastrophe, Professor. You want to reward the model when 'dog' appears near 'bark'."</p>
+                    <p><span class="dog-speaker">Professor:</span> "Correct."</p>
+                    <p><span class="dog-speaker">Heqing Kwek Lee:</span> "And in order to calculate that reward, your algorithm forces the GPU to run around all of Northern California, sniffing 50,000 other dog bowls containing celery, cardboard boxes, old sneakers, used motor oil, and calculus textbooks, just to compute the normalizing denominator?"</p>
+                    <p><span class="dog-speaker">Professor:</span> "Precisely. The denominator ensures all probabilities sum to 1."</p>
+                    <p><span class="dog-speaker">Heqing Kwek Lee:</span> "That is the dumbest algorithm in mammalian history! If someone offers me a piece of sizzling bacon, I don't need to sniff every piece of garbage in the state of Nevada to verify that bacon is delicious! Just give me the bacon, and compare it against three or four random pinecones!"</p>
+                    <p><span class="dog-speaker">Professor:</span> "Heqing, you have just independently invented <strong>Noise Contrastive Estimation</strong> and <strong>Negative Sampling</strong>."</p>
+                </div>
+
+                <h2>Act III: Skip-Gram with Negative Sampling (SGNS) & Step-by-Step Derivation</h2>
+                <p>
+                    Tomas Mikolov solved the partition function bottleneck with a stroke of genius: <strong>Skip-Gram with Negative Sampling (SGNS)</strong>. 
+                </p>
+                <p>
+                    Instead of solving a massive \(|\mathcal{V}|\)-way multinomial classification problem at every step, we reframe the task as a collection of independent <strong>binary logistic regressions</strong>. The network is asked:
+                </p>
+                <div class="math-block">
+                    \[ \text{"Did the word pair } (w, c) \text{ come from real human text } (\mathcal{D}=1), \text{ or was } c \text{ drawn from random noise } (\mathcal{D}=0)\text{?"} \]
+                </div>
+
+                <div class="math-breakdown">
+                    <div class="math-breakdown-title">Step-by-Step Mathematical Derivation of the SGNS Objective</div>
+                    <p>
+                        Using the standard sigmoid function \(\sigma(z) = \frac{1}{1 + e^{-z}}\), we model the probability that a pair \((w, c)\) is drawn from genuine text \(\mathcal{D}\):
+                    </p>
+                    <div class="math-block">
+                        \[ P(\mathcal{D}=1 \mid w, c) = \sigma(\mathbf{u}_c^\top \mathbf{v}_w) = \frac{1}{1 + \exp(-\mathbf{u}_c^\top \mathbf{v}_w)} \]
+                    </div>
+                    <p>
+                        The probability that a noise word \(c_n\) does <em>not</em> come from the real text is:
+                    </p>
+                    <div class="math-block">
+                        \[ P(\mathcal{D}=0 \mid w, c_n) = 1 - P(\mathcal{D}=1 \mid w, c_n) = 1 - \sigma(\mathbf{u}_{c_n}^\top \mathbf{v}_w) \]
+                    </div>
+                    <p>
+                        Recall the fundamental algebraic identity of the logistic sigmoid: \(1 - \sigma(z) = \sigma(-z)\). Thus:
+                    </p>
+                    <div class="math-block">
+                        \[ P(\mathcal{D}=0 \mid w, c_n) = \sigma(-\mathbf{u}_{c_n}^\top \mathbf{v}_w) \]
+                    </div>
+                    <p>
+                        For each genuine context word \(c\), we sample \(K\) "noise" words \(c_{n_1}, \dots, c_{n_K}\) from a smoothed unigram noise distribution \(P_n(\mathcal{V})\). Assuming statistical independence under the noise generator, the joint likelihood for this sample tuple is:
+                    </p>
+                    <div class="math-block">
+                        \[ \mathcal{L}_{\text{tuple}} = P(\mathcal{D}=1 \mid w, c) \cdot \prod_{k=1}^K P(\mathcal{D}=0 \mid w, c_{n_k}) = \sigma(\mathbf{u}_c^\top \mathbf{v}_w) \prod_{k=1}^K \sigma(-\mathbf{u}_{c_{n_k}}^\top \mathbf{v}_w) \]
+                    </div>
+                    <p>
+                        Taking the natural logarithm yields the canonical <strong>SGNS objective function</strong> to be maximized:
+                    </p>
+                    <div class="math-block">
+                        \[ \boxed{\mathcal{L}_{\text{SGNS}} = \log \sigma(\mathbf{u}_c^\top \mathbf{v}_w) + \sum_{k=1}^K \log \sigma(-\mathbf{u}_{c_{n_k}}^\top \mathbf{v}_w)} \]
+                    </div>
+
+                    <p><strong>The 3/4 Power Noise Smoothing:</strong></p>
+                    <p>
+                        How should the noise words \(c_{n_k}\) be sampled? If we sample purely according to raw unigram frequency \(U(w)\), words like "the" and "is" would dominate 99% of negative samples. Mikolov found empirically that raising frequencies to the \(3/4\) power struck an optimal balance between frequent and rare words:
+                    </p>
+                    <div class="math-block">
+                        \[ P_n(w) = \frac{U(w)^{3/4}}{\sum_{w' \in \mathcal{V}} U(w')^{3/4}} \]
+                    </div>
+                    <p>
+                        This subtle power transform amplifies rare words (like "aardvark" or "squirrel") relative to stopwords!
+                    </p>
+                </div>
+
+                <div class="math-breakdown">
+                    <div class="math-breakdown-title">Exact Analytical Gradients & Physical Dynamics</div>
+                    <p>
+                        To optimize via gradient ascent, we compute the exact partial derivatives. Recall:
+                        \[ \frac{d}{dz} \log \sigma(z) = 1 - \sigma(z), \quad \frac{d}{dz} \log \sigma(-z) = -\sigma(z) \]
+                    </p>
+                    <p>
+                        Applying the chain rule to \(\mathcal{L}_{\text{SGNS}}\):
+                    </p>
+                    <ul>
+                        <li><strong>1. Gradient with respect to Center Vector \(\mathbf{v}_w\):</strong>
+                            <div class="math-block">
+                                \[ \nabla_{\mathbf{v}_w} \mathcal{L}_{\text{SGNS}} = \left( 1 - \sigma(\mathbf{u}_c^\top \mathbf{v}_w) \right) \mathbf{u}_c - \sum_{k=1}^K \sigma(\mathbf{u}_{c_{n_k}}^\top \mathbf{v}_w) \mathbf{u}_{c_{n_k}} \]
+                            </div>
+                        </li>
+                        <li><strong>2. Gradient with respect to True Context Vector \(\mathbf{u}_c\):</strong>
+                            <div class="math-block">
+                                \[ \nabla_{\mathbf{u}_c} \mathcal{L}_{\text{SGNS}} = \left( 1 - \sigma(\mathbf{u}_c^\top \mathbf{v}_w) \right) \mathbf{v}_w \]
+                            </div>
+                        </li>
+                        <li><strong>3. Gradient with respect to Negative Context Vector \(\mathbf{u}_{c_{n_k}}\):</strong>
+                            <div class="math-block">
+                                \[ \nabla_{\mathbf{u}_{c_{n_k}}} \mathcal{L}_{\text{SGNS}} = -\sigma(\mathbf{u}_{c_{n_k}}^\top \mathbf{v}_w) \mathbf{v}_w \]
+                            </div>
+                        </li>
+                    </ul>
+
+                    <p><strong>Physical & Geometric Intuition: Two Opposing Physical Forces</strong></p>
+                    <p>
+                        Look closely at the gradient vector \(\nabla_{\mathbf{v}_w} \mathcal{L}_{\text{SGNS}}\):
+                    </p>
+                    <ul>
+                        <li>The first term \(\left( 1 - \sigma(\mathbf{u}_c^\top \mathbf{v}_w) \right) \mathbf{u}_c\) acts as a <strong>gravitational spring</strong>: it pulls \(\mathbf{v}_w\) directly toward the genuine context vector \(\mathbf{u}_c\). The weaker their current alignment (\(\sigma \approx 0\)), the stronger the pull.</li>
+                        <li>The second term \(-\sum_{k=1}^K \sigma(\mathbf{u}_{c_{n_k}}^\top \mathbf{v}_w) \mathbf{u}_{c_{n_k}}\) acts as an <strong>electrostatic Coulomb repulsion</strong>: it pushes \(\mathbf{v}_w\) directly <em>away</em> from each noise vector \(\mathbf{u}_{c_{n_k}}\). The more dangerously aligned \(\mathbf{v}_w\) accidentally is with a negative sample (\(\sigma \approx 1\)), the stronger the repulsive blast!</li>
+                    </ul>
+                </div>
+
+                <div class="math-breakdown">
+                    <div class="math-breakdown-title">Step-by-Step Numerical Walkthrough: 1 Training Step by Hand</div>
+                    <p>
+                        Let us trace an exact numerical step on paper in \(\mathbb{R}^2\) so you can see the vector arithmetic in action.
+                    </p>
+                    <p>
+                        <strong>Setup:</strong>
+                    </p>
+                    <ul>
+                        <li>Center target word: \(w = \text{"dog"}\), initial vector: \(\mathbf{v}_{\text{dog}} = \begin{bmatrix} 0.40 \\ -0.60 \end{bmatrix}\)</li>
+                        <li>True context word: \(c = \text{"bark"}\), initial vector: \(\mathbf{u}_{\text{bark}} = \begin{bmatrix} 0.50 \\ 0.20 \end{bmatrix}\)</li>
+                        <li>Negative noise sample (\(K=1\)): \(c_n = \text{"cloud"}\), vector: \(\mathbf{u}_{\text{cloud}} = \begin{bmatrix} -0.30 \\ 0.70 \end{bmatrix}\)</li>
+                        <li>Learning rate: \(\eta = 0.10\)</li>
+                    </ul>
+
+                    <p><strong>Step 1: Compute Forward Dot Products & Predictions</strong></p>
+                    <ul>
+                        <li>Positive dot product:
+                            \[ z_{\text{pos}} = \mathbf{u}_{\text{bark}}^\top \mathbf{v}_{\text{dog}} = (0.50)(0.40) + (0.20)(-0.60) = 0.20 - 0.12 = 0.08 \]
+                            \[ \sigma(z_{\text{pos}}) = \frac{1}{1 + e^{-0.08}} \approx \frac{1}{1 + 0.92312} \approx 0.51998 \]
+                        </li>
+                        <li>Negative dot product:
+                            \[ z_{\text{neg}} = \mathbf{u}_{\text{cloud}}^\top \mathbf{v}_{\text{dog}} = (-0.30)(0.40) + (0.70)(-0.60) = -0.12 - 0.42 = -0.54 \]
+                            \[ \sigma(z_{\text{neg}}) = \frac{1}{1 + e^{0.54}} \approx \frac{1}{1 + 1.71601} \approx 0.36819 \]
+                            \[ \sigma(-z_{\text{neg}}) = 1 - 0.36819 = 0.63181 \]
+                        </li>
+                    </ul>
+
+                    <p><strong>Step 2: Compute Current Objective Value</strong></p>
+                    <div class="math-block">
+                        \[ \mathcal{L} = \log(0.51998) + \log(0.63181) = -0.65396 - 0.45917 = -1.11313 \]
+                    </div>
+
+                    <p><strong>Step 3: Compute Exact Gradients</strong></p>
+                    <ul>
+                        <li>Positive residual: \(1 - \sigma(z_{\text{pos}}) = 1 - 0.51998 = 0.48002\)</li>
+                        <li>Negative residual: \(-\sigma(z_{\text{neg}}) = -0.36819\)</li>
+                        <li>Gradient for \(\mathbf{v}_{\text{dog}}\):
+                            \[ \nabla_{\mathbf{v}_{\text{dog}}} \mathcal{L} = 0.48002 \begin{bmatrix} 0.50 \\ 0.20 \end{bmatrix} - 0.36819 \begin{bmatrix} -0.30 \\ 0.70 \end{bmatrix} \]
+                            \[ = \begin{bmatrix} 0.24001 \\ 0.09600 \end{bmatrix} - \begin{bmatrix} -0.11046 \\ 0.25773 \end{bmatrix} = \begin{bmatrix} 0.35047 \\ -0.16173 \end{bmatrix} \]
+                        </li>
+                        <li>Gradient for \(\mathbf{u}_{\text{bark}}\):
+                            \[ \nabla_{\mathbf{u}_{\text{bark}}} \mathcal{L} = 0.48002 \begin{bmatrix} 0.40 \\ -0.60 \end{bmatrix} = \begin{bmatrix} 0.19201 \\ -0.28801 \end{bmatrix} \]
+                        </li>
+                        <li>Gradient for \(\mathbf{u}_{\text{cloud}}\):
+                            \[ \nabla_{\mathbf{u}_{\text{cloud}}} \mathcal{L} = -0.36819 \begin{bmatrix} 0.40 \\ -0.60 \end{bmatrix} = \begin{bmatrix} -0.14728 \\ 0.22091 \end{bmatrix} \]
+                        </li>
+                    </ul>
+
+                    <p><strong>Step 4: Update Parameters via Gradient Ascent</strong></p>
+                    <div class="math-block">
+                        \[ \mathbf{v}_{\text{dog}}^{(\text{new})} = \mathbf{v}_{\text{dog}} + \eta \nabla_{\mathbf{v}_{\text{dog}}} \mathcal{L} = \begin{bmatrix} 0.40 \\ -0.60 \end{bmatrix} + 0.10 \begin{bmatrix} 0.35047 \\ -0.16173 \end{bmatrix} = \begin{bmatrix} 0.43505 \\ -0.61617 \end{bmatrix} \]
+                        \[ \mathbf{u}_{\text{bark}}^{(\text{new})} = \mathbf{u}_{\text{bark}} + \eta \nabla_{\mathbf{u}_{\text{bark}}} \mathcal{L} = \begin{bmatrix} 0.50 \\ 0.20 \end{bmatrix} + 0.10 \begin{bmatrix} 0.19201 \\ -0.28801 \end{bmatrix} = \begin{bmatrix} 0.51920 \\ 0.17120 \end{bmatrix} \]
+                        \[ \mathbf{u}_{\text{cloud}}^{(\text{new})} = \mathbf{u}_{\text{cloud}} + \eta \nabla_{\mathbf{u}_{\text{cloud}}} \mathcal{L} = \begin{bmatrix} -0.30 \\ 0.70 \end{bmatrix} + 0.10 \begin{bmatrix} -0.14728 \\ 0.22091 \end{bmatrix} = \begin{bmatrix} -0.31473 \\ 0.72209 \end{bmatrix} \]
+                    </div>
+
+                    <p><strong>Verification: Check the New Dot Products!</strong></p>
+                    <ul>
+                        <li>New alignment with genuine context:
+                            \[ z_{\text{pos}}^{(\text{new})} = (0.51920)(0.43505) + (0.17120)(-0.61617) = 0.22588 - 0.10549 = 0.12039 > 0.08000 \quad \checkmark \]
+                            The model increased its confidence from \(51.99\%\) to \(53.01\%\)!
+                        </li>
+                        <li>New alignment with noise:
+                            \[ z_{\text{neg}}^{(\text{new})} = (-0.31473)(0.43505) + (0.72209)(-0.61617) = -0.13692 - 0.44493 = -0.58185 < -0.54000 \quad \checkmark \]
+                            The negative alignment became more negative—the noise vector was successfully repelled!
+                        </li>
+                    </ul>
+                </div>
+
+                <h2>Act IV: Why Does Vector Arithmetic Work? (The Geometry of Analogies)</h2>
+                <p>
+                    Why did linear vector arithmetic spontaneously discover semantic analogies like:
+                </p>
+                <div class="math-block">
+                    \[ \mathbf{v}_{\text{King}} - \mathbf{v}_{\text{Man}} + \mathbf{v}_{\text{Woman}} \approx \mathbf{v}_{\text{Queen}} \]
+                </div>
+                <p>
+                    For a year following NIPS 2013, researchers debated whether this was mathematical alchemy or an artifact of high-dimensional geometry. In 2014, Omer Levy and Yoav Goldberg published a landmark paper at NIPS proving that Word2Vec with Negative Sampling is mathematically equivalent to computing the optimal low-rank matrix factorization of the <strong>Shifted Pointwise Mutual Information (SPMI)</strong> matrix.
+                </p>
+
+                <!-- Dog Dialogue 3 -->
+                <div class="dog-dialogue">
+                    <div class="dog-dialogue-header">🐾 Conversations with Heqing Kwek Lee: Canine Olfactory Algebra</div>
+                    <p><span class="dog-speaker">Heqing Kwek Lee:</span> "Wait a minute, Professor. Did someone explicitly code an 'Is-A-Monarch' feature into the neural network?"</p>
+                    <p><span class="dog-speaker">Professor:</span> "Not at all. The network was only given raw text sequences and asked to differentiate real context pairs from noise."</p>
+                    <p><span class="dog-speaker">Heqing Kwek Lee:</span> "Then how did it know that subtracting 'Man' from 'King' isolates the abstract concept of <em>Royalty</em>, and adding 'Woman' yields 'Queen'?"</p>
+                    <p><span class="dog-speaker">Professor:</span> "Because the linguistic distribution of words co-occurring with 'King' vs. 'Queen' mirrors the distribution of words co-occurring with 'Man' vs. 'Woman'. In latent space, the vector difference \(\mathbf{v}_{\text{Woman}} - \mathbf{v}_{\text{Man}}\) is a directed translation vector representing the gender subspace. When you factorize the global association matrix, linear translations directly mirror relational semantic shifts!"</p>
+                </div>
+
+                <div class="math-breakdown">
+                    <div class="math-breakdown-title">The Levy & Goldberg (NIPS 2014) Implicit Matrix Factorization Proof</div>
+                    <p>
+                        Let us prove this rigorously. Let \(\mathbf{M} \in \mathbb{R}^{|\mathcal{V}| \times |\mathcal{V}|}\) be a matrix whose entries represent the inner products between center word vectors and context word vectors:
+                        \[ M_{wc} = \mathbf{u}_c^\top \mathbf{v}_w \]
+                    </p>
+                    <p>
+                        Let \(\#(w, c)\) be the observed count of pair \((w, c)\) in corpus \(\mathcal{D}\), and let \(\#(w) = \sum_{c'} \#(w, c')\) and \(\#(c) = \sum_{w'} \#(w', c)\). Under negative sampling with unigram distribution \(P_n(c) = \frac{\#(c)}{|\mathcal{D}|}\), the expected objective over the entire corpus is the sum of local cell objectives \(\mathcal{J}(M_{wc})\):
+                    </p>
+                    <div class="math-block">
+                        \[ \mathcal{J}(\mathbf{M}) = \sum_{w \in \mathcal{V}} \sum_{c \in \mathcal{V}} \mathcal{J}(M_{wc}) \]
+                        \[ \mathcal{J}(M_{wc}) = \#(w, c) \log \sigma(M_{wc}) + K \cdot \frac{\#(w) \#(c)}{|\mathcal{D}|} \log \sigma(-M_{wc}) \]
+                    </div>
+                    <p>
+                        To find the global maximum of \(\mathcal{J}(M_{wc})\), let \(x = M_{wc}\) and differentiate with respect to \(x\):
+                    </p>
+                    <div class="math-block">
+                        \[ \frac{\partial \mathcal{J}(x)}{\partial x} = \#(w, c) \cdot (1 - \sigma(x)) - K \frac{\#(w) \#(c)}{|\mathcal{D}|} \cdot \sigma(x) \]
+                    </div>
+                    <p>
+                        Setting the derivative to zero (\(\frac{\partial \mathcal{J}}{\partial x} = 0\)):
+                    </p>
+                    <div class="math-block">
+                        \[ \#(w, c) \cdot (1 - \sigma(x)) = K \frac{\#(w) \#(c)}{|\mathcal{D}|} \cdot \sigma(x) \]
+                    </div>
+                    <p>
+                        Dividing both sides by \((1 - \sigma(x))\) and recalling that \(\frac{\sigma(x)}{1 - \sigma(x)} = \frac{1/(1+e^{-x})}{e^{-x}/(1+e^{-x})} = e^x\):
+                    </p>
+                    <div class="math-block">
+                        \[ e^x = \frac{\#(w, c)}{K \frac{\#(w) \#(c)}{|\mathcal{D}|}} = \frac{\#(w, c) \cdot |\mathcal{D}|}{\#(w) \#(c)} \cdot \frac{1}{K} = \frac{P(w, c)}{P(w) P(c)} \cdot \frac{1}{K} \]
+                    </div>
+                    <p>
+                        Taking the natural logarithm of both sides:
+                    </p>
+                    <div class="math-block">
+                        \[ \boxed{x = M_{wc} = \mathbf{u}_c^\top \mathbf{v}_w = \log\left( \frac{P(w, c)}{P(w) P(c)} \right) - \log K = \text{PMI}(w, c) - \log K} \]
+                    </div>
+                    <p>
+                        <strong>The Profound Conclusion:</strong> Skip-Gram with Negative Sampling does not perform mystical alchemy. It is an implicit, stochastic algorithm for calculating the low-rank Singular Value Decomposition (SVD) of the <strong>Shifted Pointwise Mutual Information (PMI) matrix</strong>!
+                    </p>
+                </div>
+
+                <div class="math-breakdown">
+                    <div class="math-breakdown-title">GloVe: Global Vectors for Word Representation (Pennington et al., 2014)</div>
+                    <p>
+                        Recognizing this implicit matrix factorization, Jeffrey Pennington, Richard Socher, and Christopher Manning (EMNLP 2014) asked: <em>why use noisy local sampling to approximate a global matrix when you can fit global co-occurrences directly?</em>
+                    </p>
+                    <p>
+                        They proposed <strong>GloVe</strong>, an explicit log-bilinear regression model on the global co-occurrence matrix \(\mathbf{X}\). GloVe minimizes the weighted least-squares loss:
+                    </p>
+                    <div class="math-block">
+                        \[ \mathcal{J}_{\text{GloVe}} = \sum_{i,j=1}^{|\mathcal{V}|} f(X_{ij}) \left( \mathbf{w}_i^\top \tilde{\mathbf{w}}_j + b_i + \tilde{b}_j - \log X_{ij} \right)^2 \]
+                    </div>
+                    <p>
+                        where the weighting function \(f(x)\) prevents extremely frequent words (like "the") or rare noisy co-occurrences from dominating:
+                    </p>
+                    <div class="math-block">
+                        \[ f(x) = \begin{cases} \left( \frac{x}{x_{\max}} \right)^\alpha & \text{if } x < x_{\max} \\ 1 & \text{otherwise} \end{cases} \quad (\text{typically } x_{\max} = 100, \, \alpha = 0.75) \]
+                    </div>
+                </div>
+
+                <h2>Act V: Interactive Canvas — The Semantic Vector Space & Analogy Engine</h2>
+                <p>
+                    Explore how vector arithmetic operates in semantic embedding space below. Click the analogy buttons to watch vector subtraction and addition construct parallelogram projections in real time!
+                </p>
+
+                <!-- Interactive Analogy Visualizer Canvas -->
+                <div style="background: var(--bg-card); border: 1px solid var(--border-accent); border-radius: 8px; padding: 1.5rem; margin: 2rem 0;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
+                        <h4 style="margin: 0; font-family: var(--font-serif); font-size: 1.25rem; color: var(--text-accent);">
+                            Interactive Vector Space: Analogy Engine (\(\mathbb{R}^2\) Projection)
+                        </h4>
+                        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                            <button id="btnKingQueen" class="home-btn" style="cursor: pointer; font-size: 0.82rem; padding: 0.35rem 0.75rem;">👑 King - Man + Woman = Queen</button>
+                            <button id="btnDogCat" class="home-btn" style="cursor: pointer; font-size: 0.82rem; padding: 0.35rem 0.75rem;">🐾 Dog - Bark + Meow = Cat</button>
+                            <button id="btnSgnsStep" class="home-btn" style="cursor: pointer; font-size: 0.82rem; padding: 0.35rem 0.75rem;">⚡ 1 SGNS Gradient Step</button>
+                            <button id="btnResetCanvas" class="home-btn" style="cursor: pointer; font-size: 0.82rem; padding: 0.35rem 0.75rem; opacity: 0.8;">↺ Reset</button>
+                        </div>
+                    </div>
+
+                    <canvas id="analogyCanvas" width="800" height="420" style="width: 100%; height: auto; background: #0f172a; border-radius: 6px; border: 1px solid #334155; display: block;"></canvas>
+
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-top: 1rem; font-family: var(--font-mono); font-size: 0.82rem;">
+                        <div style="background: rgba(0,0,0,0.25); padding: 0.75rem; border-radius: 4px; border: 1px solid var(--border-color);">
+                            <span style="color: #94a3b8; display: block; margin-bottom: 0.2rem;">Vector Operation:</span>
+                            <span id="canvasOpText" style="color: #38bdf8; font-weight: 500;">Idle (Click an analogy above)</span>
+                        </div>
+                        <div style="background: rgba(0,0,0,0.25); padding: 0.75rem; border-radius: 4px; border: 1px solid var(--border-color);">
+                            <span style="color: #94a3b8; display: block; margin-bottom: 0.2rem;">Predicted Coordinate \(\hat{\mathbf{v}}\):</span>
+                            <span id="canvasCoordText" style="color: #fbbf24;">[— , —]</span>
+                        </div>
+                        <div style="background: rgba(0,0,0,0.25); padding: 0.75rem; border-radius: 4px; border: 1px solid var(--border-color);">
+                            <span style="color: #94a3b8; display: block; margin-bottom: 0.2rem;">Target Cosine Similarity:</span>
+                            <span id="canvasSimText" style="color: #34d399;">\(\cos(\theta) = —\)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <script>
+                (function() {
+                    const canvas = document.getElementById('analogyCanvas');
+                    if (!canvas) return;
+                    const ctx = canvas.getContext('2d');
+
+                    // Base words in 2D coordinate space (-5 to +5)
+                    const baseWords = {
+                        "King": { x: 2.2, y: 1.8, color: "#f59e0b", cluster: "Royalty" },
+                        "Queen": { x: 2.1, y: 3.4, color: "#fbbf24", cluster: "Royalty" },
+                        "Man": { x: 0.2, y: -0.2, color: "#94a3b8", cluster: "Gender" },
+                        "Woman": { x: 0.1, y: 1.4, color: "#f472b6", cluster: "Gender" },
+                        "Dog": { x: -2.8, y: 1.5, color: "#10b981", cluster: "Canine" },
+                        "Bark": { x: -3.5, y: -0.2, color: "#34d399", cluster: "Sound" },
+                        "Cat": { x: -1.2, y: -1.5, color: "#38bdf8", cluster: "Feline" },
+                        "Meow": { x: -1.9, y: -3.2, color: "#60a5fa", cluster: "Sound" },
+                        "Squirrel": { x: 3.5, y: -2.5, color: "#f43f5e", cluster: "Intruder" }
+                    };
+
+                    let words = JSON.parse(JSON.stringify(baseWords));
+                    let activeAnimation = null;
+                    let animStep = 0;
+
+                    function toScreenX(x) {
+                        return (x + 5.0) * (canvas.width / 10.0);
+                    }
+
+                    function toScreenY(y) {
+                        return canvas.height - (y + 5.0) * (canvas.height / 10.0);
+                    }
+
+                    function drawGrid() {
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                        ctx.strokeStyle = "#1e293b";
+                        ctx.lineWidth = 1;
+
+                        // Grid lines
+                        for (let x = -5; x <= 5; x += 1) {
+                            ctx.beginPath();
+                            ctx.moveTo(toScreenX(x), 0);
+                            ctx.lineTo(toScreenX(x), canvas.height);
+                            ctx.stroke();
+                        }
+                        for (let y = -5; y <= 5; y += 1) {
+                            ctx.beginPath();
+                            ctx.moveTo(0, toScreenY(y));
+                            ctx.lineTo(canvas.width, toScreenY(y));
+                            ctx.stroke();
+                        }
+
+                        // Axes
+                        ctx.strokeStyle = "#475569";
+                        ctx.lineWidth = 1.5;
+                        ctx.beginPath();
+                        ctx.moveTo(toScreenX(0), 0);
+                        ctx.lineTo(toScreenX(0), canvas.height);
+                        ctx.moveTo(0, toScreenY(0));
+                        ctx.lineTo(canvas.width, toScreenY(0));
+                        ctx.stroke();
+
+                        // Axis Labels
+                        ctx.fillStyle = "#64748b";
+                        ctx.font = "11px var(--font-mono, monospace)";
+                        ctx.fillText("Latent Dim 1", canvas.width - 90, toScreenY(0) - 8);
+                        ctx.fillText("Latent Dim 2", toScreenX(0) + 8, 18);
+                    }
+
+                    function drawArrow(fromX, fromY, toX, toY, color, dash = []) {
+                        ctx.save();
+                        ctx.strokeStyle = color;
+                        ctx.fillStyle = color;
+                        ctx.lineWidth = 2;
+                        ctx.setLineDash(dash);
+
+                        ctx.beginPath();
+                        ctx.moveTo(fromX, fromY);
+                        ctx.lineTo(toX, toY);
+                        ctx.stroke();
+
+                        const angle = Math.atan2(toY - fromY, toX - fromX);
+                        const headLen = 8;
+                        ctx.beginPath();
+                        ctx.moveTo(toX, toY);
+                        ctx.lineTo(toX - headLen * Math.cos(angle - Math.PI / 6), toY - headLen * Math.sin(angle - Math.PI / 6));
+                        ctx.lineTo(toX - headLen * Math.cos(angle + Math.PI / 6), toY - headLen * Math.sin(angle + Math.PI / 6));
+                        ctx.closePath();
+                        ctx.fill();
+                        ctx.restore();
+                    }
+
+                    function render() {
+                        drawGrid();
+
+                        // Draw Word Nodes
+                        for (const [w, pos] of Object.entries(words)) {
+                            const sx = toScreenX(pos.x);
+                            const sy = toScreenY(pos.y);
+
+                            ctx.beginPath();
+                            ctx.arc(sx, sy, 5, 0, Math.PI * 2);
+                            ctx.fillStyle = pos.color;
+                            ctx.shadowColor = pos.color;
+                            ctx.shadowBlur = 8;
+                            ctx.fill();
+                            ctx.shadowBlur = 0;
+
+                            ctx.fillStyle = "#f8fafc";
+                            ctx.font = "12px var(--font-sans, sans-serif)";
+                            ctx.fillText(w, sx + 8, sy - 6);
+                        }
+
+                        // Render Active Animation
+                        if (activeAnimation === "kingQueen") {
+                            // Subtraction vector: King - Man
+                            const k = words["King"], m = words["Man"], w = words["Woman"], q = words["Queen"];
+                            const diffX = k.x - m.x;
+                            const diffY = k.y - m.y;
+
+                            // Line from Man to King
+                            drawArrow(toScreenX(m.x), toScreenY(m.y), toScreenX(k.x), toScreenY(k.y), "rgba(245, 158, 11, 0.5)", [4, 4]);
+
+                            // Shifted vector starting at Woman
+                            const targetPredX = w.x + diffX;
+                            const targetPredY = w.y + diffY;
+
+                            drawArrow(toScreenX(w.x), toScreenY(w.y), toScreenX(targetPredX), toScreenY(targetPredY), "#38bdf8");
+
+                            // Dotted connection to ground-truth Queen
+                            ctx.save();
+                            ctx.strokeStyle = "rgba(52, 211, 153, 0.7)";
+                            ctx.setLineDash([3, 3]);
+                            ctx.beginPath();
+                            ctx.moveTo(toScreenX(targetPredX), toScreenY(targetPredY));
+                            ctx.lineTo(toScreenX(q.x), toScreenY(q.y));
+                            ctx.stroke();
+                            ctx.restore();
+
+                            // Target circle
+                            ctx.beginPath();
+                            ctx.arc(toScreenX(targetPredX), toScreenY(targetPredY), 8, 0, Math.PI * 2);
+                            ctx.strokeStyle = "#38bdf8";
+                            ctx.lineWidth = 2;
+                            ctx.stroke();
+                        } else if (activeAnimation === "dogCat") {
+                            // Dog - Bark + Meow => Cat
+                            const d = words["Dog"], b = words["Bark"], m = words["Meow"], c = words["Cat"];
+                            const diffX = d.x - b.x;
+                            const diffY = d.y - b.y;
+
+                            drawArrow(toScreenX(b.x), toScreenY(b.y), toScreenX(d.x), toScreenY(d.y), "rgba(16, 185, 129, 0.5)", [4, 4]);
+
+                            const predX = m.x + diffX;
+                            const predY = m.y + diffY;
+
+                            drawArrow(toScreenX(m.x), toScreenY(m.y), toScreenX(predX), toScreenY(predY), "#f472b6");
+
+                            ctx.save();
+                            ctx.strokeStyle = "rgba(52, 211, 153, 0.7)";
+                            ctx.setLineDash([3, 3]);
+                            ctx.beginPath();
+                            ctx.moveTo(toScreenX(predX), toScreenY(predY));
+                            ctx.lineTo(toScreenX(c.x), toScreenY(c.y));
+                            ctx.stroke();
+                            ctx.restore();
+
+                            ctx.beginPath();
+                            ctx.arc(toScreenX(predX), toScreenY(predY), 8, 0, Math.PI * 2);
+                            ctx.strokeStyle = "#f472b6";
+                            ctx.lineWidth = 2;
+                            ctx.stroke();
+                        }
+                    }
+
+                    // Event Handlers
+                    document.getElementById('btnKingQueen')?.addEventListener('click', () => {
+                        activeAnimation = "kingQueen";
+                        const k = words["King"], m = words["Man"], w = words["Woman"], q = words["Queen"];
+                        const predX = (w.x + (k.x - m.x)).toFixed(2);
+                        const predY = (w.y + (k.y - m.y)).toFixed(2);
+                        
+                        // Cosine sim
+                        const dot = (predX * q.x) + (predY * q.y);
+                        const normP = Math.sqrt(predX*predX + predY*predY);
+                        const normQ = Math.sqrt(q.x*q.x + q.y*q.y);
+                        const cosSim = (dot / (normP * normQ)).toFixed(4);
+
+                        document.getElementById('canvasOpText').innerText = "v_King - v_Man + v_Woman";
+                        document.getElementById('canvasCoordText').innerText = `[${predX}, ${predY}] (True Queen: [${q.x}, ${q.y}])`;
+                        document.getElementById('canvasSimText').innerText = `cos(θ) = ${cosSim} (Near Parallelogram!)`;
+                        render();
+                    });
+
+                    document.getElementById('btnDogCat')?.addEventListener('click', () => {
+                        activeAnimation = "dogCat";
+                        const d = words["Dog"], b = words["Bark"], m = words["Meow"], c = words["Cat"];
+                        const predX = (m.x + (d.x - b.x)).toFixed(2);
+                        const predY = (m.y + (d.y - b.y)).toFixed(2);
+
+                        const dot = (predX * c.x) + (predY * c.y);
+                        const normP = Math.sqrt(predX*predX + predY*predY);
+                        const normC = Math.sqrt(c.x*c.x + c.y*c.y);
+                        const cosSim = (dot / (normP * normC)).toFixed(4);
+
+                        document.getElementById('canvasOpText').innerText = "v_Dog - v_Bark + v_Meow";
+                        document.getElementById('canvasCoordText').innerText = `[${predX}, ${predY}] (True Cat: [${c.x}, ${c.y}])`;
+                        document.getElementById('canvasSimText').innerText = `cos(θ) = ${cosSim}`;
+                        render();
+                    });
+
+                    document.getElementById('btnSgnsStep')?.addEventListener('click', () => {
+                        activeAnimation = null;
+                        // Attract Dog to Bark, repel Dog from Squirrel
+                        const dog = words["Dog"];
+                        const bark = words["Bark"];
+                        const sq = words["Squirrel"];
+
+                        // Attract to bark (pull vector)
+                        dog.x += 0.08 * (bark.x - dog.x);
+                        dog.y += 0.08 * (bark.y - dog.y);
+
+                        // Repel from squirrel (push vector)
+                        const distSq = Math.sqrt((dog.x - sq.x)**2 + (dog.y - sq.y)**2);
+                        dog.x -= 0.15 * ((sq.x - dog.x) / distSq);
+                        dog.y -= 0.15 * ((sq.y - dog.y) / distSq);
+
+                        document.getElementById('canvasOpText').innerText = "SGNS Step: Attracted 'Dog' → 'Bark', Repelled from 'Squirrel'";
+                        document.getElementById('canvasCoordText').innerText = `Dog: [${dog.x.toFixed(2)}, ${dog.y.toFixed(2)}]`;
+                        document.getElementById('canvasSimText').innerText = "Gradient Force Applied ✓";
+                        render();
+                    });
+
+                    document.getElementById('btnResetCanvas')?.addEventListener('click', () => {
+                        words = JSON.parse(JSON.stringify(baseWords));
+                        activeAnimation = null;
+                        document.getElementById('canvasOpText').innerText = "Canvas Reset";
+                        document.getElementById('canvasCoordText').innerText = "[— , —]";
+                        document.getElementById('canvasSimText').innerText = "cos(θ) = —";
+                        render();
+                    });
+
+                    render();
+                })();
+                </script>
+
+                <!-- Dog Dialogue 2 -->
+                <!-- Dog Dialogue 4 -->
+                <div class="dog-dialogue">
+                    <div class="dog-dialogue-header">🐾 Conversations with Heqing Kwek Lee: The Vanishing Scent Trail</div>
+                    <p><span class="dog-speaker">Heqing Kwek Lee:</span> "Splendid! Now our words are continuous vectors, and our analogies form parallelograms in \(\mathbb{R}^d\). But words don't just sit in a bowl like dry kibble; they arrive in sequences! When you yell: <em>'Heqing Kwek Lee, do NOT eat the roasted duck on the table!'</em>, the word order is the difference between an existential reprimand and a delectable feast!"</p>
+                    <p><span class="dog-speaker">Professor:</span> "Right. Natural language is an ordered stochastic process. To model sequences, researchers in the 1980s and 90s turned to <strong>Recurrent Neural Networks (RNNs)</strong>. At each time step \(t\), the network takes the current word vector \(\mathbf{x}_t\) and updates its internal hidden state: \(\mathbf{h}_t = \tanh(\mathbf{W}_{hh} \mathbf{h}_{t-1} + \mathbf{W}_{xh} \mathbf{x}_t + \mathbf{b}_h)\)."</p>
+                    <p><span class="dog-speaker">Heqing Kwek Lee:</span> "So \(\mathbf{h}_t\) is the dog's internal working memory? If I catch the scent of a rabbit at time \(t=1\), walk across the yard at \(t=2\), find a stick at \(t=3\), chase a butterfly at \(t=4\)... when I arrive at the fence at \(t=50\), do I still remember the rabbit?"</p>
+                    <p><span class="dog-speaker">Professor:</span> "Alas, Heqing Kwek Lee. By step \(t=50\), your rabbit memory has been passed through the transition matrix \(\mathbf{W}_{hh}\) forty-nine consecutive times. And that brings us to the tragic mathematical fate of singular values and dynamical systems."</p>
+                </div>
+
+                <h2>Act VI: Sequential Memory & The Tragic Fate of RNNs</h2>
+                <p>
+                    Let a recurrent neural network process a sequence of \(T\) discrete tokens \(\mathbf{x}_1, \dots, \mathbf{x}_T\). The discrete-time dynamical system evolves according to:
+                </p>
+                <div class="math-block">
+                    \[ \mathbf{z}_t = \mathbf{W}_{hh} \mathbf{h}_{t-1} + \mathbf{W}_{xh} \mathbf{x}_t + \mathbf{b}_h \]
+                    \[ \mathbf{h}_t = \sigma(\mathbf{z}_t) = \tanh(\mathbf{z}_t) \]
+                </div>
+                <p>
+                    Suppose a loss \(\mathcal{L}_T\) is computed at final step \(T\). How does this error backpropagate across time to modify the weights governing the initial hidden state \(\mathbf{h}_1\)?
+                </p>
+
+                <div class="math-breakdown">
+                    <div class="math-breakdown-title">Formal Proof of Gradient Vanishing via Spectral Analysis (Bengio 1994, Pascanu 2013)</div>
+                    <p>
+                        By the multivariable chain rule (known as <span class="term-tooltip"><strong>Backpropagation Through Time (BPTT)</strong><span class="tooltip-bubble"><span class="tooltip-title">Backpropagation Through Time (BPTT)</span>The unrolling of a recurrent network across \(T\) time steps into an equivalent feedforward DAG, allowing standard reverse-mode automatic differentiation to accumulate weight gradients across the temporal sequence.</span></span>):
+                    </p>
+                    <div class="math-block">
+                        \[ \frac{\partial \mathcal{L}_T}{\partial \mathbf{h}_1} = \frac{\partial \mathcal{L}_T}{\partial \mathbf{h}_T} \cdot \prod_{k=2}^T \frac{\partial \mathbf{h}_k}{\partial \mathbf{h}_{k-1}} \]
+                    </div>
+                    <p>
+                        Differentiating \(\mathbf{h}_k = \tanh(\mathbf{W}_{hh} \mathbf{h}_{k-1} + \mathbf{W}_{xh} \mathbf{x}_k + \mathbf{b}_h)\) with respect to \(\mathbf{h}_{k-1}\):
+                    </p>
+                    <div class="math-block">
+                        \[ \frac{\partial \mathbf{h}_k}{\partial \mathbf{h}_{k-1}} = \mathbf{D}_k \mathbf{W}_{hh}^\top \]
+                    </div>
+                    <p>
+                        where \(\mathbf{D}_k = \text{diag}\left( \tanh'(\mathbf{z}_k) \right) = \text{diag}\left( 1 - \tanh^2(\mathbf{z}_k) \right)\) is a diagonal matrix containing the local derivatives of the hyperbolic tangent.
+                    </p>
+                    <p>
+                        The cumulative temporal Jacobian matrix from step \(1\) to step \(T\) is:
+                    </p>
+                    <div class="math-block">
+                        \[ \mathbf{J}_{1 \to T} = \prod_{k=2}^T \left( \mathbf{D}_k \mathbf{W}_{hh}^\top \right) = \left( \mathbf{D}_T \mathbf{W}_{hh}^\top \right) \left( \mathbf{D}_{T-1} \mathbf{W}_{hh}^\top \right) \dots \left( \mathbf{D}_2 \mathbf{W}_{hh}^\top \right) \]
+                    </div>
+                    <p>
+                        Now, evaluate the matrix \(2\)-norm (spectral norm, defined as the largest singular value \(\sigma_{\max}\)):
+                        Recall the submultiplicative property: \(\|\mathbf{A}\mathbf{B}\|_2 \leq \|\mathbf{A}\|_2 \|\mathbf{B}\|_2\).
+                    </p>
+                    <div class="math-block">
+                        \[ \left\| \frac{\partial \mathcal{L}_T}{\partial \mathbf{h}_1} \right\|_2 \leq \left\| \frac{\partial \mathcal{L}_T}{\partial \mathbf{h}_T} \right\|_2 \prod_{k=2}^T \|\mathbf{D}_k\|_2 \|\mathbf{W}_{hh}^\top\|_2 \]
+                    </div>
+                    <p>
+                        Inspect the two factors:
+                    </p>
+                    <ol>
+                        <li><strong>Activation Derivative:</strong> For \(\tanh(z)\), the derivative satisfies \(\tanh'(z) = 1 - \tanh^2(z) \leq 1\). Therefore, \(\|\mathbf{D}_k\|_2 \leq 1\) everywhere (and if the neuron saturates, \(\|\mathbf{D}_k\|_2 \to 0\)).</li>
+                        <li><strong>Weight Spectral Norm:</strong> Let \(\lambda_1 = \|\mathbf{W}_{hh}\|_2 = \sigma_{\max}(\mathbf{W}_{hh})\) be the maximum <span class="term-tooltip"><strong>singular value</strong><span class="tooltip-bubble"><span class="tooltip-title">Singular Values & Spectral Radius</span>The singular values \(\sigma_i\) of a matrix \(\mathbf{A}\) are the square roots of the eigenvalues of \(\mathbf{A}^\top \mathbf{A}\). The largest singular value \(\sigma_{\max}\) bounds the maximum amplification factor \(\sup_{\mathbf{x} \neq \mathbf{0}} \frac{\|\mathbf{A}\mathbf{x}\|}{\|\mathbf{x}\|}\).</span></span> of the recurrent weight matrix.</li>
+                    </ol>
+                    <p>
+                        Combining these bounds:
+                    </p>
+                    <div class="math-block">
+                        \[ \boxed{\left\| \frac{\partial \mathcal{L}_T}{\partial \mathbf{h}_1} \right\|_2 \leq \left\| \frac{\partial \mathcal{L}_T}{\partial \mathbf{h}_T} \right\|_2 \cdot (\lambda_1)^{T-1}} \]
+                    </div>
+
+                    <p><strong>The Mathematical Verdict: Two Disasters</strong></p>
+                    <ul>
+                        <li><strong>Disaster 1: Vanishing Gradients (\(\lambda_1 < 1\)):</strong> If the largest singular value is strictly less than 1 (say \(\lambda_1 = 0.9\)), then across a modest sentence of \(T = 50\) tokens:
+                            \[ (0.9)^{49} \approx 0.0057 \quad (\text{over 99.4\% of the gradient signal vanishes}) \]
+                            For \(T = 100\), \((0.9)^{99} \approx 2.95 \times 10^{-5}\). Gradients underflow into machine precision zero! The network physically cannot learn long-range causal dependencies.
+                        </li>
+                        <li><strong>Disaster 2: Exploding Gradients (\(\lambda_1 > 1\)):</strong> If \(\lambda_1 = 1.2\), then:
+                            \[ (1.2)^{49} \approx 7{,}580, \quad (1.2)^{99} \approx 6.9 \times 10^7 \]
+                            The gradient explodes exponentially, destabilizing training into IEEE floating-point <code>NaN</code> (Not-a-Number) overflows.
+                        </li>
+                    </ul>
+
+                    <p><strong>The Band-Aid: Gradient Clipping</strong></p>
+                    <p>
+                        Mikolov (2012) and Pascanu et al. (2013) mitigated exploding gradients by introducing <strong>norm clipping</strong>:
+                    </p>
+                    <div class="math-block">
+                        \[ \mathbf{g} \leftarrow \begin{cases} \mathbf{g} & \text{if } \|\mathbf{g}\|_2 \leq \gamma \\ \frac{\gamma}{\|\mathbf{g}\|_2} \mathbf{g} & \text{if } \|\mathbf{g}\|_2 > \gamma \end{cases} \]
+                    </div>
+                    <p>
+                        While clipping successfully tames explosions, it is completely powerless against <strong>vanishing gradients</strong>—you cannot rescale a vector whose magnitude has already decayed to zero!
+                    </p>
+                </div>
+
+                <h2>Act VII: The Gated Highway — LSTMs & GRUs</h2>
+                <p>
+                    How do we prevent gradients from vanishing when multiplied through time?
+                    In 1997, Sepp Hochreiter and Jürgen Schmidhuber published the architectural breakthrough: the <strong>Long Short-Term Memory (LSTM)</strong>.
+                </p>
+                <p>
+                    The core mathematical insight of the LSTM is to separate memory into two channels:
+                </p>
+                <ul>
+                    <li>\(\mathbf{h}_t \in \mathbb{R}^d\): The <strong>Hidden State</strong> (fast-changing, non-linear working memory).</li>
+                    <li>\(\mathbf{C}_t \in \mathbb{R}^d\): The <strong>Cell State</strong> (slow-changing, linear internal storage highway).</li>
+                </ul>
+
+                <div class="math-breakdown">
+                    <div class="math-breakdown-title">The Complete Mathematical Formulation of LSTM</div>
+                    <p>
+                        At time step \(t\), given input \(\mathbf{x}_t\) and previous hidden state \(\mathbf{h}_{t-1}\), the LSTM evaluates six equations:
+                    </p>
+                    <div class="math-block">
+                        \[ \begin{aligned}
+                        \mathbf{f}_t &= \sigma(\mathbf{W}_f \mathbf{x}_t + \mathbf{U}_f \mathbf{h}_{t-1} + \mathbf{b}_f) &&\text{(1. Forget Gate: What fraction of past memory to retain)} \\
+                        \mathbf{i}_t &= \sigma(\mathbf{W}_i \mathbf{x}_t + \mathbf{U}_i \mathbf{h}_{t-1} + \mathbf{b}_i) &&\text{(2. Input Gate: What fraction of new features to admit)} \\
+                        \tilde{\mathbf{C}}_t &= \tanh(\mathbf{W}_c \mathbf{x}_t + \mathbf{U}_c \mathbf{h}_{t-1} + \mathbf{b}_c) &&\text{(3. Candidate State: New raw information extracted from } \mathbf{x}_t) \\
+                        \mathbf{C}_t &= \mathbf{f}_t \odot \mathbf{C}_{t-1} + \mathbf{i}_t \odot \tilde{\mathbf{C}}_t &&\text{(4. Cell State: Linear additive update — The Gradient Highway!)} \\
+                        \mathbf{o}_t &= \sigma(\mathbf{W}_o \mathbf{x}_t + \mathbf{U}_o \mathbf{h}_{t-1} + \mathbf{b}_o) &&\text{(5. Output Gate: What part of cell state to reveal)} \\
+                        \mathbf{h}_t &= \mathbf{o}_t \odot \tanh(\mathbf{C}_t) &&\text{(6. Hidden State: Filtered working memory exposed to world)}
+                        \end{aligned} \]
+                    </div>
+                </div>
+
+                <div class="math-breakdown">
+                    <div class="math-breakdown-title">The Proof: The Additive Gradient Highway (\(\frac{\partial \mathbf{C}_t}{\partial \mathbf{C}_{t-1}} \approx \mathbf{I}\))</div>
+                    <p>
+                        Why does the LSTM solve vanishing gradients? Differentiate equation (4) with respect to the previous cell state \(\mathbf{C}_{t-1}\):
+                    </p>
+                    <div class="math-block">
+                        \[ \frac{\partial \mathbf{C}_t}{\partial \mathbf{C}_{t-1}} = \text{diag}(\mathbf{f}_t) + \mathbf{C}_{t-1} \odot \frac{\partial \mathbf{f}_t}{\partial \mathbf{C}_{t-1}} + \tilde{\mathbf{C}}_t \odot \frac{\partial \mathbf{i}_t}{\partial \mathbf{C}_{t-1}} + \mathbf{i}_t \odot \frac{\partial \tilde{\mathbf{C}}_t}{\partial \mathbf{C}_{t-1}} \]
+                    </div>
+                    <p>
+                        Because the gates \(\mathbf{f}_t, \mathbf{i}_t, \tilde{\mathbf{C}}_t\) depend on \(\mathbf{C}_{t-1}\) only indirectly through the previous hidden state \(\mathbf{h}_{t-1}\), the dominant term is simply:
+                    </p>
+                    <div class="math-block">
+                        \[ \boxed{\frac{\partial \mathbf{C}_t}{\partial \mathbf{C}_{t-1}} \approx \text{diag}(\mathbf{f}_t)} \]
+                    </div>
+                    <p>
+                        Notice the radical difference from the vanilla RNN! 
+                    </p>
+                    <ul>
+                        <li>In the vanilla RNN, the Jacobian \(\mathbf{J} = \mathbf{D}_k \mathbf{W}_{hh}^\top\) is forced to multiply across weight matrix \(\mathbf{W}_{hh}\) at every single step.</li>
+                        <li>In the LSTM, if the network learns to keep the forget gate open (\(\mathbf{f}_t \approx \mathbf{1}\)), the Jacobian is literally the <strong>Identity Matrix \(\mathbf{I}\)</strong>!</li>
+                    </ul>
+                    <p>
+                        The gradient travels backwards along the cell state highway:
+                        \[ \frac{\partial \mathcal{L}_T}{\partial \mathbf{C}_1} = \frac{\partial \mathcal{L}_T}{\partial \mathbf{C}_T} \prod_{t=2}^T \text{diag}(\mathbf{f}_t) \approx \frac{\partial \mathcal{L}_T}{\partial \mathbf{C}_T} \cdot \mathbf{I} = \frac{\partial \mathcal{L}_T}{\partial \mathbf{C}_T} \]
+                    </p>
+                    <p>
+                        Gradients flow across hundreds of time steps with <strong>strictly zero decay</strong>. Hochreiter and Schmidhuber called this the <strong>Constant Error Carousel (CEC)</strong>.
+                    </p>
+                </div>
+
+                <div class="math-breakdown">
+                    <div class="math-breakdown-title">Architectural Taxonomy: Vanilla RNN vs. LSTM vs. GRU</div>
+                    <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem; margin: 1rem 0;">
+                        <thead>
+                            <tr style="background-color: var(--bg-sidebar); border-bottom: 2px solid var(--border-color); text-align: left;">
+                                <th style="padding: 0.6rem;">Architecture</th>
+                                <th style="padding: 0.6rem;">Gate Count</th>
+                                <th style="padding: 0.6rem;">State Vectors</th>
+                                <th style="padding: 0.6rem;">Parameter Count (Hidden dim \(d\), Input \(d_{\text{in}}\))</th>
+                                <th style="padding: 0.6rem;">Gradient Highway Mechanism</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr style="border-bottom: 1px solid var(--border-color);">
+                                <td style="padding: 0.6rem;"><strong>Vanilla RNN</strong> (Elman 1990)</td>
+                                <td style="padding: 0.6rem;">0 gates</td>
+                                <td style="padding: 0.6rem;">1 (\(\mathbf{h}_t\))</td>
+                                <td style="padding: 0.6rem;">\(d^2 + d \cdot d_{\text{in}} + d\)</td>
+                                <td style="padding: 0.6rem;">None (Multiplicative \(\mathbf{W}_{hh}^\top \to\) Vanishing/Exploding)</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid var(--border-color);">
+                                <td style="padding: 0.6rem;"><strong>LSTM</strong> (Hochreiter 1997)</td>
+                                <td style="padding: 0.6rem;">3 gates (\(\mathbf{f}, \mathbf{i}, \mathbf{o}\))</td>
+                                <td style="padding: 0.6rem;">2 (\(\mathbf{h}_t, \mathbf{C}_t\))</td>
+                                <td style="padding: 0.6rem;">\(4 \times (d^2 + d \cdot d_{\text{in}} + d)\)</td>
+                                <td style="padding: 0.6rem;">Additive linear cell state \(\mathbf{C}_t = \mathbf{f}_t \odot \mathbf{C}_{t-1} + \mathbf{i}_t \odot \tilde{\mathbf{C}}_t\)</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 0.6rem;"><strong>GRU</strong> (Cho et al. 2014)</td>
+                                <td style="padding: 0.6rem;">2 gates (\(\mathbf{z}\) update, \(\mathbf{r}\) reset)</td>
+                                <td style="padding: 0.6rem;">1 (\(\mathbf{h}_t\))</td>
+                                <td style="padding: 0.6rem;">\(3 \times (d^2 + d \cdot d_{\text{in}} + d)\)</td>
+                                <td style="padding: 0.6rem;">Coupled interpolation \(\mathbf{h}_t = (1 - \mathbf{z}_t) \odot \mathbf{h}_{t-1} + \mathbf{z}_t \odot \tilde{\mathbf{h}}_t\)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h2>Act VIII: Ground-Zero PyTorch Implementations</h2>
+                <p>
+                    Below are two clean, self-contained PyTorch implementations built from scratch without black-box library wrappers.
+                </p>
+
+                <h3>1. Complete Word2Vec SGNS Module with Negative Sampling</h3>
+<pre><code>import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
+class Word2VecSGNS(nn.Module):
+    """
+    Skip-Gram with Negative Sampling (Mikolov et al., NIPS 2013).
+    Implements binary logistic regression with dual embedding tables.
+    """
+    def __init__(self, vocab_size: int, embed_dim: int):
+        super().__init__()
+        self.vocab_size = vocab_size
+        self.embed_dim = embed_dim
+        
+        # Center word vectors (v_w) and context word vectors (u_c)
+        self.v_embeddings = nn.Embedding(vocab_size, embed_dim)
+        self.u_embeddings = nn.Embedding(vocab_size, embed_dim)
+        
+        # Uniform initialization scaled by embedding dimension
+        bound = 0.5 / embed_dim
+        nn.init.uniform_(self.v_embeddings.weight, -bound, bound)
+        nn.init.zeros_(self.u_embeddings.weight)
+
+    def forward(self, center_words: torch.Tensor, context_words: torch.Tensor, neg_samples: torch.Tensor) -> torch.Tensor:
+        """
+        center_words:  (batch_size,)
+        context_words: (batch_size,)
+        neg_samples:   (batch_size, K)
+        """
+        # (B, D)
+        v_w = self.v_embeddings(center_words)
+        # (B, D)
+        u_c = self.u_embeddings(context_words)
+        # (B, K, D)
+        u_neg = self.u_embeddings(neg_samples)
+        
+        # Positive term: log sigma(u_c^T * v_w)
+        pos_dot = torch.sum(v_w * u_c, dim=-1)  # (B,)
+        pos_loss = F.logsigmoid(pos_dot)
+        
+        # Negative term: sum_{k=1}^K log sigma(-u_{n_k}^T * v_w)
+        # Batch matrix multiplication: (B, K, D) x (B, D, 1) -> (B, K, 1) -> (B, K)
+        neg_dot = torch.bmm(u_neg, v_w.unsqueeze(-1)).squeeze(-1)
+        neg_loss = F.logsigmoid(-neg_dot).sum(dim=-1)  # (B,)
+        
+        # Total Negative Log-Likelihood to minimize via gradient descent
+        return -(pos_loss + neg_loss).mean()
+
+    def get_embedding(self, word_idx: int) -> torch.Tensor:
+        """Returns the final representation (often v_w + u_w as recommended by Mikolov)."""
+        return (self.v_embeddings.weight[word_idx] + self.u_embeddings.weight[word_idx]).detach()
+</code></pre>
+
+                <h3>2. Explicit LSTM Cell from Scratch (No <code>nn.LSTM</code>)</h3>
+<pre><code>class ExplicitLSTMCell(nn.Module):
+    """
+    Long Short-Term Memory Cell (Hochreiter & Schmidhuber 1997).
+    Computes forget, input, candidate, and output gates explicitly.
+    """
+    def __init__(self, input_dim: int, hidden_dim: int):
+        super().__init__()
+        self.input_dim = input_dim
+        self.hidden_dim = hidden_dim
+        
+        # Single fused affine projection for computational efficiency:
+        # Computes [W_f, W_i, W_c, W_o] in one matrix multiplication
+        self.weight_ih = nn.Linear(input_dim, 4 * hidden_dim)
+        self.weight_hh = nn.Linear(hidden_dim, 4 * hidden_dim)
+        
+        # Initialize forget gate bias to 1.0 (Jozefowicz et al., ICML 2015 trick to prevent early vanishing)
+        with torch.no_grad():
+            self.weight_ih.bias.zero_()
+            self.weight_hh.bias.zero_()
+            self.weight_hh.bias[0:hidden_dim].fill_(1.0)  # f-gate bias
+
+    def forward(self, x: torch.Tensor, state: tuple[torch.Tensor, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
+        h_prev, c_prev = state  # Both of shape (B, hidden_dim)
+        
+        # Project inputs and recurrent states: (B, 4 * hidden_dim)
+        gates = self.weight_ih(x) + self.weight_hh(h_prev)
+        
+        # Split into the 4 constituent gates
+        f_gate, i_gate, c_cand, o_gate = gates.chunk(4, dim=-1)
+        
+        f = torch.sigmoid(f_gate)  # Forget gate
+        i = torch.sigmoid(i_gate)  # Input gate
+        c_tilde = torch.tanh(c_cand)  # Candidate state
+        o = torch.sigmoid(o_gate)  # Output gate
+        
+        # Additive Constant Error Carousel (CEC)
+        c_next = f * c_prev + i * c_tilde
+        # Filtered hidden state output
+        h_next = o * torch.tanh(c_next)
+        
+        return h_next, c_next
+
+# Verification script
+if __name__ == "__main__":
+    B, D_in, D_h = 2, 8, 16
+    cell = ExplicitLSTMCell(input_dim=D_in, hidden_dim=D_h)
+    
+    x = torch.randn(B, D_in)
+    h0 = torch.zeros(B, D_h)
+    c0 = torch.zeros(B, D_h)
+    
+    h1, c1 = cell(x, (h0, c0))
+    print(f"LSTM State Shapes: h1={h1.shape}, c1={c1.shape}")
+    print(f"Mean Forget Gate Activation: {torch.sigmoid(cell.weight_hh.bias[:D_h]).mean().item():.3f} (Highway Open!)")
+</code></pre>
+
+                <!-- Dog Dialogue 5 -->
+                <div class="dog-dialogue">
+                    <div class="dog-dialogue-header">🐾 Conversations with Heqing Kwek Lee: Epilogue — The Sequential GPU Bottleneck</div>
+                    <p><span class="dog-speaker">Heqing Kwek Lee:</span> "Let me summarize Lake Tahoe, Professor. Mikolov turned words into continuous manifolds, Levy & Goldberg proved it was implicit matrix factorization of shifted PMI, and Schmidhuber's LSTM saved our gradients from vanishing into numerical oblivion using an additive cell highway."</p>
+                    <p><span class="dog-speaker">Professor:</span> "A flawless synthesis, Heqing."</p>
+                    <p><span class="dog-speaker">Heqing Kwek Lee:</span> "Thank you. But there is a glaring, tragic flaw in this entire 2013 paradigm. Notice equation (4):
+                    \[ \mathbf{h}_t = \text{LSTM}(\mathbf{x}_t, \mathbf{h}_{t-1}) \]
+                    You cannot evaluate time step \(t=500\) until you have completed \(t=499\), \(t=498\)... all the way back to \(t=1\)!"</p>
+                    <p><span class="dog-speaker">Professor:</span> "Indeed. Recurrence is intrinsically sequential. It imposes a strictly serial temporal dependency graph."</p>
+                    <p><span class="dog-speaker">Heqing Kwek Lee:</span> "And modern NVIDIA GPUs have ten thousand parallel CUDA cores! Buying an H100 cluster and feeding it an LSTM is like purchasing a pack of 10,000 Arctic sled dogs, and forcing them to walk in single file behind an elderly turtle!"</p>
+                    <p><span class="dog-speaker">Professor:</span> "You have just articulated the central crisis that paralyzed NLP between 2014 and 2017. How do you process sequences of 100,000 words in parallel without sequential recurrent bottlenecks?"</p>
+                    <p><span class="dog-speaker">Heqing Kwek Lee:</span> "Did someone figure out how to discard the turtle?"</p>
+                    <p><span class="dog-speaker">Professor:</span> "They did. In Chapter 3, we pack our bags and head to Long Beach for NIPS 2017—to witness the birth of Self-Attention and the Transformer."</p>
+                </div>
+
+                <footer class="chapter-footer-nav">
+                    <a href="ch01-perceptron-memoirs.html" class="nav-link-btn">← Prev: Chapter 01 (Perceptrons & Backprop)</a>
+                    <a href="ch03-attention-memoirs.html" class="nav-link-btn">Next: Chapter 03 (Long Beach 2017 - Attention) →</a>
+                </footer>
+
+            </section>
+        </main>
+    </div>
+
+</body>
+</html>

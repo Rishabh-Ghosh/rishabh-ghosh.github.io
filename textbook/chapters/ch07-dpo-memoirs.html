@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chapter 7: New Orleans 2023 — The Alignment Epiphany (DPO) | Rishabh Ghosh</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- KaTeX -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body);"></script>
+    
+    <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+    <!-- Header Navigation -->
+    <header class="top-header">
+        <a href="../index.html" class="brand-link">
+            <span>Rishabh Ghosh</span>
+            <span style="font-weight: 300; opacity: 0.6;">/ Research Textbook & Memoirs</span>
+        </a>
+        <div class="header-meta">
+            <span class="badge badge-univ">Harvard CS288</span>
+            <a href="../index.html" class="home-btn">← Table of Contents</a>
+        </div>
+    </header>
+
+    <div class="layout-container">
+        
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-title">Memoirs & Chapters</div>
+            <ul class="nav-list">
+                <li class="nav-item"><a href="ch01-perceptron-memoirs.html"><span class="nav-chapter-num">01.</span>Perceptrons & Backpropagation</a></li>
+                <li class="nav-item"><a href="ch02-word2vec-memoirs.html"><span class="nav-chapter-num">02.</span>Lake Tahoe 2013: Word Vectors</a></li>
+                <li class="nav-item"><a href="ch03-attention-memoirs.html"><span class="nav-chapter-num">03.</span>Long Beach 2017: Attention</a></li>
+                <li class="nav-item"><a href="../index.html"><span class="nav-chapter-num">04.</span>BERT, GPT-3 & Scaling Laws</a></li>
+                <li class="nav-item"><a href="../index.html"><span class="nav-chapter-num">05.</span>FlashAttention & Systems</a></li>
+                <li class="nav-item"><a href="../index.html"><span class="nav-chapter-num">06.</span>InstructGPT & LoRA</a></li>
+                <li class="nav-item"><a href="ch07-dpo-memoirs.html" class="active"><span class="nav-chapter-num">07.</span>New Orleans 2023: DPO Alignment</a></li>
+                <li class="nav-item"><a href="ch08-grpo-memoirs.html"><span class="nav-chapter-num">08.</span>ICLR 2025: DeepSeek-R1 & GRPO</a></li>
+                <li class="nav-item"><a href="../index.html"><span class="nav-chapter-num">09.</span>Long-Context, RAG & Safety</a></li>
+                <li class="nav-item"><a href="../index.html"><span class="nav-chapter-num">10.</span>CVPR & CoRL: Multimodal VLA</a></li>
+            </ul>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            
+            <header class="chapter-header">
+                <div class="chapter-badge-container">
+                    <span class="badge">NeurIPS 2023</span>
+                    <span class="badge">New Orleans</span>
+                    <span class="badge badge-univ">Harvard CS288</span>
+                    <span class="badge badge-univ">Optimization</span>
+                </div>
+                <span class="chapter-number">Chapter 07 · Conference Memoir</span>
+                <h1 class="chapter-title">New Orleans 2023: The Alignment Epiphany (DPO)</h1>
+                <p class="chapter-subtitle">
+                    Reflections on attending NeurIPS 2023 in New Orleans, the collapse of complex 4-model PPO loops, closed-form preference optimization, and PyTorch implementation.
+                </p>
+            </header>
+
+            <section>
+                <blockquote>
+                    "For years after OpenAI released InstructGPT, those of us working on alignment were trapped in engineering purgatory. Training an aligned model required managing a fragile 4-model choreography: an Actor model, a Critic model, a Reference model, and a Reward model, all synchronized through Proximal Policy Optimization (PPO). GPU memory blew up, hyperparameter tuning was a nightmare, and policies frequently collapsed into reward-hacking reward exploitation. Then, in December 2023 at NeurIPS in New Orleans, Rafaelov et al. presented Direct Preference Optimization (DPO). Sitting in that hall, I watched them execute a piece of pure mathematical magic: by expressing the reward function implicitly through the policy itself, the intractable partition function canceled out completely! PPO's multi-model complexity was collapsed into a single, elegant binary cross-entropy loss."
+                    <br><br>
+                    — <em>From the Memoirs of a Veteran AI Scholar</em>
+                </blockquote>
+
+                <h2>7.1 Deriving DPO from First Principles</h2>
+                <p>
+                    Standard RLHF solves a KL-constrained reward maximization problem over prompt distribution \(\mathcal{D}\):
+                </p>
+                <div class="math-block">
+                    \[ \max_{\pi_\theta} \mathbb{E}_{x \sim \mathcal{D}, y \sim \pi_\theta(y|x)} \left[ r(x,y) \right] - \beta \mathbb{D}_{\text{KL}}\left( \pi_\theta(y|x) \parallel \pi_{\text{ref}}(y|x) \right) \]
+                </div>
+                <p>
+                    Expanding the KL divergence definition:
+                </p>
+                <div class="math-block">
+                    \[ = \max_{\pi_\theta} \mathbb{E}_{x \sim \mathcal{D}} \left[ \beta \sum_{y} \pi_\theta(y|x) \log \left( \frac{\pi_{\text{ref}}(y|x) \exp\left(\frac{1}{\beta} r(x,y)\right)}{\pi_\theta(y|x)} \right) \right] \]
+                </div>
+                <p>
+                    Defining the normalizing partition function \(Z(x) = \sum_{y} \pi_{\text{ref}}(y|x) \exp\left(\frac{1}{\beta} r(x,y)\right)\), the objective is maximized when the policy matches the target distribution \(\pi^*\):
+                </p>
+                <div class="math-block">
+                    \[ \pi^*(y|x) = \frac{1}{Z(x)} \pi_{\text{ref}}(y|x) \exp\left(\frac{1}{\beta} r(x,y)\right) \]
+                </div>
+                <p>
+                    Solving directly for the implicit reward function \(r(x,y)\):
+                </p>
+                <div class="math-block">
+                    \[ r(x,y) = \beta \log \frac{\pi_\theta(y|x)}{\pi_{\text{ref}}(y|x)} + \beta \log Z(x) \]
+                </div>
+                <p>
+                    Now substitute this implicit reward into the <strong>Bradley-Terry preference model</strong> for winning completion \(y_w\) over losing completion \(y_l\):
+                </p>
+                <div class="math-block">
+                    \[ P(y_w \succ y_l \mid x) = \sigma \left( r(x, y_w) - r(x, y_l) \right) \]
+                </div>
+                <p>
+                    Because \(Z(x)\) does not depend on completion \(y\), the partition terms \(\beta \log Z(x)\) cancel out completely! This yields the <strong>Direct Preference Optimization (DPO)</strong> objective:
+                </p>
+                <div class="math-block">
+                    \[ \mathcal{L}_{\text{DPO}}(\theta; \pi_{\text{ref}}) = -\mathbb{E}_{(x, y_w, y_l)} \left[ \log \sigma \left( \beta \log \frac{\pi_\theta(y_w|x)}{\pi_{\text{ref}}(y_w|x)} - \beta \log \frac{\pi_\theta(y_l|x)}{\pi_{\text{ref}}(y_l|x)} \right) \right] \]
+                </div>
+
+                <h2>7.2 Ground-Zero PyTorch Implementation: DPO & Reference-Free SimPO</h2>
+
+<pre><code>import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
+def dpo_loss(
+    policy_chosen_logps: torch.Tensor,
+    policy_rejected_logps: torch.Tensor,
+    ref_chosen_logps: torch.Tensor,
+    ref_rejected_logps: torch.Tensor,
+    beta: float = 0.1
+) -> torch.Tensor:
+    """
+    Computes exact Direct Preference Optimization (DPO) Loss.
+    Log probabilities shape: (batch_size,)
+    """
+    pi_logratios = policy_chosen_logps - policy_rejected_logps
+    ref_logratios = ref_chosen_logps - ref_rejected_logps
+    
+    logits = pi_logratios - ref_logratios
+    loss = -F.logsigmoid(beta * logits)
+    return loss.mean()
+
+def simpo_loss(
+    policy_chosen_logps: torch.Tensor,
+    policy_rejected_logps: torch.Tensor,
+    chosen_lens: torch.Tensor,
+    rejected_lens: torch.Tensor,
+    beta: float = 2.0,
+    gamma: float = 0.5
+) -> torch.Tensor:
+    """
+    Computes Simple Preference Optimization (SimPO) Loss.
+    Eliminates reference model by using length-normalized log-probs and target margin gamma.
+    """
+    # Length-normalized log probabilities
+    chosen_norm_logps = policy_chosen_logps / chosen_lens
+    rejected_norm_logps = policy_rejected_logps / rejected_lens
+    
+    logits = chosen_norm_logps - rejected_norm_logps - gamma
+    loss = -F.logsigmoid(beta * logits)
+    return loss.mean()
+
+# --- Verification ---
+if __name__ == "__main__":
+    p_chosen = torch.tensor([-2.1, -1.5])
+    p_rejected = torch.tensor([-4.5, -3.8])
+    r_chosen = torch.tensor([-2.0, -1.4])
+    r_rejected = torch.tensor([-3.0, -2.5])
+    
+    loss_val = dpo_loss(p_chosen, p_rejected, r_chosen, r_rejected, beta=0.1)
+    print(f"Calculated DPO Loss: {loss_val.item():.6f}")
+</code></pre>
+
+                <footer class="chapter-footer-nav">
+                    <a href="ch03-attention-memoirs.html" class="nav-link-btn">← Prev: Chapter 03 (Long Beach 2017 - Attention)</a>
+                    <a href="ch08-grpo-memoirs.html" class="nav-link-btn">Next: Chapter 08 (ICLR 2025 - DeepSeek-R1 & GRPO) →</a>
+                </footer>
+
+            </section>
+        </main>
+    </div>
+
+</body>
+</html>

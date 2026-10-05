@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chapter 3: Long Beach 2017 — "Attention Is All You Need" | Rishabh Ghosh</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- KaTeX -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body);"></script>
+    
+    <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+    <!-- Header Navigation -->
+    <header class="top-header">
+        <a href="../index.html" class="brand-link">
+            <span>Rishabh Ghosh</span>
+            <span style="font-weight: 300; opacity: 0.6;">/ Research Textbook & Memoirs</span>
+        </a>
+        <div class="header-meta">
+            <span class="badge badge-univ">Stanford CS336</span>
+            <a href="../index.html" class="home-btn">← Table of Contents</a>
+        </div>
+    </header>
+
+    <div class="layout-container">
+        
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-title">Memoirs & Chapters</div>
+            <ul class="nav-list">
+                <li class="nav-item"><a href="ch01-perceptron-memoirs.html"><span class="nav-chapter-num">01.</span>Perceptrons & Backpropagation</a></li>
+                <li class="nav-item"><a href="ch02-word2vec-memoirs.html"><span class="nav-chapter-num">02.</span>Lake Tahoe 2013: Word Vectors</a></li>
+                <li class="nav-item"><a href="ch03-attention-memoirs.html" class="active"><span class="nav-chapter-num">03.</span>Long Beach 2017: Attention</a></li>
+                <li class="nav-item"><a href="ch04-scaling-memoirs.html"><span class="nav-chapter-num">04.</span>BERT, GPT-3 & Scaling Laws</a></li>
+                <li class="nav-item"><a href="ch05-systems-flashattention.html"><span class="nav-chapter-num">05.</span>FlashAttention & Systems</a></li>
+                <li class="nav-item"><a href="ch06-instruct-lora.html"><span class="nav-chapter-num">06.</span>InstructGPT & LoRA</a></li>
+                <li class="nav-item"><a href="ch07-dpo-memoirs.html"><span class="nav-chapter-num">07.</span>New Orleans 2023: DPO Alignment</a></li>
+                <li class="nav-item"><a href="ch08-grpo-memoirs.html"><span class="nav-chapter-num">08.</span>ICLR 2025: DeepSeek-R1 & GRPO</a></li>
+                <li class="nav-item"><a href="../index.html"><span class="nav-chapter-num">09.</span>Long-Context, RAG & Safety</a></li>
+                <li class="nav-item"><a href="../index.html"><span class="nav-chapter-num">10.</span>CVPR & CoRL: Multimodal VLA</a></li>
+            </ul>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            
+            <header class="chapter-header">
+                <div class="chapter-badge-container">
+                    <span class="badge">NIPS 2017</span>
+                    <span class="badge">Long Beach</span>
+                    <span class="badge badge-univ">Stanford CS336</span>
+                    <span class="badge badge-univ">Bilinear Forms & Metric Kernels</span>
+                </div>
+                <span class="chapter-number">Chapter 03 · Conference Memoir</span>
+                <h1 class="chapter-title">Long Beach 2017: "Attention Is All You Need"</h1>
+                <p class="chapter-subtitle">
+                    In which Heqing Kwek Lee solves the multi-bowl cafeteria problem, Google abolishes sequential recurrence with parallel bilinear metric tensors, and complex rotary geometry (RoPE) preserves Euclidean distance across sequence time.
+                </p>
+            </header>
+
+            <section>
+                <blockquote>
+                    "In December 2017, the neural network community descended upon the Long Beach Convention Center under the warm southern California sun. The atmosphere was charged with a palpable tension. For four years, Recurrent Neural Networks (LSTMs and GRUs) had reigned supreme over natural language processing. But behind closed doors, every systems engineer and machine learning researcher was in agony. Modern NVIDIA GPUs were massive parallel vector processors boasting thousands of SIMD floating-point cores. Yet, to process a sequence of 512 tokens with an LSTM, you were forced to dispatch 512 sequential CUDA kernel launches, chaining hidden states \(\mathbf{h}_t = f(\mathbf{h}_{t-1}, \mathbf{x}_t)\) in an excruciating serial queue.
+                    <br><br>
+                    Then came paper #7181 from Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan Gomez, Łukasz Kaiser, and Illia Polosukhin. Its title was an audacious manifesto: <em>'Attention Is All You Need'</em>.
+                    The authors didn't merely propose a new gate or cell variant. They committed architectural heresy: they discarded recurrence completely. In one stroke, sequence modeling was unrolled into a single, colossal \(\mathcal{O}(1)\) parallel matrix multiplication kernel."
+                    <br><br>
+                    — <em>From the Memoirs of a Veteran AI Scholar</em>
+                </blockquote>
+
+                <!-- Dog Dialogue 1 -->
+                <div class="dog-dialogue">
+                    <div class="dog-dialogue-header">🐾 Conversations with Heqing Kwek Lee: The All-You-Can-Eat Buffet Dilemma</div>
+                    <p><span class="dog-speaker">Heqing Kwek Lee:</span> "Professor, I've been reflecting on your Recurrent Neural Networks while staring at my dinner dish. The recurrent method is like making me stand at the entrance of a pet food factory, where a conveyor belt pushes kibbles past my snout one at a time. I have to chew kibble #1 before I can look at kibble #2, and by kibble #500, my tongue is numb and I’ve completely forgotten the aroma of kibble #1!"</p>
+                    <p><span class="dog-speaker">Professor:</span> "A vivid analogy, Heqing Kwek Lee. In computer science, that is known as sequential dependency. It yields an execution span of \(\mathcal{O}(T)\) sequential operations, rendering parallel GPU hardware 95% idle."</p>
+                    <p><span class="dog-speaker">Heqing Kwek Lee:</span> "Now imagine instead of a conveyor belt, the chef lays out an arena filled with 500 open buffet bowls simultaneously! My eyes and nose can sweep across all 500 bowls in a single instant! If bowl #37 is steak and bowl #412 is a bone, my brain computes an instant cross-attentive affinity between them, completely ignoring the 498 bowls of steamed celery in between!"</p>
+                    <p><span class="dog-speaker">Professor:</span> "You have just described the self-attention matrix \(\mathbf{A} \in \mathbb{R}^{T \times T}\). Every token simultaneously surveys every other token in \(\mathcal{O}(1)\) sequential time. Let us formalize the linear algebra behind this canine buffet."</p>
+                </div>
+
+                <h2>3.1 The Geometry of Attention: Bilinear Forms as Metric Kernels</h2>
+                <p>
+                    Let an input sequence of length \(N\) embedded in dimension \(d_{\text{model}}\) be represented as a matrix:
+                </p>
+                <div class="math-block">
+                    \[ \mathbf{X} \in \mathbb{R}^{N \times d_{\text{model}}} = \begin{bmatrix} \mathbf{x}_1^\top \\ \mathbf{x}_2^\top \\ \vdots \\ \mathbf{x}_N^\top \end{bmatrix} \]
+                </div>
+                <p>
+                    In classical metric geometry, to evaluate the relationship between two vectors \(\mathbf{x}_i, \mathbf{x}_j \in \mathbb{R}^{d_{\text{model}}}\), one might evaluate a standard Euclidean dot product \(\mathbf{x}_i^\top \mathbf{x}_j\). 
+                    However, this is symmetric (\(\mathbf{x}_i^\top \mathbf{x}_j = \mathbf{x}_j^\top \mathbf{x}_i\)) and treats all feature dimensions identically. 
+                    In natural language and reasoning, interaction is inherently <strong>asymmetric</strong> and <strong>context-dependent</strong>: a verb looking for its direct object performs a fundamentally different interrogation than an object seeking its governing verb.
+                </p>
+                <p>
+                    To achieve this flexibility, we define three learnable linear projection operators:
+                </p>
+                <div class="math-block">
+                    \[ \mathbf{W}_Q \in \mathbb{R}^{d_{\text{model}} \times d_k}, \quad \mathbf{W}_K \in \mathbb{R}^{d_{\text{model}} \times d_k}, \quad \mathbf{W}_V \in \mathbb{R}^{d_{\text{model}} \times d_v} \]
+                </div>
+                <p>
+                    Transforming our inputs into <strong>Queries</strong>, <strong>Keys</strong>, and <strong>Values</strong>:
+                </p>
+                <div class="math-block">
+                    \[ \mathbf{Q} = \mathbf{X}\mathbf{W}_Q \in \mathbb{R}^{N \times d_k}, \quad \mathbf{K} = \mathbf{X}\mathbf{W}_K \in \mathbb{R}^{N \times d_k}, \quad \mathbf{V} = \mathbf{X}\mathbf{W}_V \in \mathbb{R}^{N \times d_v} \]
+                </div>
+
+                <div class="math-breakdown">
+                    <div class="math-breakdown-title">Linear Algebra Insight: The General Bilinear Form</div>
+                    <p>
+                        Notice what happens when we compute the inner product between query vector \(\mathbf{q}_i = \mathbf{W}_Q^\top \mathbf{x}_i\) and key vector \(\mathbf{k}_j = \mathbf{W}_K^\top \mathbf{x}_j\):
+                    </p>
+                    <div class="math-block">
+                        \[ \langle \mathbf{q}_i, \mathbf{k}_j \rangle = \mathbf{q}_i^\top \mathbf{k}_j = (\mathbf{x}_i^\top \mathbf{W}_Q) (\mathbf{W}_K^\top \mathbf{x}_j) = \mathbf{x}_i^\top (\mathbf{W}_Q \mathbf{W}_K^\top) \mathbf{x}_j \]
+                    </div>
+                    <p>
+                        Let \(\mathbf{M} \equiv \mathbf{W}_Q \mathbf{W}_K^\top \in \mathbb{R}^{d_{\text{model}} \times d_{\text{model}}}\). The unscaled attention score is a <strong>bilinear metric form</strong> parameterized by matrix \(\mathbf{M}\):
+                    </p>
+                    <div class="math-block">
+                        \[ B(\mathbf{x}_i, \mathbf{x}_j) = \mathbf{x}_i^\top \mathbf{M} \mathbf{x}_j \]
+                    </div>
+                    <p>
+                        Because \(\mathbf{W}_Q\) and \(\mathbf{W}_K\) are distinct, independent matrices, \(\mathbf{M}\) is <em>non-symmetric</em>: \(\mathbf{M} \neq \mathbf{M}^\top\). This asymmetry allows \(\mathbf{x}_i\) to strongly attend to \(\mathbf{x}_j\) without requiring \(\mathbf{x}_j\) to attend back to \(\mathbf{x}_i\) with the same intensity. Furthermore, because \(d_k < d_{\text{model}}\), \(\mathbf{M}\) has rank at most \(d_k\), inducing a low-rank bottleneck that extracts principal relational modes.
+                    </p>
+                </div>
+
+                <h2>3.2 Softmax Temperature & The Variance Scaling Proof (\(\frac{1}{\sqrt{d_k}}\))</h2>
+                <p>
+                    The full Scaled Dot-Product Attention operator is formulated as:
+                </p>
+                <div class="math-block">
+                    \[ \text{Attention}(\mathbf{Q}, \mathbf{K}, \mathbf{V}) = \text{Softmax}\left( \frac{\mathbf{Q}\mathbf{K}^\top}{\sqrt{d_k}} \right) \mathbf{V} \]
+                </div>
+                <p>
+                    Why the scaling factor \(\frac{1}{\sqrt{d_k}}\)? Why not \(\frac{1}{d_k}\) or simply \(1\)?
+                    At the Long Beach poster session in 2017, many attendees assumed this was an empirical heuristic. It is not. It is a strict necessity derived from the variance of high-dimensional inner products under the central limit theorem.
+                </p>
+
+                <div class="math-breakdown">
+                    <div class="math-breakdown-title">Rigorous Probability Proof: Dot-Product Variance Expansion</div>
+                    <p>
+                        <strong>Assumptions:</strong> Let the components of query vector \(\mathbf{q} \in \mathbb{R}^{d_k}\) and key vector \(\mathbf{k} \in \mathbb{R}^{d_k}\) be independent and identically distributed (i.i.d.) random variables with zero mean and unit variance:
+                    </p>
+                    <div class="math-block">
+                        \[ \mathbb{E}[q_l] = \mathbb{E}[k_l] = 0, \quad \operatorname{Var}(q_l) = \operatorname{Var}(k_l) = 1, \quad \forall l \in \{1, \dots, d_k\} \]
+                    </div>
+                    <p>
+                        Consider the scalar dot product \(S = \mathbf{q}^\top \mathbf{k} = \sum_{l=1}^{d_k} q_l k_l\).
+                    </p>
+                    <p>
+                        <strong>Step 1: Expected Value of the Product:</strong>
+                        By statistical independence of \(\mathbf{q}\) and \(\mathbf{k}\):
+                        \[ \mathbb{E}[q_l k_l] = \mathbb{E}[q_l] \mathbb{E}[k_l] = 0 \cdot 0 = 0 \]
+                        Therefore, by linearity of expectation:
+                        \[ \mathbb{E}[S] = \sum_{l=1}^{d_k} \mathbb{E}[q_l k_l] = 0 \]
+                    </p>
+                    <p>
+                        <strong>Step 2: Variance of Individual Terms:</strong>
+                        For any two independent random variables \(X, Y\) with zero mean:
+                        \[ \operatorname{Var}(XY) = \mathbb{E}[(XY)^2] - (\mathbb{E}[XY])^2 = \mathbb{E}[X^2 Y^2] - 0 = \mathbb{E}[X^2] \mathbb{E}[Y^2] \]
+                        Since \(\mathbb{E}[q_l^2] = \operatorname{Var}(q_l) = 1\) and \(\mathbb{E}[k_l^2] = \operatorname{Var}(k_l) = 1\):
+                        \[ \operatorname{Var}(q_l k_l) = 1 \cdot 1 = 1 \]
+                    </p>
+                    <p>
+                        <strong>Step 3: Variance of the Sum:</strong>
+                        Because the dimensions \(l \in \{1, \dots, d_k\}\) are mutually independent, the variance of the sum is the sum of the variances:
+                        \[ \operatorname{Var}(S) = \sum_{l=1}^{d_k} \operatorname{Var}(q_l k_l) = \sum_{l=1}^{d_k} 1 = d_k \]
+                        \[ \sigma_S = \sqrt{\operatorname{Var}(S)} = \sqrt{d_k} \]
+                    </p>
+                    <p>
+                        <strong>The Consequence on Softmax Gradients:</strong><br>
+                        In modern architectures, \(d_k = 128\). Without scaling, the standard deviation of raw logit scores is \(\sqrt{128} \approx 11.31\). 
+                        When logits differ by values on the order of 10 to 20, the \(\text{Softmax}(\mathbf{z})_i = \frac{e^{z_i}}{\sum_j e^{z_j}}\) distribution collapses into a one-hot indicator:
+                        \[ \text{Softmax}(\mathbf{z}) \to [0, \dots, 0, 1, 0, \dots, 0]^\top \]
+                        Recall the Jacobian of the Softmax function:
+                        \[ \frac{\partial \text{Softmax}(\mathbf{z})_i}{\partial z_j} = s_i (\delta_{ij} - s_j) \]
+                        When \(s_i \to 1\) and all other \(s_j \to 0\), the derivative vanishes everywhere:
+                        \[ s_i(1 - s_i) \to 0, \quad -s_i s_j \to 0 \]
+                        The gradients vanish completely, stopping all backpropagation! Dividing by \(\sqrt{d_k}\) scales the variance back to \(\operatorname{Var}\left(\frac{S}{\sqrt{d_k}}\right) = \frac{d_k}{d_k} = 1\), holding the Softmax comfortably in its maximum entropy, non-saturated gradient regime.
+                    </p>
+                </div>
+
+                <!-- Dog Dialogue 2 -->
+                <div class="dog-dialogue">
+                    <div class="dog-dialogue-header">🐾 Conversations with Heqing Kwek Lee: The Overheated Canine Ear</div>
+                    <p><span class="dog-speaker">Heqing Kwek Lee:</span> "So the division by \(\sqrt{d_k}\) is like putting a volume governor on a loudspeaker so the amplifier doesn't clip into pure static!"</p>
+                    <p><span class="dog-speaker">Professor:</span> "Precisely. If your key dimension is 128, without that factor, the loud logits scream at +25 and the soft ones drop to -25. The Softmax exponential \(\exp(25) \approx 7.2 \times 10^{10}\) completely drowns out everything else, causing gradient starvation."</p>
+                    <p><span class="dog-speaker">Heqing Kwek Lee:</span> "Very sensible. But wait, Professor! If you compute \(\mathbf{Q}\mathbf{K}^\top\), the matrix multiplication treats every row and column as unordered vectors. If I swap word #2 with word #500, the attention weights are identical! Words aren't an unordered bag of dog biscuits; word order matters!"</p>
+                    <p><span class="dog-speaker">Professor:</span> "Indeed. That brings us to the geometric triumph of modern positional encodings: Rotary Position Embeddings."</p>
+                </div>
+
+                <h2>3.3 Position Encodings: From Absolute Sinusoids to Rotary Embeddings (RoPE)</h2>
+                <p>
+                    Standard matrix operations in self-attention are <strong>permutation equivariant</strong>:
+                </p>
+                <div class="math-block">
+                    \[ \text{Attention}(\mathbf{P}\mathbf{Q}, \mathbf{P}\mathbf{K}, \mathbf{P}\mathbf{V}) = \mathbf{P} \, \text{Attention}(\mathbf{Q}, \mathbf{K}, \mathbf{V}) \]
+                </div>
+                <p>
+                    for any permutation matrix \(\mathbf{P}\). To model sequence grammar, positional coordinates must be injected. 
+                    While the original 2017 paper added static absolute sinusoidal vectors to \(\mathbf{X}\), modern foundation models (Llama 3, DeepSeek-R1, Qwen 2.5, Mistral) employ <strong>Rotary Position Embedding (RoPE)</strong> (Su et al., 2021).
+                </p>
+
+                <h3>The Core Objective of Relative Encoding</h3>
+                <p>
+                    We desire a transformation \(\mathbf{R}(\mathbf{x}, m)\) that takes a vector \(\mathbf{x}\) at index \(m\) such that the inner product between query at position \(m\) and key at position \(n\) depends <em>purely on the relative distance</em> \(n - m\):
+                </p>
+                <div class="math-block">
+                    \[ \langle \mathbf{R}(\mathbf{q}, m), \mathbf{R}(\mathbf{k}, n) \rangle = g(\mathbf{q}, \mathbf{k}, n - m) \]
+                </div>
+
+                <div class="math-breakdown">
+                    <div class="math-breakdown-title">Complex Geometric Derivation: The 2D Rotation Manifold</div>
+                    <p>
+                        Let us represent a 2-dimensional vector \(\mathbf{q} = [q_1, q_2]^\top \in \mathbb{R}^2\) as a complex number:
+                        \[ z_q = q_1 + i q_2 \in \mathbb{C} \]
+                        To encode integer position \(m\), we multiply by a unit complex phasor with angular frequency \(\theta\):
+                        \[ \tilde{z}_q = z_q \cdot e^{i m \theta} = (q_1 + i q_2)(\cos m\theta + i \sin m\theta) \]
+                    </p>
+                    <p>
+                        Expanding into real and imaginary components:
+                        \[ \operatorname{Re}(\tilde{z}_q) = q_1 \cos m\theta - q_2 \sin m\theta \]
+                        \[ \operatorname{Im}(\tilde{z}_q) = q_1 \sin m\theta + q_2 \cos m\theta \]
+                    </p>
+                    <p>
+                        Expressing this linear map as a \(2 \times 2\) orthogonal rotation matrix \(\mathbf{R}_{\theta, m} \in \text{SO}(2)\):
+                    </p>
+                    <div class="math-block">
+                        \[ \mathbf{R}_{\theta, m} = \begin{bmatrix} \cos m\theta & -\sin m\theta \\ \sin m\theta & \cos m\theta \end{bmatrix} \]
+                    </div>
+                    <p>
+                        Now, observe what happens to the inner product between rotated query \(\tilde{\mathbf{q}}_m = \mathbf{R}_{\theta, m} \mathbf{q}\) and rotated key \(\tilde{\mathbf{k}}_n = \mathbf{R}_{\theta, n} \mathbf{k}\):
+                    </p>
+                    <div class="math-block">
+                        \[ \langle \tilde{\mathbf{q}}_m, \tilde{\mathbf{k}}_n \rangle = (\mathbf{R}_{\theta, m} \mathbf{q})^\top (\mathbf{R}_{\theta, n} \mathbf{k}) = \mathbf{q}^\top \mathbf{R}_{\theta, m}^\top \mathbf{R}_{\theta, n} \mathbf{k} \]
+                    </div>
+                    <p>
+                        Because 2D rotation matrices commute and \(\mathbf{R}_{\theta, m}^\top = \mathbf{R}_{\theta, -m}\):
+                    </p>
+                    <div class="math-block">
+                        \[ \mathbf{R}_{\theta, m}^\top \mathbf{R}_{\theta, n} = \mathbf{R}_{\theta, -m} \mathbf{R}_{\theta, n} = \mathbf{R}_{\theta, n - m} \]
+                    </div>
+                    <div class="math-block">
+                        \[ \mathbf{q}^\top \mathbf{R}_{\theta, n - m} \mathbf{k} = \mathbf{q}^\top \begin{bmatrix} \cos (n-m)\theta & -\sin (n-m)\theta \\ \sin (n-m)\theta & \cos (n-m)\theta \end{bmatrix} \mathbf{k} \]
+                    </div>
+                    <p>
+                        <strong>The Mathematical Triumph:</strong> The dot product depends <em>strictly on the relative displacement</em> \(\Delta = n - m\)! If a query at position 100 looks at a key at position 105, the interaction angle is identical to a query at position 1 looking at a key at position 6.
+                    </p>
+                </div>
+
+                <h3>Extension to Dimension \(d\): Block-Diagonal Orthogonal Group \(\text{SO}(d)\)</h3>
+                <p>
+                    For a vector space of dimension \(d\) (where \(d\) is even), we decompose \(\mathbb{R}^d\) into \(\frac{d}{2}\) orthogonal 2D subspaces. Each 2D plane rotates at a geometrically decaying base frequency:
+                </p>
+                <div class="math-block">
+                    \[ \theta_i = b^{-2(i-1)/d}, \quad \text{for } i \in \left\{1, 2, \dots, \frac{d}{2}\right\}, \quad b = 10000 \]
+                </div>
+                <p>
+                    The global rotation operator \(\mathbf{R}_{\Theta, m} \in \mathbb{R}^{d \times d}\) is a block-diagonal matrix:
+                </p>
+                <div class="math-block">
+                    \[ \mathbf{R}_{\Theta, m} = \operatorname{diag}\left( \mathbf{R}_{\theta_1, m}, \mathbf{R}_{\theta_2, m}, \dots, \mathbf{R}_{\theta_{d/2}, m} \right) \]
+                </div>
+                <p>
+                    In hardware implementations, constructing explicit \(d \times d\) block matrices is wasteful. Instead, we compute the rotation element-wise using Hadamard products and a sign-flipped half-vector permutation:
+                </p>
+                <div class="math-block">
+                    \[ \mathbf{R}_{\Theta, m} \mathbf{x} = \mathbf{x} \odot \cos(m \boldsymbol{\Theta}) + \operatorname{rotate\_half}(\mathbf{x}) \odot \sin(m \boldsymbol{\Theta}) \]
+                </div>
+
+                <!-- Dog Dialogue 3 -->
+                <div class="dog-dialogue">
+                    <div class="dog-dialogue-header">🐾 Conversations with Heqing Kwek Lee: The Rotating Clock Dials</div>
+                    <p><span class="dog-speaker">Heqing Kwek Lee:</span> "Wait! Each pair of dimensions is like a clock hand spinning around its own dial? The first pair of dimensions spins wildly fast like a second hand, while the last pair creeps along slowly like an hour hand?"</p>
+                    <p><span class="dog-speaker">Professor:</span> "A magnificent visualization, Heqing Kwek Lee. Fast hands encode fine-grained syntax and immediate adjacent word pairs (bigrams, trigrams). Slow hands encode long-range semantic thematic shifts across thousands of tokens."</p>
+                    <p><span class="dog-speaker">Heqing Kwek Lee:</span> "And because rotations preserve Euclidean vector norms (\(\|\mathbf{R}\mathbf{x}\| = \|\mathbf{x}\|\)), rotating a vector doesn't artificially stretch or shrink its energy! The geometry is purely isometric."</p>
+                </div>
+
+                <h2>3.4 Multi-Head Attention (MHA): Subspace Specialization</h2>
+                <p>
+                    Instead of performing a single attention function with \(d_{\text{model}}\)-dimensional keys, queries, and values, we project the queries, keys, and values \(h\) times with different learned linear projections:
+                </p>
+                <div class="math-block">
+                    \[ \text{MultiHead}(\mathbf{Q}, \mathbf{K}, \mathbf{V}) = \operatorname{Concat}(\text{head}_1, \dots, \text{head}_h) \mathbf{W}_O \]
+                    \[ \text{head}_i = \text{Attention}(\mathbf{Q}\mathbf{W}_i^Q, \mathbf{K}\mathbf{W}_i^K, \mathbf{V}\mathbf{W}_i^V) \]
+                </div>
+                <p>
+                    where \(\mathbf{W}_i^Q \in \mathbb{R}^{d_{\text{model}} \times d_k}\), \(\mathbf{W}_i^K \in \mathbb{R}^{d_{\text{model}} \times d_k}\), \(\mathbf{W}_i^V \in \mathbb{R}^{d_{\text{model}} \times d_v}\), and \(\mathbf{W}_O \in \mathbb{R}^{h d_v \times d_{\text{model}}}\).
+                </p>
+                <p>
+                    Typically, we set \(d_k = d_v = d_{\text{model}} / h\). This ensures that the total computational cost of multi-head attention is identical to single-head attention with full dimensionality, while allowing each head to specialize in distinct geometric subspaces (syntactic dependency, entity tracking, coreference resolution).
+                </p>
+
+                <h2>3.5 Ground-Zero PyTorch Implementation: Causal Multi-Head Attention with RoPE</h2>
+                <p>
+                    Below is the complete, self-contained, batched implementation. It includes the exact RoPE complex frequency caching and causal autoregressive masking:
+                </p>
+
+<pre><code>import torch
+import torch.nn as nn
+import torch.nn.functional as F
+import math
+
+class RotaryEmbedding(nn.Module):
+    """
+    Rotary Position Embedding (RoPE) as defined in Su et al. (2021).
+    Encodes relative position by rotating queries and keys in 2D coordinate subspaces.
+    """
+    def __init__(self, dim: int, max_seq_len: int = 4096, base: float = 10000.0):
+        super().__init__()
+        self.dim = dim
+        self.max_seq_len = max_seq_len
+        self.base = base
+        
+        # Calculate angular frequencies: theta_i = base^(-2(i-1)/dim)
+        inv_freq = 1.0 / (base ** (torch.arange(0, dim, 2).float() / dim))
+        self.register_buffer("inv_freq", inv_freq)
+        self._build_cache(max_seq_len)
+
+    def _build_cache(self, seq_len: int):
+        # Position indices: [0, 1, ..., seq_len - 1]
+        t = torch.arange(seq_len, dtype=torch.float32)
+        
+        # Outer product: [seq_len, dim / 2]
+        freqs = torch.outer(t, self.inv_freq)
+        
+        # Duplicate frequencies to match full head_dim: [seq_len, dim]
+        emb = torch.cat((freqs, freqs), dim=-1)
+        
+        # Cache cos and sin tensors shaped for broadcasting: (1, 1, seq_len, dim)
+        self.register_buffer("cos_cached", emb.cos().unsqueeze(0).unsqueeze(0), persistent=False)
+        self.register_buffer("sin_cached", emb.sin().unsqueeze(0).unsqueeze(0), persistent=False)
+
+    def _rotate_half(self, x: torch.Tensor) -> torch.Tensor:
+        # Permutes 2D coordinate pairs: [-x2, x1]
+        x1 = x[..., : self.dim // 2]
+        x2 = x[..., self.dim // 2 :]
+        return torch.cat((-x2, x1), dim=-1)
+
+    def forward(self, x: torch.Tensor, seq_len: int) -> torch.Tensor:
+        # x shape: (batch_size, num_heads, seq_len, head_dim)
+        if seq_len > self.max_seq_len:
+            self._build_cache(seq_len)
+            
+        cos = self.cos_cached[:, :, :seq_len, :]
+        sin = self.sin_cached[:, :, :seq_len, :]
+        return (x * cos) + (self._rotate_half(x) * sin)
+
+
+class CausalMultiHeadAttention(nn.Module):
+    """
+    Standard Transformer Causal Multi-Head Attention block with RoPE.
+    Operates in O(N^2) memory without kernel fusion (pure didactic PyTorch).
+    """
+    def __init__(self, d_model: int, num_heads: int, max_seq_len: int = 4096):
+        super().__init__()
+        assert d_model % num_heads == 0, "d_model must be divisible by num_heads"
+        
+        self.d_model = d_model
+        self.num_heads = num_heads
+        self.head_dim = d_model // num_heads
+        
+        # Linear projections for Query, Key, Value, and Output
+        self.q_proj = nn.Linear(d_model, d_model, bias=False)
+        self.k_proj = nn.Linear(d_model, d_model, bias=False)
+        self.v_proj = nn.Linear(d_model, d_model, bias=False)
+        self.out_proj = nn.Linear(d_model, d_model, bias=False)
+        
+        # Rotary Position Embedding operator
+        self.rope = RotaryEmbedding(dim=self.head_dim, max_seq_len=max_seq_len)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        batch_size, seq_len, d_model = x.shape
+        
+        # 1. Linear Projections: (B, N, D) -> (B, N, num_heads, head_dim) -> (B, num_heads, N, head_dim)
+        q = self.q_proj(x).view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
+        k = self.k_proj(x).view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
+        v = self.v_proj(x).view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
+        
+        # 2. Inject Rotary Position Embeddings into Queries and Keys
+        q = self.rope(q, seq_len)
+        k = self.rope(k, seq_len)
+        
+        # 3. Scaled Dot-Product Attention: Q * K^T / sqrt(head_dim)
+        scale = 1.0 / math.sqrt(self.head_dim)
+        scores = torch.matmul(q, k.transpose(-2, -1)) * scale
+        
+        # 4. Lower-triangular Causal Autoregressive Mask
+        # Future tokens cannot attend to past tokens: M_ij = -inf for j > i
+        causal_mask = torch.tril(torch.ones(seq_len, seq_len, device=x.device)).view(1, 1, seq_len, seq_len)
+        scores = scores.masked_fill(causal_mask == 0, float("-inf"))
+        
+        # 5. Attention Weights and Value Aggregation
+        attn_weights = F.softmax(scores, dim=-1)
+        context = torch.matmul(attn_weights, v) # (B, num_heads, N, head_dim)
+        
+        # 6. Concat Heads & Final Projection: (B, num_heads, N, head_dim) -> (B, N, D)
+        context = context.transpose(1, 2).contiguous().view(batch_size, seq_len, d_model)
+        return self.out_proj(context)
+
+
+# --- Rigorous Verification Script ---
+if __name__ == "__main__":
+    torch.manual_seed(42)
+    B, N, D = 2, 8, 64  # 2 sequences, 8 tokens, 64 hidden dimensions
+    num_heads = 4
+    
+    layer = CausalMultiHeadAttention(d_model=D, num_heads=num_heads)
+    dummy_tokens = torch.randn(B, N, D)
+    
+    output = layer(dummy_tokens)
+    print(f"Input Tensor Shape:  {dummy_tokens.shape}")
+    print(f"Output Tensor Shape: {output.shape}")
+    assert output.shape == (B, N, D), "Output tensor dimensions must match input!"
+    print("Verification complete: Multi-Head Attention executed flawlessly.")
+</code></pre>
+
+                <!-- Dog Dialogue 4 -->
+                <div class="dog-dialogue">
+                    <div class="dog-dialogue-header">🐾 Conversations with Heqing Kwek Lee: The Quadratic Catastrophe</div>
+                    <p><span class="dog-speaker">Heqing Kwek Lee:</span> "Professor, the code is elegant, but look at that attention weight matrix: \(\mathbf{Q}\mathbf{K}^\top \in \mathbb{R}^{N \times N}\). If our sequence length \(N\) is 1,000 tokens, \(N^2 = 1,000,000\). If \(N = 128,000\) tokens (like modern LLMs), \(N^2 \approx 16.3 \text{ billion}\) matrix entries per layer!"</p>
+                    <p><span class="dog-speaker">Professor:</span> "Indeed, Heqing Kwek Lee. The memory footprint scales as \(\mathcal{O}(N^2)\). In 2017, this limited sequences to 512 or 1024 tokens. How humanity scaled transformers to hundreds of billions of parameters and 128k context windows required two major revolutions: <em>Scaling Laws</em> (Chapter 4) and <em>Hardware SRAM Tiling via FlashAttention</em> (Chapter 5)."</p>
+                    <p><span class="dog-speaker">Heqing Kwek Lee:</span> "Then let us proceed to the scaling wars! I want to know how many gigabytes of bacon it takes to train a frontier model."</p>
+                </div>
+
+                <footer class="chapter-footer-nav">
+                    <a href="ch02-word2vec-memoirs.html" class="nav-link-btn">← Prev: Chapter 02 (Lake Tahoe 2013 - Word Vectors)</a>
+                    <a href="ch04-scaling-memoirs.html" class="nav-link-btn">Next: Chapter 04 (BERT, GPT-3 & Scaling Laws) →</a>
+                </footer>
+
+            </section>
+        </main>
+    </div>
+
+</body>
+</html>

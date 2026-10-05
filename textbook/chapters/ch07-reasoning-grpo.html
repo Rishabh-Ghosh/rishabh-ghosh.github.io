@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chapter 7: Reasoning & GRPO (DeepSeek-R1) | Rishabh Ghosh</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- KaTeX -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body);"></script>
+    
+    <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+    <!-- Header Navigation -->
+    <header class="top-header">
+        <a href="../index.html" class="brand-link">
+            <span>Rishabh Ghosh</span>
+            <span style="font-weight: 300; opacity: 0.6;">/ LLM & Post-Training Textbook</span>
+        </a>
+        <div class="header-meta">
+            <span class="badge badge-univ">Frontier RL · ICLR / ICML</span>
+            <a href="../index.html" class="home-btn">← Table of Contents</a>
+        </div>
+    </header>
+
+    <div class="layout-container">
+        
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-title">Chapters</div>
+            <ul class="nav-list">
+                <li class="nav-item"><a href="ch01-architectures.html"><span class="nav-chapter-num">01.</span>Architectures & Attention</a></li>
+                <li class="nav-item"><a href="../index.html"><span class="nav-chapter-num">02.</span>Pre-Training & Systems</a></li>
+                <li class="nav-item"><a href="../index.html"><span class="nav-chapter-num">03.</span>SFT & PEFT (LoRA)</a></li>
+                <li class="nav-item"><a href="../index.html"><span class="nav-chapter-num">04.</span>Preference Modeling</a></li>
+                <li class="nav-item"><a href="../index.html"><span class="nav-chapter-num">05.</span>RLHF & PPO</a></li>
+                <li class="nav-item"><a href="ch06-dpo.html"><span class="nav-chapter-num">06.</span>DPO & Direct Alignment</a></li>
+                <li class="nav-item"><a href="ch07-reasoning-grpo.html" class="active"><span class="nav-chapter-num">07.</span>Reasoning & GRPO (DeepSeek-R1)</a></li>
+                <li class="nav-item"><a href="../index.html"><span class="nav-chapter-num">08.</span>Long-Context & RAG</a></li>
+                <li class="nav-item"><a href="../index.html"><span class="nav-chapter-num">09.</span>Evaluation & Safety</a></li>
+                <li class="nav-item"><a href="../index.html"><span class="nav-chapter-num">10.</span>Multimodal & VLA Robotics</a></li>
+            </ul>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            
+            <header class="chapter-header">
+                <div class="chapter-badge-container">
+                    <span class="badge">ICLR 2025</span>
+                    <span class="badge">ICML 2025</span>
+                    <span class="badge badge-univ">DeepSeek-R1 Methodology</span>
+                    <span class="badge badge-univ">Reasoning RL</span>
+                </div>
+                <span class="chapter-number">Chapter 07</span>
+                <h1 class="chapter-title">Reasoning, Process Rewards & System 2 Post-Training</h1>
+                <p class="chapter-subtitle">
+                    Deconstructing Group Relative Policy Optimization (GRPO), Process-Supervised Reward Models (PRMs), Test-Time Compute Scaling, Monte Carlo Tree Search (MCTS), and Emergent Reasoning in DeepSeek-R1.
+                </p>
+            </header>
+
+            <section>
+                <h2>7.1 Outcome vs Process-Supervised Rewards</h2>
+                <p>
+                    For complex multi-step reasoning tasks (e.g. mathematical proofs, algorithm synthesis, symbolic logic), evaluating only the final output via an **Outcome Reward Model (ORM)** creates severe credit assignment problems:
+                </p>
+                <ul>
+                    <li>A model might execute incorrect intermediate reasoning steps but accidentally output the correct numerical final answer (false positive credit assignment).</li>
+                    <li>A model might perform 99 correct reasoning steps but fail on the final formatting token (severe false negative penalty).</li>
+                </ul>
+                <p>
+                    **Process-Supervised Reward Models (PRMs)** (Lightman et al., 2023) score individual reasoning steps \( s_1, s_2, \dots, s_K \):
+                </p>
+                <div class="math-block">
+                    \[ r_{\text{PRM}}(x, y) = \sum_{k=1}^K \gamma^k R_{\text{step}}(s_k \mid x, s_{<k}) \]
+                </div>
+
+                <h2>7.2 Group Relative Policy Optimization (GRPO)</h2>
+                <p>
+                    In standard PPO, training a Critic network matching the scale of the LLM Actor (e.g. 70B+ parameters) requires massive GPU VRAM allocation. **Group Relative Policy Optimization (GRPO)** (Shao et al., DeepSeek 2024 / 2025) eliminates the Critic network entirely!
+                </p>
+                <p>
+                    For each prompt query \( q \), GRPO samples a group of \( G \) candidate outputs \( \{o_1, o_2, \dots, o_G\} \) from the old policy \( \pi_{\text{old}} \). Rewards \( \{r_1, r_2, \dots, r_G\} \) are evaluated for each candidate (via rule-based verification or reward models). The advantage \( A_i \) for completion \( o_i \) is computed by normalizing relative to the group:
+                </p>
+                <div class="math-block">
+                    \[ A_i = \frac{r_i - \text{mean}(\{r_1, \dots, r_G\})}{\text{std}(\{r_1, \dots, r_G\}) + \epsilon} \]
+                </div>
+                <p>
+                    The complete GRPO optimization objective clips policy ratios while penalizing KL divergence against a reference model \( \pi_{\text{ref}} \):
+                </p>
+                <div class="math-block">
+                    \[ \mathcal{L}_{\text{GRPO}}(\theta) = \frac{1}{G} \sum_{i=1}^G \min \left( \frac{\pi_\theta(o_i|q)}{\pi_{\text{old}}(o_i|q)} A_i, \text{clip}\left(\frac{\pi_\theta(o_i|q)}{\pi_{\text{old}}(o_i|q)}, 1-\epsilon, 1+\epsilon\right) A_i \right) - \beta \mathbb{D}_{\text{KL}}(\pi_\theta \parallel \pi_{\text{ref}}) \]
+                </div>
+
+                <h3>PyTorch Production Implementation: GRPO Advantage & Surrogate Loss</h3>
+<pre><code>import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
+def compute_grpo_advantages(rewards: torch.Tensor, eps: float = 1e-8) -> torch.Tensor:
+    """
+    Computes group-relative normalized advantages for G completions per prompt.
+    rewards shape: (B, G) where B is batch size of prompts and G is group size.
+    """
+    mean_r = rewards.mean(dim=-1, keepdim=True)
+    std_r = rewards.std(dim=-1, keepdim=True)
+    advantages = (rewards - mean_r) / (std_r + eps)
+    return advantages  # Shape: (B, G)
+
+def grpo_surrogate_loss(
+    log_probs_policy: torch.Tensor,  # (B, G, L)
+    log_probs_old: torch.Tensor,     # (B, G, L)
+    advantages: torch.Tensor,        # (B, G)
+    mask: torch.Tensor,              # (B, G, L) sequence mask
+    clip_eps: float = 0.2
+) -> torch.Tensor:
+    """
+    Computes token-level GRPO clipped surrogate objective.
+    """
+    # Sum log probabilities over token lengths
+    seq_logps_policy = (log_probs_policy * mask).sum(dim=-1)
+    seq_logps_old = (log_probs_old * mask).sum(dim=-1)
+
+    # Probability ratio
+    ratios = torch.exp(seq_logps_policy - seq_logps_old)
+    advantages_expanded = advantages
+
+    surr1 = ratios * advantages_expanded
+    surr2 = torch.clamp(ratios, 1.0 - clip_eps, 1.0 + clip_eps) * advantages_expanded
+
+    loss = -torch.min(surr1, surr2).mean()
+    return loss
+</code></pre>
+
+                <h2>7.3 Emergent Reasoning Dynamics: DeepSeek-R1 & Test-Time Compute</h2>
+                <p>
+                    Training LLMs with pure RL (DeepSeek-R1-Zero) over mathematical and algorithmic verification rewards leads to dramatic emergent behaviors:
+                </p>
+                <ul>
+                    <li>**Self-Correction & Reflection**: Without human instruction data, the policy naturally learns to emit "Wait...", "Let me re-check this calculation", and "Aha! That step was wrong."</li>
+                    <li>**Reasoning Trace Expansion**: Response length automatically expands during RL training as the model generates longer, deeper Chain-of-Thought (CoT) search trajectories.</li>
+                    <li>**Test-Time Compute Scaling**: Performance on benchmark suites (MATH 500, AIME 2024, Codeforces) scales monotonically with the log of test-time rollout tokens allocated during inference.</li>
+                </ul>
+
+                <footer class="chapter-footer-nav">
+                    <a href="ch06-dpo.html" class="nav-link-btn">← Prev: Chapter 06 (DPO)</a>
+                    <a href="../index.html" class="nav-link-btn">Table of Contents →</a>
+                </footer>
+
+            </section>
+        </main>
+    </div>
+
+</body>
+</html>
