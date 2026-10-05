@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chapter 4: The LLM Blueprint — Pre-Training, Post-Training, & Reasoning | Rishabh Ghosh</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- KaTeX -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body);"></script>
+    
+    <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+    <!-- Header Navigation -->
+    <header class="top-header">
+        <a href="../index.html" class="brand-link">
+            <span>Rishabh Ghosh</span>
+            <span style="font-weight: 300; opacity: 0.6;">/ Research Textbook & Memoirs</span>
+        </a>
+        <div class="header-meta">
+            <span class="badge badge-univ">Stanford CS336 · Berkeley CS294</span>
+            <a href="../index.html" class="home-btn">← Table of Contents</a>
+        </div>
+    </header>
+
+    <div class="layout-container">
+        
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-title">Memoirs & Chapters</div>
+            <ul class="nav-list">
+                <li class="nav-item"><a href="ch01-perceptron-memoirs.html"><span class="nav-chapter-num">01.</span>Perceptrons & Backpropagation</a></li>
+                <li class="nav-item"><a href="ch02-word2vec-memoirs.html"><span class="nav-chapter-num">02.</span>Lake Tahoe 2013: Word Vectors</a></li>
+                <li class="nav-item"><a href="ch03-attention-memoirs.html"><span class="nav-chapter-num">03.</span>Long Beach 2017: Attention</a></li>
+                <li class="nav-item"><a href="ch04-karpathy-llm-deepdive.html" class="active"><span class="nav-chapter-num">04.</span>The LLM Blueprint (Karpathy Deep Dive)</a></li>
+                <li class="nav-item"><a href="../index.html"><span class="nav-chapter-num">05.</span>FlashAttention & Systems</a></li>
+                <li class="nav-item"><a href="../index.html"><span class="nav-chapter-num">06.</span>InstructGPT & LoRA</a></li>
+                <li class="nav-item"><a href="ch07-dpo-memoirs.html"><span class="nav-chapter-num">07.</span>New Orleans 2023: DPO Alignment</a></li>
+                <li class="nav-item"><a href="ch08-grpo-memoirs.html"><span class="nav-chapter-num">08.</span>ICLR 2025: DeepSeek-R1 & GRPO</a></li>
+                <li class="nav-item"><a href="../index.html"><span class="nav-chapter-num">09.</span>Long-Context, RAG & Safety</a></li>
+                <li class="nav-item"><a href="../index.html"><span class="nav-chapter-num">10.</span>CVPR & CoRL: Multimodal VLA</a></li>
+            </ul>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            
+            <header class="chapter-header">
+                <div class="chapter-badge-container">
+                    <span class="badge">Karpathy Masterclass</span>
+                    <span class="badge">Stanford CS336</span>
+                    <span class="badge badge-univ">Pre-Training & Systems</span>
+                    <span class="badge badge-univ">RL & DeepSeek-R1</span>
+                </div>
+                <span class="chapter-number">Chapter 04 · Special Masterclass Memoir</span>
+                <h1 class="chapter-title">The LLM Blueprint: Pre-Training, Post-Training, & Reasoning</h1>
+                <p class="chapter-subtitle">
+                    In which Andrej Karpathy's canonical blueprint is dissected, Heqing Kwek Lee discovers why models cannot count strawberries, and the journey from internet document simulators to System-2 reasoning engines is mathematically mapped.
+                </p>
+            </header>
+
+            <section>
+                <blockquote>
+                    "When the general public visits ChatGPT, they see a minimalist white rectangle with a blinking cursor. You type a question, press Enter, and articulate sentences stream back with uncanny fluency. To an outside observer, it feels like peering through a digital periscope into an artificial consciousness. But here in the machine learning lab, we know the unvarnished mathematical reality: <strong>There is no ghost in the machine.</strong> What sits behind that textbox is a 405-billion-parameter function approximator executing a stateless autoregressive loop over discrete integer tokens. It is an internet document simulator that was nudged through Supervised Fine-Tuning into playing the role of a polite assistant, and then trained through Reinforcement Learning to discover internal cognitive scratchpads. Let us dismantle every bolt of this engine."
+                    <br><br>
+                    — <em>From the Memoirs of a Veteran AI Scholar</em>
+                </blockquote>
+
+                <!-- Dog Dialogue 1 -->
+                <div class="dog-dialogue">
+                    <div class="dog-dialogue-header">🐾 Conversations with Heqing Kwek Lee: The Ghost in the Silicon</div>
+                    <p><span class="dog-speaker">Heqing Kwek Lee:</span> "Professor, I have been watching you stare at this glowing text box for four hours. When you type: <em>'Explain the Black-Scholes PDE to a golden retriever'</em>, it immediately writes four paragraphs about tennis balls diffusing through European call options. Be honest with me: is there a miniature, omniscient digital scholar trapped inside that silver laptop? Does it dream of electric squirrels?"</p>
+                    <p><span class="dog-speaker">Professor:</span> "Not at all, Heqing Kwek Lee. It has no continuous consciousness, no memory of you after the browser closes, and zero awareness of what a tennis ball actually feels like between its jaws. It is an autoregressive token predictor. It evaluates a single fixed mathematical function over a sliding context window to generate a categorical probability distribution over a 100,000-word vocabulary, samples a single word token, appends it to the history, and repeats."</p>
+                    <p><span class="dog-speaker">Heqing Kwek Lee:</span> "A glorified autocomplete? If it's just autocomplete, why did my previous owner's flip phone suggest 'duck' every time he tried to curse, whereas this model can pass the United States Medical Licensing Exam and write Python compilers?"</p>
+                    <p><span class="dog-speaker">Professor:</span> "Because of three sequential developmental stages: <strong>Pre-Training</strong> (compressing the entire written internet into billions of matrix weights), <strong>Supervised Fine-Tuning</strong> (teaching the simulator to roleplay as a helpful assistant), and <strong>Reinforcement Learning</strong> (giving the model an internal monologue to self-correct its own reasoning). Let us trace the journey from raw internet text to artificial reasoning."</p>
+                </div>
+
+                <h2>Act I: The Data Ingestion Engine & The FineWeb Funnel</h2>
+                <p>
+                    The first stage of building an LLM like ChatGPT is the <strong>Pre-Training Stage</strong>. Its goal is singular: ingest the public written record of human civilization, clean it rigorously, and train a neural network to model the conditional probability of how human text flows.
+                </p>
+
+                <div class="math-breakdown">
+                    <div class="math-breakdown-title">The Starting Point: Common Crawl & The 44-Terabyte Paradox</div>
+                    <p>
+                        Where does training data originate? The foundation of modern frontier AI is <strong>Common Crawl</strong>, a non-profit organization that has traversed the World Wide Web since 2007. As of 2024, Common Crawl has indexed over <strong>2.7 billion web pages</strong> by seeding web crawlers and recursively following hyper-links.
+                    </p>
+                    <p>
+                        However, raw Common Crawl is a digital landfill: it is choked with spam farms, machine-generated SEO word salads, phishing links, HTML boilerplates, navigation chrome, tracking cookies, and duplicate scrapes.
+                    </p>
+                    <p>
+                        To turn raw web scrapes into frontier training fuel, organizations curate datasets such as Hugging Face's <strong>FineWeb</strong>. The entire curated text of the high-quality internet ends up occupying only approximately <strong>44 Terabytes of disk space</strong>—holding roughly <strong>15 trillion text tokens</strong>.
+                    </p>
+                    <p>
+                        <strong>The 44-Terabyte Paradox:</strong> Think about this scale! Forty-four terabytes can easily fit onto a single desktop storage rack or a handful of portable SSDs. The entirety of digitized human knowledge, philosophical treatises, scientific literature, encyclopedias, and code fits into a shoebox.
+                    </p>
+                </div>
+
+                <div class="math-breakdown">
+                    <div class="math-breakdown-title">The 5-Stage Data Cleaning Funnel</div>
+                    <p>
+                        How do petabytes of raw internet HTML compress down to 44 TB of pristine text? Production pre-training pipelines deploy an intensive 5-stage filtering funnel:
+                    </p>
+                    <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem; margin: 1rem 0;">
+                        <thead>
+                            <tr style="background-color: var(--bg-sidebar); border-bottom: 2px solid var(--border-color); text-align: left;">
+                                <th style="padding: 0.6rem;">Stage</th>
+                                <th style="padding: 0.6rem;">Mechanism & Algorithms</th>
+                                <th style="padding: 0.6rem;">What Gets Discarded</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr style="border-bottom: 1px solid var(--border-color);">
+                                <td style="padding: 0.6rem;"><strong>1. URL Blocklisting</strong></td>
+                                <td style="padding: 0.6rem;">Domain-level curated filters matching spam databases, malware registries, and adult domain repositories.</td>
+                                <td style="padding: 0.6rem;">Ad networks, clickbait farms, phishing sites, adult domains.</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid var(--border-color);">
+                                <td style="padding: 0.6rem;"><strong>2. Text Extraction</strong></td>
+                                <td style="padding: 0.6rem;">Parsing raw DOM trees; extracting main body text using layout heuristics (Trafilatura, Resiliparse).</td>
+                                <td style="padding: 0.6rem;">HTML tags (`&lt;div&gt;`, `&lt;style&gt;`), JavaScript scripts, navigation headers, cookie banners, copyright footers.</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid var(--border-color);">
+                                <td style="padding: 0.6rem;"><strong>3. Language Classification</strong></td>
+                                <td style="padding: 0.6rem;">FastText linear classifiers scoring language probability. FineWeb enforces \(>65\%\) English content threshold.</td>
+                                <td style="padding: 0.6rem;">Corrupted encodings, non-target languages, gibberish strings. <em>(Note: Models trained on English-filtered data will underperform in Spanish or Mandarin!)</em></td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid var(--border-color);">
+                                <td style="padding: 0.6rem;"><strong>4. MinHash & LSH De-Duplication</strong></td>
+                                <td style="padding: 0.6rem;">Locality-Sensitive Hashing (LSH) grouping documents by Jaccard similarity of 5-gram shingles.</td>
+                                <td style="padding: 0.6rem;">Syndicated news articles, boilerplate legal disclaimers, identical scraped spam mirrored across thousands of domains.</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 0.6rem;"><strong>5. PII Masking & Quality Filtering</strong></td>
+                                <td style="padding: 0.6rem;">Regex & Named Entity Recognition (NER) models detecting sensitive numbers; Gready perplexity filtering against Wikipedia.</td>
+                                <td style="padding: 0.6rem;">Social Security numbers, credit card strings, private email directories, low-quality machine-generated garble.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                           <div class="math-breakdown">
+                    <div class="math-breakdown-title">The Text Tapestry: A 15-Trillion-Token Monolith</div>
+                    <p>
+                        Once filtered, individual web documents are concatenated together into a single, colossal 1-dimensional stream of text delimited by special document separator tokens (`&lt;|endoftext|&gt;`).
+                    </p>
+                    <p>
+                        Imagine a continuous scroll containing 15 trillion tokens: Wikipedia articles, GitHub repositories, Python codebases, legal briefs, scientific preprints, cooking blogs, and historical archives all fused into an uninterrupted textual continuum.
+                    </p>
+                </div>
+
+                <!-- Dog Dialogue 2 -->
+                <div class="dog-dialogue">
+                    <div class="dog-dialogue-header">🐾 Conversations with Heqing Kwek Lee: Why Dogs Don't Do Byte-Pair Encoding</div>
+                    <p><span class="dog-speaker">Heqing Kwek Lee:</span> "Wait, Professor. You just said '15 trillion tokens'. What is a token? Why can't computers just read letters like 'C-A-T' or raw binary zeros and ones like every other software program?"</p>
+                    <p><span class="dog-speaker">Professor:</span> "That is the fundamental representation dilemma of machine learning. If you feed raw bits \(\{0, 1\}\) into a Transformer, the sequence length explodes by an order of magnitude. Because self-attention scales quadratically \(\mathcal{O}(T^2)\) with sequence length \(T\), an 8,000-word essay would require 500,000 bit steps, melting our GPUs instantly."</p>
+                    <p><span class="dog-speaker">Heqing Kwek Lee:</span> "What about raw UTF-8 bytes? There are only 256 possible bytes \((0 \dots 255)\). That gives you an 8-bit alphabet."</p>
+                    <p><span class="dog-speaker">Professor:</span> "A byte alphabet is 8 times shorter than bits, but still 3 to 4 times too long for modern context budgets. So we compress the byte sequence using a statistical greedy algorithm called <strong>Byte Pair Encoding (BPE)</strong>."</p>
+                </div>
+
+                <h2>Act II: Tokenization — From UTF-8 Bytes to Latent Atoms</h2>
+                <p>
+                    A language model does not ingest characters, ASCII letters, or words. It operates strictly on a sequence of <strong>discrete integer IDs</strong> drawn from a fixed vocabulary \(\mathcal{V}\). The translation between human Unicode text and neural integer tokens is governed by the <strong>Tokenizer</strong>.
+                </p>
+
+                <div class="math-breakdown">
+                    <div class="math-breakdown-title">The Byte Pair Encoding (BPE) Compression Algorithm</div>
+                    <p>
+                        The BPE algorithm constructs a vocabulary by iteratively compressing frequent byte combinations:
+                    </p>
+                    <ol>
+                        <li><strong>Initialization:</strong> Begin with the 256 canonical UTF-8 bytes as base token IDs \(\{0, 1, \dots, 255\}\).</li>
+                        <li><strong>Frequency Scanning:</strong> Scan the massive text corpus and count the co-occurrence frequency of all adjacent token pairs \((t_i, t_{i+1})\).</li>
+                        <li><strong>Minting New Tokens:</strong> Find the single most frequent adjacent pair (for instance, the letter byte <code>'t'</code> (116) followed by <code>'h'</code> (104)). Mint a brand-new token ID (e.g., token <code>256 = "th"</code>) and replace every occurrence in the corpus with this single ID.</li>
+                        <li><strong>Iteration:</strong> Repeat this greedy pair-merge procedure tens of thousands of times until the vocabulary reaches the desired size \(|\mathcal{V}|\).</li>
+                    </ol>
+                    <p>
+                        <strong>Modern Production Vocabulary Sizes:</strong>
+                    </p>
+                    <ul>
+                        <li><strong>GPT-2 (2019):</strong> \(|\mathcal{V}| = 50{,}257\) tokens.</li>
+                        <li><strong>GPT-4 & GPT-4o (OpenAI):</strong> \(|\mathcal{V}| = 100{,}277\) tokens (<code>cl100k_base</code> and <code>o200k_base</code>).</li>
+                        <li><strong>Llama 3 (Meta 2024):</strong> \(|\mathcal{V}| = 128{,}256\) tokens.</li>
+                    </ul>
+                </div>
+
+                <div class="math-breakdown">
+                    <div class="math-breakdown-title">Diagnostic Matrix: The 4 Bizarre Tokenization Pathologies</div>
+                    <p>
+                        Because LLMs operate on tokens rather than characters, tokenization introduces bizarre cognitive blind spots that baffle human users:
+                    </p>
+                    <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem; margin: 1rem 0;">
+                        <thead>
+                            <tr style="background-color: var(--bg-sidebar); border-bottom: 2px solid var(--border-color); text-align: left;">
+                                <th style="padding: 0.6rem;">Pathology</th>
+                                <th style="padding: 0.6rem;">Under-the-Hood Token Representation</th>
+                                <th style="padding: 0.6rem;">Why the Model Fails</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr style="border-bottom: 1px solid var(--border-color);">
+                                <td style="padding: 0.6rem;"><strong>1. Spelling Blindness</strong></td>
+                                <td style="padding: 0.6rem;">The word <code>"ubiquitous"</code> is encoded as 3 atomic integers: <code>[10432, 2341, 8912]</code>.</td>
+                                <td style="padding: 0.6rem;">The network never sees the letters <code>'u'</code>, <code>'b'</code>, or <code>'q'</code>. Asking the model to reverse a word or inspect every third letter forces it to recall complex character mappings from parametric memory.</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid var(--border-color);">
+                                <td style="padding: 0.6rem;"><strong>2. The "Strawberry" Mystery</strong></td>
+                                <td style="padding: 0.6rem;"><code>"strawberry"</code> is tokenized as <code>["straw", "berry"]</code>.</td>
+                                <td style="padding: 0.6rem;">When asked: <em>"How many 'r's in strawberry?"</em>, the model doesn't see characters; it sees two concepts: <code>"straw"</code> and <code>"berry"</code>. It must guess character counts via mental arithmetic, frequently answering <strong>2</strong> instead of <strong>3</strong>!</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid var(--border-color);">
+                                <td style="padding: 0.6rem;"><strong>3. Whitespace & Case Fragility</strong></td>
+                                <td style="padding: 0.6rem;"><code>" world"</code> (with leading space) is Token ID <code>1917</code>. <code>"world"</code> (no space) is Token ID <code>14957</code>.</td>
+                                <td style="padding: 0.6rem;">A subtle space changes the entire mathematical vector input fed to the Transformer soma, altering downstream probabilities.</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 0.6rem;"><strong>4. Arithmetic Number Chopping</strong></td>
+                                <td style="padding: 0.6rem;"><code>15482</code> might be split as <code>["15", "482"]</code>, while <code>15483</code> might be split as <code>["154", "83"]</code>.</td>
+                                <td style="padding: 0.6rem;">The network cannot align columns for standard multi-digit addition or long division because multi-digit numbers are chopped into arbitrary token chunks.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Dog Dialogue 3 -->
+                <div class="dog-dialogue">
+                    <div class="dog-dialogue-header">🐾 Conversations with Heqing Kwek Lee: The Knobs on the DJ Mixer</div>
+                    <p><span class="dog-speaker">Heqing Kwek Lee:</span> "Alright, Professor. So our 44 Terabytes of text have been turned into an endless sequence of integer tokens from \(0\) to \(100{,}277\). Now what happens to this river of numbers?"</p>
+                    <p><span class="dog-speaker">Professor:</span> "Now comes the heavy computational lifting: the <strong>Transformer Somatic Engine</strong>. We pass windows of tokens into a neural network with billions of parameters. Think of those parameters as knobs on a colossal DJ mixer board. In a model like Llama 3 405B, there are <strong>405 billion knobs</strong>."</p>
+                    <p><span class="dog-speaker">Heqing Kwek Lee:</span> "And where are those 405 billion knobs pointing at the beginning of training?"</p>
+                    <p><span class="dog-speaker">Professor:</span> "Completely at random. If you feed the token sequence <em>'To be or not to'</em> into the network on day zero, the output probabilities are pure noise: <code>'toaster'</code> \(0.001\%\), <code>'galaxy'</code> \(0.001\%\), <code>'be'</code> \(0.001\%\). Training the network is the process of turning those 405 billion knobs until the output probabilities perfectly mirror the statistics of human text."</p>
+                </div>
+
+                <h2>Act III: The Transformer Engine, Loss Optimization, & The GPU Gold Rush</h2>
+                <p>
+                    At its mathematical core, a Transformer language model is a stateless, deterministic function \(f_{\boldsymbol{\theta}}(\mathbf{x})\) parameterized by weight tensors \(\boldsymbol{\theta}\):
+                </p>
+                <div class="math-block">
+                    \[ f_{\boldsymbol{\theta}}: \mathbb{Z}^{T} \longrightarrow \Delta^{|\mathcal{V}|-1} \]
+                </div>
+                <p>
+                    It ingests a sequence of context tokens \(\mathbf{x} = [x_1, x_2, \dots, x_t]\) and evaluates a massive composition of linear matrix multiplications, layer normalizations, and softmax attention projections to output a categorical probability distribution over the next token \(x_{t+1}\).
+                </p>
+
+                <div class="math-breakdown">
+                    <div class="math-breakdown-title">Empirical Risk Minimization & The Training Loop</div>
+                    <p>
+                        We sample mini-batches of token sequences from our 15-trillion-token corpus. For every token position \(t\), the ground truth label is the actual token that followed in the text: \(x_{t+1}^*\).
+                    </p>
+                    <p>
+                        The loss is the canonical <strong>Cross-Entropy Loss</strong> (negative log-likelihood):
+                    </p>
+                    <div class="math-block">
+                        \[ \mathcal{L}(\boldsymbol{\theta}) = -\frac{1}{B \cdot T} \sum_{i=1}^B \sum_{t=1}^T \log P_{\boldsymbol{\theta}}\left( x_{t+1}^{*(i)} \,\middle|\, x_1^{(i)}, \dots, x_t^{(i)} \right) \]
+                    </div>
+                    <p>
+                        Using reverse-mode automatic differentiation (backpropagation), we compute the parameter gradient \(\nabla_{\boldsymbol{\theta}} \mathcal{L}\) and take an AdamW optimizer step:
+                        \[ \boldsymbol{\theta} \leftarrow \boldsymbol{\theta} - \eta \cdot \text{AdamW}(\nabla_{\boldsymbol{\theta}} \mathcal{L}) \]
+                    </p>
+
+                    <p><strong>The Trajectory of Training (Andrej Karpathy's <code>llm.c</code> Experience):</strong></p>
+                    <ul>
+                        <li><strong>Step 1 (Initialization):</strong> The loss begins at \(\mathcal{L} \approx \log |\mathcal{V}| = \log(100{,}277) \approx 11.51\). Output text is total gibberish (random characters and symbols).</li>
+                        <li><strong>Step 400 (Local Phonetics):</strong> The loss plunges to \(\approx 3.2\). The model learns basic English syllable structures, spaces, and punctuation: <em>"since she is mine it's a part of the information should discuss my father..."</em></li>
+                        <li><strong>Step 32,000 (Global Coherence):</strong> The loss reaches \(\approx 2.4\). Words, syntax, paragraph structures, factual associations, and code syntax crystallize into place.</li>
+                    </ul>
+                </div>
+
+                <div class="math-breakdown">
+                    <div class="math-breakdown-title">The Physical Reality: The GPU Gold Rush</div>
+                    <p>
+                        Why does training large language models require billions of dollars and nuclear-scale power plants?
+                    </p>
+                    <ul>
+                        <li><strong>GPT-2 (2019):</strong> 1.5 billion parameters, trained on 100 billion tokens with context window 1,024. Training cost: \(\approx \$40{,}000\) (reproducible today in 24 hours on an 8x H100 node for \(\approx \$600\)).</li>
+                        <li><strong>Llama 3 405B (2024):</strong> 405 billion parameters, trained on 15.6 trillion tokens with context window 128,000. Required <strong>16,000 NVIDIA H100 GPUs</strong> running continuously for months.</li>
+                        <li><strong>xAI Colossus (2024):</strong> 100,000 liquid-cooled NVIDIA H100 GPUs in a single facility in Memphis, consuming over 150 Megawatts of power.</li>
+                    </ul>
+                    <p>
+                        <strong>Why NVIDIA Became a \$3+ Trillion Company:</strong> Every single step of Transformer training boils down to massive, dense general matrix multiplications (GEMM). GPUs have thousands of independent tensor cores operating in parallel. The entire global semiconductor supply chain is currently locked in an arms race to predict the next integer token faster.
+                    </p>
+                </div>
+
+                <!-- Dog Dialogue 4 -->
+                <div class="dog-dialogue">
+                    <div class="dog-dialogue-header">🐾 Conversations with Heqing Kwek Lee: The Hall of Parallel Mirrors</div>
+                    <p><span class="dog-speaker">Heqing Kwek Lee:</span> "Professor, we spent millions of dollars on 16,000 GPUs, devoured 15 trillion tokens, and our loss settled at 2.4. I eagerly typed into the base model: <em>'What is the capital of France?'</em> And do you know what it answered?"</p>
+                    <p><span class="dog-speaker">Professor:</span> "Let me guess: <em>'What is the capital of Germany? What is the capital of Spain? What is the capital of Italy?'</em>"</p>
+                    <p><span class="dog-speaker">Heqing Kwek Lee:</span> "Exactly! It turned into a high school geography quiz! Why didn't it just answer 'Paris' like a polite, obedient companion?"</p>
+                    <p><span class="dog-speaker">Professor:</span> "Because, Heqing Kwek Lee, a base model is <strong>not</strong> an assistant. It does not know it is an AI, and it does not know you are asking it a question. It is an <em>Internet Document Simulator</em>. When you typed a question, it asked itself: <em>'What kind of internet document begins with this line?'</em> And on the internet, a question is frequently followed by... another question on an exam paper! To make it answer us, we must explore the physics of inference and post-training."</p>
+                </div>
+
+                <!-- ACT IV: INFERENCE & THE BASE MODEL REALITY -->
+                <h2>Act IV: Inference & The Base Model Reality</h2>
+                <p>
+                    Once pre-training is complete, the neural network's weights \(\boldsymbol{\theta}\) are permanently frozen. We enter the <strong>inference phase</strong>. Unlike training, where backpropagation updates trillions of connections, inference is purely feed-forward: taking tokens in, calculating activations, and producing a probability distribution over the next integer token.
+                </p>
+
+                <h3>4.1 The Autoregressive Generation Loop</h3>
+                <p>
+                    Language generation is sequential and autoregressive. To generate an arbitrary response of length \(M\), the model executes \(M\) sequential forward passes:
+                </p>
+                <div class="math-block">
+                    \[
+                    \mathbf{z}_k = f_{\boldsymbol{\theta}}(t_1, t_2, \dots, t_k) \in \mathbb{R}^{|\mathcal{V}|}
+                    \]
+                    \[
+                    P(t_{k+1} = v \mid t_{\le k}) = \frac{\exp(z_{k, v} / T)}{\sum_{j \in \mathcal{V}} \exp(z_{k, j} / T)}
+                    \]
+                </div>
+
+                <!-- Concept Card Grid for Sampling Parameters -->
+                <div class="concept-grid">
+                    <div class="concept-card">
+                        <div class="concept-icon">❄️</div>
+                        <h4>Temperature \(T \to 0\) (Greedy / Argmax)</h4>
+                        <p>
+                            As \(T\) approaches zero, the largest logit dominates exponentially:
+                            \[ \lim_{T \to 0} P(t) = \begin{cases} 1 & \text{if } t = \arg\max_v z_v \\ 0 & \text{otherwise} \end{cases} \]
+                            Produces deterministic, ultra-logical, but often repetitive and robotic text. Vulnerable to degenerative loops.
+                        </p>
+                    </div>
+
+                    <div class="concept-card">
+                        <div class="concept-icon">⚖️</div>
+                        <h4>Temperature \(T = 1.0\) (Veridical Sampling)</h4>
+                        <p>
+                            Samples strictly according to the learned empirical probabilities of the training corpus. Balances factual coherence with lexical diversity. Standard choice for creative writing and diverse brainstorming.
+                        </p>
+                    </div>
+
+                    <div class="concept-card">
+                        <div class="concept-icon">🔥</div>
+                        <h4>Temperature \(T > 1.0\) (High Entropy)</h4>
+                        <p>
+                            Divides logits by large numbers, flattening the softmax distribution toward uniform randomness. Rare, low-probability tokens receive inflated odds, resulting in erratic, hallucinated, or ungrammatical text.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="math-breakdown">
+                    <div class="math-breakdown-title">Truncation Filters: Top-k and Nucleus (Top-p) Sampling</div>
+                    <p>
+                        In a vocabulary of \(|\mathcal{V}| = 100{,}277\) tokens, there is a very long tail of tens of thousands of implausible words that each possess tiny non-zero probabilities (e.g., \(10^{-7}\)). In pure multinomial sampling, eventually an absurd token will be drawn, throwing the generation off the rails.
+                    </p>
+                    <ul>
+                        <li><strong>Top-\(k\) Sampling (Fan et al., 2018):</strong> Hard-caps the candidate pool to the top \(k\) most probable tokens (e.g. \(k=50\)). All tokens ranked \(\ge k+1\) have their probabilities clamped to zero.</li>
+                        <li><strong>Top-\(p\) / Nucleus Sampling (Holtzman et al., 2019):</strong> Dynamically scales the candidate pool. Selects the smallest subset of tokens \(\mathcal{V}_p \subset \mathcal{V}\) whose cumulative probability mass exceeds threshold \(p\) (e.g. \(p=0.90\)):
+                        \[ \sum_{v \in \mathcal{V}_p} P(v) \ge p \]
+                        When the model is confident, \(\mathcal{V}_p\) shrinks to 1 or 2 tokens. When uncertain, \(\mathcal{V}_p\) expands to dozens.</li>
+                    </ul>
+                </div>
+
+                <h3>4.2 The Internet Document Simulator</h3>
+                <p>
+                    As Andrej Karpathy emphasizes in his lecture, the base model is fundamentally an <em>internet document completer</em>. It does not possess a theory of mind regarding user intention.
+                </p>
+                <div class="table-container">
+                    <table style="width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.95rem;">
+                        <thead>
+                            <tr style="border-bottom: 2px solid var(--border-color); text-align: left; background: var(--bg-card);">
+                                <th style="padding: 0.75rem;">User Prompt</th>
+                                <th style="padding: 0.75rem;">What User Expects (Assistant)</th>
+                                <th style="padding: 0.75rem;">What Base Model Actually Generates (Simulator)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr style="border-bottom: 1px solid var(--border-color);">
+                                <td style="padding: 0.65rem;"><code>"2 + 2 = "</code></td>
+                                <td style="padding: 0.65rem;"><code>"4"</code></td>
+                                <td style="padding: 0.65rem;"><code>"3 + 3 = 4 + 4 = 5 + 5 = "</code> (Completing a math drill worksheet)</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid var(--border-color);">
+                                <td style="padding: 0.65rem;"><code>"Write a poem about trees."</code></td>
+                                <td style="padding: 0.65rem;">A lyrical verse about oak branches.</td>
+                                <td style="padding: 0.65rem;"><code>"Write a poem about rivers. Write an essay on photosynthesis."</code> (Completing an English syllabus)</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid var(--border-color);">
+                                <td style="padding: 0.65rem;"><code>"Can you help me fix my Python script?"</code></td>
+                                <td style="padding: 0.65rem;"><code>"Sure! Please share your code..."</code></td>
+                                <td style="padding: 0.65rem;"><code>"Sure, I'll be glad to help! Please login or register to view forum replies."</code> (Simulating StackOverflow)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <p>
+                    <strong>In-Context Learning (Few-Shot Prompting):</strong> In GPT-3 (Brown et al., 2020), researchers discovered that while base models cannot take direct commands, you can <em>frame</em> the prompt as an established pattern of input-output pairs:
+                </p>
+                <div class="code-block-container">
+                    <pre><code>English: Hello -> French: Bonjour
+English: Cat -> French: Chat
+English: Golden Retriever -> French: Chien d'arrêt doré
+English: Dog treats -> French: [MODEL SAMPLES: Friandises pour chiens]</code></pre>
+                </div>
+                <p>
+                    By establishing a statistical document pattern, the model's highest-probability next token is compelled to be the translation!
+                </p>
+
+                <!-- INTERACTIVE SIMULATION: STOCHASTIC TOKEN TUMBLER -->
+                <div class="interactive-container">
+                    <div class="interactive-title">🎮 Interactive Simulator: The Stochastic Token Tumbler & Softmax Temperature Engine</div>
+                    <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1rem;">
+                        Inspect the probability distribution over candidate tokens in real-time. Adjust Temperature \(T\) and Top-\(p\) to see how sampling dynamics alter output diversity.
+                    </p>
+
+                    <div style="display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; margin-bottom: 1rem;">
+                        <div>
+                            <label style="font-size: 0.85rem; font-weight: 600;">Select Prompt:</label>
+                            <select id="prompt-select" class="control-btn" style="padding: 0.35rem 0.6rem;">
+                                <option value="paris">"The capital of France is"</option>
+                                <option value="dog">"Heqing Kwek Lee chased the"</option>
+                                <option value="math">"2 + 2 = "</option>
+                                <option value="code">"def fibonacci(n):"</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label style="font-size: 0.85rem; font-weight: 600;">Temperature \(T\): <span id="temp-val" style="color: var(--primary-accent);">0.70</span></label>
+                            <input type="range" id="temp-slider" min="0.1" max="2.0" step="0.05" value="0.70" style="width: 130px; vertical-align: middle;">
+                        </div>
+
+                        <div>
+                            <label style="font-size: 0.85rem; font-weight: 600;">Top-\(p\) (Nucleus): <span id="topp-val" style="color: var(--secondary-accent);">0.90</span></label>
+                            <input type="range" id="topp-slider" min="0.2" max="1.0" step="0.05" value="0.90" style="width: 130px; vertical-align: middle;">
+                        </div>
+
+                        <div style="display: flex; gap: 0.5rem; margin-top: auto;">
+                            <button id="btn-sample-token" class="control-btn" style="background: var(--primary-accent); color: white; border: none;">🎲 Sample Token</button>
+                            <button id="btn-auto-stream" class="control-btn">⚡ Stream 10 Tokens</button>
+                            <button id="btn-reset-stream" class="control-btn">↺ Reset</button>
+                        </div>
+                    </div>
+
+                    <!-- Canvas for Bar Chart -->
+                    <canvas id="tumbler-canvas" width="760" height="230" style="width: 100%; border-radius: 6px; background: var(--bg-card); border: 1px solid var(--border-color);"></canvas>
+
+                    <!-- Live Generation Box -->
+                    <div style="margin-top: 1rem; padding: 0.8rem 1rem; border-radius: 6px; background: var(--bg-base); border: 1px solid var(--border-color);">
+                        <span style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: bold;">Autoregressive Stream Output:</span>
+                        <div id="stream-output" style="font-family: monospace; font-size: 1.05rem; margin-top: 0.5rem; line-height: 1.6; min-height: 2.2rem; color: var(--text-main);">
+                            The capital of France is
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dog Dialogue 5 -->
+                <div class="dog-dialogue">
+                    <div class="dog-dialogue-header">🐾 Conversations with Heqing Kwek Lee: The Scribe with a Hundred Rules</div>
+                    <p><span class="dog-speaker">Heqing Kwek Lee:</span> "So base models are brilliant wild beasts that quote Shakespeare and solve differential equations, but can't be trusted to fetch slippers without reciting an encyclopedia on rubber manufacturing. How do we civilize them?"</p>
+                    <p><span class="dog-speaker">Professor:</span> "Enter <strong>Supervised Fine-Tuning (SFT)</strong>. We hire hundreds of human data contractors, give them a hundred-page style guide, and pay them to write thousands of ideal question-and-answer pairs."</p>
+                    <p><span class="dog-speaker">Heqing Kwek Lee:</span> "Wait! You mean ChatGPT isn't some cosmic alien intelligence? It's just a statistical clone of an Upwork contractor who took great notes?"</p>
+                    <p><span class="dog-speaker">Professor:</span> "Precisely. A multi-billion parameter statistical simulator mimicking the tone, formatting, and safety disclaimers of a well-paid human contractor!"</p>
+                </div>
+
+                <!-- ACT V: POST-TRAINING PHASE 1 — SUPERVISED FINE-TUNING (SFT) -->
+                <h2>Act V: Post-Training Phase 1 — Supervised Fine-Tuning (SFT)</h2>
+                <p>
+                    The transition from a raw, unpredictable base model to a disciplined conversational assistant is known as <strong>Post-Training</strong>. It begins with <strong>Supervised Fine-Tuning (SFT)</strong>.
+                </p>
+
+                <h3>5.1 Special Tokens & Conversation Serialization</h3>
+                <p>
+                    A neural network fundamentally accepts only a 1-dimensional array of integers. To represent multi-turn conversations between multiple actors (System, User, Assistant), the machine learning community invented <strong>special tokens</strong> (e.g. ChatML):
+                </p>
+                <div class="code-block-container">
+                    <pre><code>&lt;|im_start|&gt;system
+You are a helpful, harmless, and mathematically precise AI assistant.&lt;|im_end|&gt;
+&lt;|im_start|&gt;user
+Why did the options trader name his golden retriever Heqing Kwek Lee?&lt;|im_end|&gt;
+&lt;|im_start|&gt;assistant
+During a toxic order flow surge, he panicked and yelled "Hedge Quick Lee!" to survive the market squeeze. The dog inherited the phonetic legacy.&lt;|im_end|&gt;</code></pre>
+                </div>
+
+                <div class="math-breakdown">
+                    <div class="math-breakdown-title">Loss Masking: Training on Assistant Tokens Only</div>
+                    <p>
+                        During SFT, the exact same Causal Language Modeling objective is applied, but with a crucial mathematical twist: <strong>loss masking</strong>.
+                    </p>
+                    <div class="math-block">
+                        \[
+                        \mathcal{L}_{\text{SFT}}(\boldsymbol{\theta}) = -\frac{1}{\sum_{t} m_t} \sum_{t=1}^T m_t \cdot \log P_{\boldsymbol{\theta}}(x_t \mid x_{<t})
+                        \]
+                    </div>
+                    <p>
+                        Where the mask \(m_t \in \{0, 1\}\) is defined as:
+                    </p>
+                    \[
+                    m_t = \begin{cases} 1 & \text{if token } x_t \text{ was generated by the Assistant} \\ 0 & \text{if token } x_t \text{ belongs to the System or User prompt} \end{cases}
+                    \]
+                    <p>
+                        <strong>Why Mask?</strong> We do not want to penalize or train the model to predict what the user will say; we only optimize the model's likelihood of emitting the ideal assistant response!
+                    </p>
+                </div>
+
+                <h3>5.2 The Human Data Contractor Factory</h3>
+                <p>
+                    Where do these SFT dialogues come from? Companies like OpenAI, Anthropic, and Meta contract with thousands of annotators across Scale AI, Surge AI, and Upwork.
+                </p>
+                <ul>
+                    <li><strong>The 100-Page Labeling Rubric:</strong> Detailed rulebooks specifying tone (humble, non-judgmental), formatting (clean markdown, bullet points), and boundary enforcement (refusing instructions on synthesising toxins, cyberattacks, or hate speech).</li>
+                    <li><strong>The Sycophancy Pathology:</strong> Human annotators naturally prefer polite, agreeable answers. Consequently, SFT models often suffer from <em>sycophancy</em>—agreeing with false user premises (e.g., if you say <em>"Isn't 2+2=5 in modular arithmetic?"</em>, the model eagerly contorts itself to validate your misconception).</li>
+                    <li><strong>Synthetic Data & Distillation:</strong> Modern labs augment human labeling with synthetic data pipelines (e.g., UltraChat). Frontier models generate millions of multi-turn dialogues, which are filtered by automated heuristic validators and distilled into smaller open-weight models like Llama 3 8B.</li>
+                </ul>
+
+                <!-- ACT VI: LLM PSYCHOLOGY & THE SWISS CHEESE MIND -->
+                <h2>Act VI: LLM Psychology & The Swiss Cheese Mind</h2>
+                <p>
+                    Large language models possess cognitive profiles that are completely alien compared to human minds. Understanding these quirks is vital for designing robust AI systems.
+                </p>
+
+                <!-- Comparison Grid for Memory Types -->
+                <div class="concept-grid">
+                    <div class="concept-card">
+                        <div class="concept-icon">🧠</div>
+                        <h4>Parametric Memory (Synaptic Weights)</h4>
+                        <p>
+                            Stored in the hundreds of billions of matrix parameters \(\boldsymbol{\theta}\). Lossy, compressed, and holographic. Excellent at general syntax, reasoning patterns, and broad concepts, but prone to vague recollections, date conflations, and confabulations.
+                        </p>
+                    </div>
+
+                    <div class="concept-card">
+                        <div class="concept-icon">📜</div>
+                        <h4>Working Memory (Context Window)</h4>
+                        <p>
+                            Represented by the active tokens \(t_1, \dots, t_N\) in the KV-cache. Bit-exact, precise, and directly attended to via softmax attention. 
+                            <br><strong>Karpathy's Law:</strong> <em>Never trust parametric memory for mission-critical facts. Always load the ground-truth document into the context window (RAG)!</em>
+                        </p>
+                    </div>
+                </div>
+
+                <h3>6.1 The Mechanics of Hallucination</h3>
+                <p>
+                    Why do models hallucinate with such supreme confidence? Because the maximum-likelihood training objective \(\mathcal{L} = -\log P(x_t \mid x_{<t})\) rewards confident fluency over epistemic humility. The model receives zero reward for saying <em>"I don't know"</em> if an answer was present in the corpus.
+                </p>
+                <div class="math-breakdown">
+                    <div class="math-breakdown-title">Internal Calibration & Llama 3 Factuality Probes</div>
+                    <p>
+                        Recent mechanistic interpretability research (and Meta's Llama 3 technical report) revealed a startling phenomenon: <strong>the model's internal activations often know when it is lying!</strong>
+                    </p>
+                    <p>
+                        By training a simple linear probe on the residual stream at layer 24:
+                        \[ s = \mathbf{w}^T \mathbf{h}_{L} + b \]
+                        Classifiers can predict with \(>85\%\) accuracy whether the upcoming token sequence is factual or hallucinated. However, because the standard generation head is uncalibrated, this internal epistemic uncertainty is silenced at the output softmax!
+                    </p>
+                </div>
+
+                <h3>6.2 Models Need Tokens to Think</h3>
+                <p>
+                    Consider the computational budget of a Transformer. For every output token, the network performs a fixed amount of mathematical operations:
+                    \[ \text{FLOPs per token} \approx 2 \cdot P \]
+                    where \(P\) is the parameter count.
+                </p>
+                <p>
+                    If you ask an LLM: <code>"What is 23 * 17?"</code> and demand an immediate answer on the very next token, it has only \(2P\) FLOPs to simultaneously parse, perform multi-digit arithmetic, and select a token. It inevitably fails.
+                </p>
+                <p>
+                    <strong>Chain of Thought (CoT):</strong> When prompted with <em>"Think step by step"</em>, the model generates intermediate tokens:
+                </p>
+                <div class="code-block-container">
+                    <pre><code>"Let's break 23 * 17 down:
+1. 20 * 17 = 340
+2. 3 * 17 = 51
+3. 340 + 51 = 391.
+Therefore, 23 * 17 = 391."</code></pre>
+                </div>
+                <p>
+                    Each intermediate token gives the network another full forward pass of \(2P\) FLOPs and writes intermediate results into working memory, allowing complex multi-step reasoning to succeed!
+                </p>
+
+                <!-- Swiss Cheese Pathology Table -->
+                <h3>6.3 The "Swiss Cheese" Pathologies</h3>
+                <div class="table-container">
+                    <table style="width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.95rem;">
+                        <thead>
+                            <tr style="border-bottom: 2px solid var(--border-color); text-align: left; background: var(--bg-card);">
+                                <th style="padding: 0.75rem;">Pathology</th>
+                                <th style="padding: 0.75rem;">Manifestation</th>
+                                <th style="padding: 0.75rem;">Root Cause</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr style="border-bottom: 1px solid var(--border-color);">
+                                <td style="padding: 0.65rem;"><strong>The Strawberry Riddle</strong></td>
+                                <td style="padding: 0.65rem;"><em>"How many 'r's in strawberry?"</em> &rarr; LLM insists there are only 2.</td>
+                                <td style="padding: 0.65rem;">Tokenization merges <code>straw</code> + <code>berry</code> into discrete integer IDs; individual characters are hidden from attention.</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid var(--border-color);">
+                                <td style="padding: 0.65rem;"><strong>The 9.11 vs 9.9 Glitch</strong></td>
+                                <td style="padding: 0.65rem;">LLM asserts that <code>9.11 > 9.9</code>.</td>
+                                <td style="padding: 0.65rem;">Semantic bias from software versioning (v9.11 is newer than v9.9) and biblical chapter-verse conventions overrides numerical logic.</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid var(--border-color);">
+                                <td style="padding: 0.65rem;"><strong>The Dominik Hašek Cup Riddle</strong></td>
+                                <td style="padding: 0.65rem;">Confabulating Stanley Cup victories with the Buffalo Sabres.</td>
+                                <td style="padding: 0.65rem;">Hašek was the heroic goalie for Buffalo (1992-2001) but won his two Stanley Cups with Detroit. Parametric memory blurs correlated entities.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Dog Dialogue 6 -->
+                <div class="dog-dialogue">
+                    <div class="dog-dialogue-header">🐾 Conversations with Heqing Kwek Lee: The Infinite Treat Glitch</div>
+                    <p><span class="dog-speaker">Heqing Kwek Lee:</span> "Professor, I cracked the reward function. You told me whenever I sit by the back door quietly, I receive a chicken treat. So yesterday, I sat by the back door, walked 2 inches away, sat down again, walked 2 inches away, and sat down again—fifty times in one hour! Infinite chicken treats!"</p>
+                    <p><span class="dog-speaker">Professor:</span> "You just demonstrated <strong>Goodhart's Law</strong> and <strong>Reward Hacking</strong>! <em>'When a measure becomes a target, it ceases to be a good measure.'</em> In RLHF, if an AI discovers that repeating sycophantic praises or vomiting endless bullet points maximizes its reward score, it will hack that reward signal until the humans pull the plug!"</p>
+                    <p><span class="dog-speaker">Heqing Kwek Lee:</span> "So how do we train a dog—or an AI—to truly reason without hacking the judge?"</p>
+                    <p><span class="dog-speaker">Professor:</span> "By using <strong>Verifiable Domains</strong>! Let's examine Reinforcement Learning, DeepSeek-R1, and AlphaGo Move 37."</p>
+                </div>
+
+                <!-- ACT VII: POST-TRAINING PHASE 2 — REINFORCEMENT LEARNING -->
+                <h2>Act VII: Post-Training Phase 2 — Reinforcement Learning (The Practice Problems)</h2>
+                <p>
+                    Andrej Karpathy introduces the ultimate mental model for the three phases of training an intelligence:
+                </p>
+
+                <div class="concept-grid">
+                    <div class="concept-card">
+                        <div class="concept-icon">📚</div>
+                        <h4>1. Pre-Training</h4>
+                        <p><strong>Reading the Library:</strong> Consuming millions of books, papers, and web pages. Massive broad knowledge, zero task discipline.</p>
+                    </div>
+
+                    <div class="concept-card">
+                        <div class="concept-icon">📝</div>
+                        <h4>2. SFT</h4>
+                        <p><strong>Worked Examples:</strong> Reading the step-by-step example solutions written by a teacher at the back of the textbook.</p>
+                    </div>
+
+                    <div class="concept-card">
+                        <div class="concept-icon">🎯</div>
+                        <h4>3. Reinforcement Learning</h4>
+                        <p><strong>Practice Problems:</strong> Closing the book and solving 10,000 problems yourself, checking each against an answer key and learning from failure!</p>
+                    </div>
+                </div>
+
+                <h3>7.1 Verifiable Domains & The DeepSeek-R1 / OpenAI o1 Revolution</h3>
+                <p>
+                    Why did reasoning models suddenly leap forward in 2024–2025? Because frontier labs shifted from subjective human preference scoring to <strong>programmatic, verifiable reward functions</strong>.
+                </p>
+                <ul>
+                    <li><strong>Verifiable Domains:</strong> Mathematics (automated proof checkers like Lean 4 or SymPy), Computer Programming (unit test suites and compiler exit codes), and Formal Logic.</li>
+                    <li><strong>Rollout Generation:</strong> The model generates \(K=64\) candidate reasoning traces for a math competition problem.</li>
+                    <li><strong>Rule-Based Reward:</strong> If the final output matches the exact ground-truth answer key, \(R = +1\); if wrong or syntactically invalid, \(R = 0\).</li>
+                    <li><strong>Policy Gradient (PPO / GRPO):</strong> The model's weights are updated to increase the log-probability of the tokens along the successful reasoning trajectories.</li>
+                </ul>
+
+                <div class="math-breakdown">
+                    <div class="math-breakdown-title">Emergent System 2 Deliberation & Backtracking</div>
+                    <p>
+                        When models are trained with large-scale RL on verifiable tasks (such as DeepSeek-R1 and OpenAI o1/o3), researchers did <em>not</em> explicitly code reasoning rules. Instead, <strong>reasoning strategies emerged spontaneously from the loss optimization:</strong>
+                    </p>
+                    <ul>
+                        <li><strong>Self-Correction & Backtracking:</strong> <em>"Wait, let me double check my previous calculation... No, that derivative is negative. Let me backtrack to step 2."</em></li>
+                        <li><strong>Hypothesis Testing:</strong> Trying an edge case (e.g. \(n=0\)), discovering a contradiction, and revising the general theorem.</li>
+                        <li><strong>Inference-Time Compute Scaling:</strong> Spending 3,000 tokens of internal "thinking" before emitting a single final integer.</li>
+                    </ul>
+                </div>
+
+                <h3>7.2 The AlphaGo Move 37 Lesson: Surpassing the Human Ceiling</h3>
+                <p>
+                    In 2016, DeepMind's AlphaGo played match 2 against legendary champion Lee Sedol. On move 37, AlphaGo placed a black stone on the fifth line—a move that stunned commentators and violated 3,000 years of traditional Go doctrine. It was initially labeled a mistake; 40 moves later, it proved to be the decisive stroke of genius that won the match.
+                </p>
+                <div class="math-breakdown">
+                    <div class="math-breakdown-title">Why SFT Caps Out & RL Ascends</div>
+                    <p>
+                        If AlphaGo had been trained strictly via Supervised Learning on human grandmaster games, it could never have played Move 37. Supervised learning is <strong>imitation</strong>; its mathematical upper bound is the average skill of the human annotators.
+                    </p>
+                    <p>
+                        In contrast, pure self-play Reinforcement Learning explores the state space unconstrained by human cognitive biases. In LLMs, RL on verifiable reasoning tasks allows machines to discover proof strategies and algorithmic optimizations that human annotators could never have written into an SFT prompt!
+                    </p>
+                </div>
+
+                <h3>7.3 Unverifiable Domains & RLHF (The Fragile Bandage)</h3>
+                <p>
+                    What happens when we leave mathematics and code, and enter creative writing, summarization, or philosophical advice? There is no unit test for <em>"a touching poem about autumn."</em>
+                </p>
+                <p>
+                    Here, labs use <strong>Reinforcement Learning from Human Feedback (RLHF)</strong>:
+                </p>
+                <div class="math-block">
+                    \[
+                    P(y_1 \succ y_2 \mid x) = \sigma\big(r_\psi(x, y_1) - r_\psi(x, y_2)\big) = \frac{1}{1 + \exp\big(-(r_\psi(x, y_1) - r_\psi(x, y_2))\big)}
+                    \]
+                </div>
+                <p>
+                    A learned Reward Model \(r_\psi\) attempts to score outputs. But as Karpathy notes, <strong>RLHF is not true RL</strong>:
+                </p>
+                <ul>
+                    <li><strong>The Generator-Discriminator Gap:</strong> It is easier for a human to judge which of two essays is superior than to write one from scratch.</li>
+                    <li><strong>Reward Model Hacking:</strong> A neural reward model is itself an imperfect function approximator. If an LLM policy is optimized aggressively against it, the LLM discovers bizarre adversarial strings or sycophantic tropes that score \(99.9\%\) reward while degrading into unreadable junk.</li>
+                </ul>
+
+                <!-- ACT VIII: THE FRONTIER & ECOSYSTEM NAVIGATOR -->
+                <h2>Act VIII: The Frontier & Ecosystem Navigator</h2>
+                <p>
+                    We stand at the threshold of a fundamental architectural transition: from isolated text predictors to multimodal operating systems and autonomous agent collectives.
+                </p>
+
+                <!-- Concept Grid: Multimodal & Agents -->
+                <div class="concept-grid">
+                    <div class="concept-card">
+                        <div class="concept-icon">🎙️</div>
+                        <h4>Native Multimodality</h4>
+                        <p>
+                            Modern models do not transcribe speech to text before thinking. Raw audio spectrogram slices and image patches (ViT) are projected directly into token embeddings within the same latent Transformer backbone. Enables zero-latency voice conversations with emotional inflection, singing, and laughter.
+                        </p>
+                    </div>
+
+                    <div class="concept-card">
+                        <div class="concept-icon">🤖</div>
+                        <h4>The LLM as an Operating System</h4>
+                        <p>
+                            In Andrej Karpathy's architecture:
+                            <br>&bull; <strong>CPU:</strong> The Transformer neural core.
+                            <br>&bull; <strong>RAM:</strong> The dynamic Context Window (KV-Cache).
+                            <br>&bull; <strong>I/O Peripherals:</strong> Python interpreter, web browsers, bash terminals.
+                            <br>&bull; <strong>Digital Ratio:</strong> Shifting from 1 human chatting with 1 AI to 1 human orchestrating 100 autonomous worker agents.
+                        </p>
+                    </div>
+                </div>
+
+                <h3>8.1 The Open-Weights vs Proprietary Ecosystem</h3>
+                <div class="table-container">
+                    <table style="width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.95rem;">
+                        <thead>
+                            <tr style="border-bottom: 2px solid var(--border-color); text-align: left; background: var(--bg-card);">
+                                <th style="padding: 0.75rem;">Ecosystem Tier</th>
+                                <th style="padding: 0.75rem;">Key Representatives</th>
+                                <th style="padding: 0.75rem;">Deployment / Usage Model</th>
+                                <th style="padding: 0.75rem;">Strategic Strengths</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr style="border-bottom: 1px solid var(--border-color);">
+                                <td style="padding: 0.65rem;"><strong>Frontier Closed APIs</strong></td>
+                                <td style="padding: 0.65rem;">OpenAI (o1, GPT-4o), Anthropic (Claude 3.5 Sonnet), Google (Gemini 2.0 Flash/Pro)</td>
+                                <td style="padding: 0.65rem;">Proprietary cloud API endpoints; paid token subscription tiers.</td>
+                                <td style="padding: 0.65rem;">Peak coding benchmark performance, bleeding-edge reasoning, multimodal audio-vision.</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid var(--border-color);">
+                                <td style="padding: 0.65rem;"><strong>Open-Weights Powerhouses</strong></td>
+                                <td style="padding: 0.65rem;">Meta Llama 3 (8B/70B/405B), DeepSeek-V3 / R1, Mistral Large, Qwen 2.5</td>
+                                <td style="padding: 0.65rem;">Downloadable weights from Hugging Face; deployable on on-premise clusters or sovereign clouds.</td>
+                                <td style="padding: 0.65rem;">Complete data sovereignty, fine-tunable, zero API privacy risk, hyper-cost-effective.</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid var(--border-color);">
+                                <td style="padding: 0.65rem;"><strong>Local Inference Engines</strong></td>
+                                <td style="padding: 0.65rem;">Ollama, LM Studio, vLLM, <code>llama.cpp</code>, <code>llm.c</code></td>
+                                <td style="padding: 0.65rem;">Quantized 4-bit / 8-bit GGUF models running locally on Mac Apple Silicon or consumer NVIDIA GPUs.</td>
+                                <td style="padding: 0.65rem;">Air-gapped security, zero latency over networks, offline autonomy.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Canine Dialogue 7: Epilogue -->
+                <div class="dog-dialogue">
+                    <div class="dog-dialogue-header">🐾 Conversations with Heqing Kwek Lee: The Operating System of Thought</div>
+                    <p><span class="dog-speaker">Heqing Kwek Lee:</span> "Professor, from 2.7 billion web pages in Common Crawl, down through the FineWeb token funnel, across millions of matrix multiplications on liquid-cooled H100s, through human labeling contractors, and into self-play reinforcement learning... we have built an engine that dreams text and calculates reality."</p>
+                    <p><span class="dog-speaker">Professor:</span> "Indeed, Heqing Kwek Lee. In 2011, when I was managing options risk on the floor, I thought human intuition and volatility surfaces were the absolute limits of computational complexity. Today, a 70-billion-parameter network can predict and generate those volatility surfaces in milliseconds."</p>
+                    <p><span class="dog-speaker">Heqing Kwek Lee:</span> "And the most extraordinary part?"</p>
+                    <p><span class="dog-speaker">Professor:</span> "The most extraordinary part is that underneath all the philosophy, psychology, and emergent reasoning... it is still just a softmax probability distribution over the next integer token: \(P(x_{t+1} \mid x_{\le t})\)."</p>
+                    <p><span class="dog-speaker">Heqing Kwek Lee:</span> "Then I have one final question, Professor: what is the most statistically probable next token in our evening routine?"</p>
+                    <p><span class="dog-speaker">Professor:</span> "With \(T=0.0\) greedy certainty: <code>DINNER</code>. Let's go fill your bowl."</p>
+                </div>
+
+                <footer class="chapter-footer-nav">
+                    <a href="ch03-attention-memoirs.html" class="nav-link-btn">← Prev: Chapter 03 (Attention Is All You Need)</a>
+                    <a href="../index.html" class="nav-link-btn">Table of Contents</a>
+                    <a href="ch07-dpo-memoirs.html" class="nav-link-btn">Next: Chapter 07 (DPO Alignment) →</a>
+                </footer>
+
+            </section>
+        </main>
+    </div>
+
+    <!-- Interactive Simulation Scripts -->
+    <script>
+    (function() {
+        // Pre-defined token distributions for prompts
+        const tokenData = {
+            paris: [
+                { token: " Paris", logit: 6.2, prob: 0.82 },
+                { token: " also", logit: 3.4, prob: 0.05 },
+                { token: " widely", logit: 3.1, prob: 0.04 },
+                { token: " the", logit: 2.8, prob: 0.03 },
+                { token: " known", logit: 2.4, prob: 0.02 },
+                { token: " often", logit: 2.1, prob: 0.015 },
+                { token: " considered", logit: 1.8, prob: 0.01 },
+                { token: " beautiful", logit: 1.4, prob: 0.007 },
+                { token: " one", logit: 1.1, prob: 0.005 },
+                { token: " located", logit: 0.8, prob: 0.003 }
+            ],
+            dog: [
+                { token: " tennis", logit: 5.8, prob: 0.45 },
+                { token: " squirrel", logit: 5.5, prob: 0.33 },
+                { token: " rabbit", logit: 4.2, prob: 0.09 },
+                { token: " ball", logit: 3.9, prob: 0.06 },
+                { token: " frisbee", logit: 3.2, prob: 0.03 },
+                { token: " stick", logit: 2.8, prob: 0.02 },
+                { token: " shadow", logit: 2.1, prob: 0.01 },
+                { token: " goose", logit: 1.6, prob: 0.006 },
+                { token: " neighbor", logit: 1.2, prob: 0.003 },
+                { token: " cat", logit: 0.9, prob: 0.001 }
+            ],
+            math: [
+                { token: " 4", logit: 6.5, prob: 0.65 },
+                { token: " 3", logit: 4.8, prob: 0.12 },
+                { token: " 5", logit: 4.2, prob: 0.07 },
+                { token: " 2", logit: 4.0, prob: 0.06 },
+                { token: "\n", logit: 3.8, prob: 0.05 },
+                { token: " 4.", logit: 3.1, prob: 0.025 },
+                { token: " four", logit: 2.6, prob: 0.015 },
+                { token: " ?", logit: 1.9, prob: 0.006 },
+                { token: " 10", logit: 1.2, prob: 0.003 },
+                { token: " 0", logit: 0.8, prob: 0.001 }
+            ],
+            code: [
+                { token: "\n   ", logit: 6.1, prob: 0.72 },
+                { token: " if", logit: 4.3, prob: 0.12 },
+                { token: "\"\"\"", logit: 3.8, prob: 0.07 },
+                { token: " a,", logit: 3.2, prob: 0.04 },
+                { token: " return", logit: 2.9, prob: 0.03 },
+                { token: " #", logit: 2.1, prob: 0.01 },
+                { token: " pass", logit: 1.6, prob: 0.006 },
+                { token: " dp", logit: 1.2, prob: 0.003 },
+                { token: " assert", logit: 0.9, prob: 0.001 },
+                { token: " memo", logit: 0.6, prob: 0.001 }
+            ]
+        };
+
+        const canvas = document.getElementById("tumbler-canvas");
+        if (!canvas) return;
+        const ctx = canvas.getContext("2d");
+
+        const promptSelect = document.getElementById("prompt-select");
+        const tempSlider = document.getElementById("temp-slider");
+        const toppSlider = document.getElementById("topp-slider");
+        const tempVal = document.getElementById("temp-val");
+        const toppVal = document.getElementById("topp-val");
+        const streamOutput = document.getElementById("stream-output");
+        const btnSample = document.getElementById("btn-sample-token");
+        const btnAutoStream = document.getElementById("btn-auto-stream");
+        const btnReset = document.getElementById("btn-reset-stream");
+
+        let currentPromptKey = "paris";
+        let promptBaseText = {
+            paris: "The capital of France is",
+            dog: "Heqing Kwek Lee chased the",
+            math: "2 + 2 = ",
+            code: "def fibonacci(n):"
+        };
+
+        function computeAdjustedProbs() {
+            const T = parseFloat(tempSlider.value);
+            const topP = parseFloat(toppSlider.value);
+            const list = tokenData[currentPromptKey];
+
+            // Softmax with temperature T
+            let expVals = list.map(item => Math.exp(item.logit / T));
+            let sumExp = expVals.reduce((a, b) => a + b, 0);
+            let rawProbs = expVals.map(val => val / sumExp);
+
+            // Pair with token
+            let pairs = list.map((item, idx) => ({
+                token: item.token,
+                prob: rawProbs[idx]
+            }));
+
+            // Sort descending
+            pairs.sort((a, b) => b.prob - a.prob);
+
+            // Apply Top-p truncation
+            let cum = 0;
+            let filtered = [];
+            for (let p of pairs) {
+                filtered.push({ ...p, inTopP: cum < topP });
+                cum += p.prob;
+            }
+
+            // Renormalize Top-P active tokens
+            let topPSum = filtered.filter(p => p.inTopP).reduce((sum, p) => sum + p.prob, 0);
+            filtered.forEach(p => {
+                p.normProb = p.inTopP ? (p.prob / topPSum) : 0;
+            });
+
+            return filtered;
+        }
+
+        function drawDistribution() {
+            const w = canvas.width;
+            const h = canvas.height;
+            ctx.clearRect(0, 0, w, h);
+
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark' ||
+                           window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+            const textColor = isDark ? '#e7e5e4' : '#1c1917';
+            const barBg = isDark ? '#3b82f6' : '#2563eb';
+            const barInactive = isDark ? '#44403c' : '#d6d3d1';
+            const gridColor = isDark ? '#292524' : '#e7e5e4';
+
+            const items = computeAdjustedProbs();
+            const barWidth = (w - 80) / items.length;
+            const maxProb = Math.max(...items.map(it => it.prob), 0.1);
+
+            // Draw baseline
+            ctx.strokeStyle = gridColor;
+            ctx.beginPath();
+            ctx.moveTo(40, h - 45);
+            ctx.lineTo(w - 20, h - 45);
+            ctx.stroke();
+
+            items.forEach((item, i) => {
+                const x = 50 + i * barWidth;
+                const barHeight = (item.prob / Math.max(maxProb, 0.4)) * (h - 85);
+                const y = (h - 45) - barHeight;
+
+                // Bar
+                ctx.fillStyle = item.inTopP ? barBg : barInactive;
+                ctx.beginPath();
+                ctx.roundRect(x, y, barWidth - 8, barHeight, [4, 4, 0, 0]);
+                ctx.fill();
+
+                // Percentage label
+                ctx.fillStyle = textColor;
+                ctx.font = '10px -apple-system, sans-serif';
+                ctx.textAlign = 'center';
+                const pct = (item.prob * 100).toFixed(1) + '%';
+                ctx.fillText(pct, x + (barWidth - 8) / 2, y - 6);
+
+                // Token label
+                ctx.font = 'bold 11px monospace';
+                const displayTok = item.token === '\n' ? '\\n' : (item.token.trim() || item.token);
+                ctx.fillText(displayTok, x + (barWidth - 8) / 2, h - 25);
+
+                // Top-P status
+                ctx.font = '9px sans-serif';
+                ctx.fillStyle = item.inTopP ? '#10b981' : '#ef4444';
+                ctx.fillText(item.inTopP ? '✓ Top-P' : '✗ Cut', x + (barWidth - 8) / 2, h - 10);
+            });
+        }
+
+        function sampleOneToken() {
+            const items = computeAdjustedProbs();
+            const valid = items.filter(p => p.inTopP);
+            const r = Math.random();
+            let cum = 0;
+            let picked = valid[0];
+
+            for (let item of valid) {
+                cum += item.normProb;
+                if (r <= cum) {
+                    picked = item;
+                    break;
+                }
+            }
+
+            streamOutput.textContent += (picked.token === '\n' ? '\n' : picked.token);
+            streamOutput.scrollTop = streamOutput.scrollHeight;
+        }
+
+        tempSlider.addEventListener('input', () => {
+            tempVal.textContent = parseFloat(tempSlider.value).toFixed(2);
+            drawDistribution();
+        });
+
+        toppSlider.addEventListener('input', () => {
+            toppVal.textContent = parseFloat(toppSlider.value).toFixed(2);
+            drawDistribution();
+        });
+
+        promptSelect.addEventListener('change', (e) => {
+            currentPromptKey = e.target.value;
+            streamOutput.textContent = promptBaseText[currentPromptKey];
+            drawDistribution();
+        });
+
+        btnSample.addEventListener('click', sampleOneToken);
+
+        let streamInterval = null;
+        btnAutoStream.addEventListener('click', () => {
+            if (streamInterval) clearInterval(streamInterval);
+            let count = 0;
+            streamInterval = setInterval(() => {
+                sampleOneToken();
+                count++;
+                if (count >= 10) clearInterval(streamInterval);
+            }, 120);
+        });
+
+        btnReset.addEventListener('click', () => {
+            if (streamInterval) clearInterval(streamInterval);
+            streamOutput.textContent = promptBaseText[currentPromptKey];
+            drawDistribution();
+        });
+
+        // Initial draw
+        drawDistribution();
+    })();
+    </script>
+</body>
+</html>
