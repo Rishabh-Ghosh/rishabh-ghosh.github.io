@@ -853,6 +853,63 @@ Therefore, 23 * 17 = 391."</code></pre>
                     <p><span class="dog-speaker">Professor:</span> "With \(T=0.0\) greedy certainty: <code>DINNER</code>. Let's go fill your bowl."</p>
                 </div>
 
+                
+                <!-- ACT IX: THE 100-QUESTION MASTERY CRUCIBLE -->
+                <section id="act-ix-quiz" class="quiz-section">
+                    <div class="quiz-header">
+                        <span class="badge badge-univ">Comprehensive Evaluation</span>
+                        <span class="badge">Adaptive Spaced Repetition</span>
+                        <h2 style="margin-top: 0.5rem; font-size: 1.8rem;">Act IX: The 100-Question Mastery Crucible</h2>
+                        <p style="color: var(--text-muted); font-size: 0.95rem; margin-top: 0.4rem; line-height: 1.6;">
+                            A 100-question master assessment bank covering web data funnels, BPE tokenization, loss dynamics, GPU physics, sampling temperatures, SFT contractor emulations, hallucination probes, and DeepSeek-R1 / Move 37 reinforcement learning.
+                            <br><strong>Adaptive Spaced Repetition Engine:</strong> Each session draws <strong>10 dynamic questions</strong>. Any questions you answer incorrectly are tracked and given higher sampling weights, guaranteeing they reappear with increased frequency in subsequent rounds until mastered!
+                        </p>
+
+                        <!-- Stats & Progress Bar -->
+                        <div class="quiz-stats-bar">
+                            <div class="quiz-stat-pill">
+                                <span>Question Bank:</span>
+                                <span class="quiz-stat-num">100</span>
+                            </div>
+                            <div class="quiz-stat-pill">
+                                <span>Mastered:</span>
+                                <span id="stat-mastered" class="quiz-stat-num">0 / 100</span>
+                            </div>
+                            <div class="quiz-stat-pill">
+                                <span>Review Queue (Missed):</span>
+                                <span id="stat-missed" class="quiz-stat-num" style="color: #ef4444;">0</span>
+                            </div>
+                            <div class="quiz-stat-pill">
+                                <span>Current Session Score:</span>
+                                <span id="stat-current-score" class="quiz-stat-num" style="color: #10b981;">0 / 10</span>
+                            </div>
+                            <button id="btn-reset-quiz-data" class="control-btn" style="margin-left: auto; padding: 0.35rem 0.75rem; font-size: 0.8rem;">
+                                ↺ Reset History
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Container where the 10 Active Questions are rendered -->
+                    <div id="quiz-questions-container"></div>
+
+                    <!-- Session Completion Summary Card -->
+                    <div id="quiz-summary-card" class="quiz-summary-card" style="display: none;">
+                        <h3 id="summary-title" style="font-size: 1.4rem; margin-bottom: 0.5rem;">Session Complete!</h3>
+                        <p id="summary-score-line" style="font-size: 1.1rem; font-weight: 600; margin-bottom: 0.8rem;"></p>
+                        <p id="summary-dialogue" style="font-style: italic; color: var(--text-muted); max-width: 600px; margin: 0 auto 1.25rem auto; line-height: 1.6;"></p>
+                        
+                        <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                            <button id="btn-next-session" class="control-btn" style="background: var(--text-accent); color: white; border: none; padding: 0.6rem 1.25rem; font-weight: 600;">
+                                ⚡ Take Next Round (10 Questions - Adaptive Spaced Repetition)
+                            </button>
+                            <button id="btn-review-missed" class="control-btn" style="display: none; padding: 0.6rem 1.25rem;">
+                                ⚠️ Drill Missed Questions Only
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+
                 <footer class="chapter-footer-nav">
                     <a href="ch03-attention-memoirs.html" class="nav-link-btn">← Prev: Chapter 03 (Attention Is All You Need)</a>
                     <a href="../index.html" class="nav-link-btn">Table of Contents</a>
@@ -1086,6 +1143,1442 @@ Therefore, 23 * 17 = 391."</code></pre>
 
         // Initial draw
         drawDistribution();
+    
+    // ==========================================
+    // 100-Question Mastery Crucible Quiz Engine
+    // ==========================================
+    (function() {
+        const QUESTIONS_BANK = [
+        {
+                "id": 1,
+                "q": "What is the primary foundation dataset for pre-training open frontier LLMs like FineWeb and LLaMA?",
+                "options": [
+                        "Common Crawl",
+                        "ImageNet",
+                        "Reddit Pushshift dump",
+                        "Wikipedia dump alone"
+                ],
+                "answer": 0,
+                "explanation": "Common Crawl is the massive non-profit crawl containing over 2.7 billion web pages that forms the raw foundational corpus for FineWeb, RedPajama, and modern open frontier models."
+        },
+        {
+                "id": 2,
+                "q": "Approximately how large is the cleaned, high-quality English web text corpus (e.g. FineWeb) in uncompressed disk storage?",
+                "options": [
+                        "~44 Terabytes (holding ~15 trillion tokens)",
+                        "~500 Petabytes",
+                        "~12 Gigabytes",
+                        "~1.2 Exabytes"
+                ],
+                "answer": 0,
+                "explanation": "The '44-Terabyte Paradox' shows that the entire cleaned high-quality written web fits into ~44 TB of storage (roughly 15 trillion tokens), which can fit into a compact desktop storage array."
+        },
+        {
+                "id": 3,
+                "q": "Why is naive regular expression tag-stripping (e.g. re.sub(r'<[^>]+>', '', html)) considered disastrous for training LLMs?",
+                "options": [
+                        "It strips mathematical formulas only.",
+                        "Over 75% of web page text is navigation links, cookie banners, and footers, which get glued directly into editorial text.",
+                        "It converts all text to UTF-16 binary format.",
+                        "It increases the vocabulary size of the BPE tokenizer."
+                ],
+                "answer": 1,
+                "explanation": "Raw HTML contains massive amounts of boilerplate (menus, cookie consent popups, legal notices). Regex tag-stripping leaves this text intact, concatenating navigation words directly into the article."
+        },
+        {
+                "id": 4,
+                "q": "What does a DOM tree represent in web page processing?",
+                "options": [
+                        "A decentralized oracle network for blockchain validation.",
+                        "An in-memory hierarchical tree of node objects representing all HTML elements and text nodes.",
+                        "A distributed hash table used to store GPU gradients.",
+                        "A decision tree for classifying language toxicity."
+                ],
+                "answer": 1,
+                "explanation": "The Document Object Model (DOM) tree is the structural node hierarchy parsed from HTML markup, allowing scrapers to distinguish main article containers from navigation subtrees."
+        },
+        {
+                "id": 5,
+                "q": "In layout heuristics for text extraction, what does a Link Density score greater than 0.25 indicate?",
+                "options": [
+                        "The node contains a high-quality academic citation paper.",
+                        "The node is likely a navigation menu, blogroll, or link farm and should be discarded.",
+                        "The node is written in Python source code.",
+                        "The node contains encrypted cryptographic keys."
+                ],
+                "answer": 1,
+                "explanation": "Link density measures the proportion of text wrapped inside anchor <a> tags. When >25% of text is hyperlinked, it is almost certainly a menu, sidebar, or link directory rather than prose."
+        },
+        {
+                "id": 6,
+                "q": "Which text extraction library achieves the highest academic F1-score for separating article bodies from comments and ads in FineWeb?",
+                "options": [
+                        "Trafilatura",
+                        "BeautifulSoup",
+                        "Regular Expressions",
+                        "NLTK"
+                ],
+                "answer": 0,
+                "explanation": "Trafilatura (developed by Adrien Barbaresi) combines linguistic heuristics, tag density, and DOM tree traversal, achieving an industry-leading F1-score of ~0.91."
+        },
+        {
+                "id": 7,
+                "q": "What role does Resiliparse play in the Common Crawl data engineering pipeline?",
+                "options": [
+                        "It generates synthetic mathematical proofs for RL.",
+                        "It provides high-throughput C++/Cython parsing of raw Common Crawl WARC archives at hundreds of MB/s per core.",
+                        "It performs AdamW optimizer gradient accumulation on GPUs.",
+                        "It translates English web text into Chinese."
+                ],
+                "answer": 1,
+                "explanation": "Resiliparse is a bare-metal C++ / Cython library built for ChatNoir that provides blazing fast HTML parsing, encoding detection, and WARC processing at scale."
+        },
+        {
+                "id": 8,
+                "q": "What is the difference between Common Crawl's WARC and WET files?",
+                "options": [
+                        "WARC contains images; WET contains videos.",
+                        "WARC contains raw HTTP payloads and original HTML; WET contains Common Crawl's automated (and noisy) plain text extractions.",
+                        "WARC is encrypted; WET is open-source.",
+                        "WARC contains Python scripts; WET contains C++ libraries."
+                ],
+                "answer": 1,
+                "explanation": "WARC stores the exact raw HTTP responses and HTML. WET contains naive text extractions, which top AI labs bypass because it retains too much ad and navigation boilerplate."
+        },
+        {
+                "id": 9,
+                "q": "Why do pre-training pipelines discard documents with computed CSS styles like 'display: none' or 'font-size: 0px'?",
+                "options": [
+                        "They are reserved for GPU instructions.",
+                        "They represent invisible SEO keyword-stuffing spam inserted to trick search engines.",
+                        "They corrupt UTF-8 byte encodings.",
+                        "They violate KaTeX formatting rules."
+                ],
+                "answer": 1,
+                "explanation": "Spam sites frequently hide repetitive keyword lists off-screen or with zero font sizes to manipulate search rankings. Filtering computed CSS prunes this spam."
+        },
+        {
+                "id": 10,
+                "q": "What is the consequence of enforcing a >65% English language threshold using FastText during FineWeb curation?",
+                "options": [
+                        "The model becomes 10x smaller in parameter count.",
+                        "The model learns to generate fluent Latin.",
+                        "The resulting base model will underperform in non-English languages (e.g. Spanish, Mandarin) unless supplemented.",
+                        "The context window is automatically doubled."
+                ],
+                "answer": 2,
+                "explanation": "Aggressive language filtering purges non-target languages. An English-dominated dataset will produce an LLM with weak multilingual performance unless diverse multilingual data is added."
+        },
+        {
+                "id": 11,
+                "q": "If Common Crawl has 3 billion documents, why is naive pairwise duplicate comparison impossible?",
+                "options": [
+                        "It requires solving the halting problem.",
+                        "Comparing ~3 billion documents pairwise requires ~4.5 * 10^18 comparisons, taking over 140 years even at 1 billion comparisons/sec.",
+                        "Browsers block pairwise comparisons under CORS.",
+                        "Pairwise comparisons trigger catastrophic forgetting in neural networks."
+                ],
+                "answer": 1,
+                "explanation": "Pairwise comparison scales quadratically: N(N-1)/2. For N = 3 * 10^9, N^2 / 2 is ~4.5 quintillion comparisons, an astronomical compute barrier."
+        },
+        {
+                "id": 12,
+                "q": "What is a '5-gram shingle' in text deduplication?",
+                "options": [
+                        "A single character encoded as 5 bits.",
+                        "A sliding window of 5 consecutive words converting a document into a mathematical set of phrases.",
+                        "A neural network with 5 attention heads.",
+                        "A 5-layer convolutional filter for OCR."
+                ],
+                "answer": 1,
+                "explanation": "A 5-gram shingle takes a sequence of words and creates overlapping 5-word tuples (e.g. 'the golden retriever chased the', 'golden retriever chased the ball'), transforming text into a set."
+        },
+        {
+                "id": 13,
+                "q": "How is Jaccard similarity between two shingle sets A and B defined?",
+                "options": [
+                        "J(A, B) = |A \u2229 B| / |A \u222a B|",
+                        "J(A, B) = |A| * |B|",
+                        "J(A, B) = |A - B| / (|A| + |B|)",
+                        "J(A, B) = log(|A| / |B|)"
+                ],
+                "answer": 0,
+                "explanation": "The Jaccard index measures set similarity as the size of the intersection divided by the size of the union: |A \u2229 B| / |A \u222a B|."
+        },
+        {
+                "id": 14,
+                "q": "What is the foundational mathematical theorem behind Andrei Broder's MinHash algorithm?",
+                "options": [
+                        "The probability that min(h(A)) == min(h(B)) equals the Jaccard similarity J(A, B).",
+                        "The gradient of softmax equals cross-entropy loss.",
+                        "Matrix multiplication complexity is bounded by O(N^2.37).",
+                        "The singular values of recurrent matrices decay exponentially."
+                ],
+                "answer": 0,
+                "explanation": "Broder (1997) proved that for a random permutation hash h, P(min h(A) == min h(B)) = |A \u2229 B| / |A \u222a B| = J(A, B), enabling set similarity estimation via minimum hash values."
+        },
+        {
+                "id": 15,
+                "q": "How does Locality-Sensitive Hashing (LSH) Banding reduce deduplication complexity to near-linear O(N)?",
+                "options": [
+                        "It compresses documents into JPEG format.",
+                        "It splits the signature vector into b bands of r rows; matching signatures in any single band bucket are identified as candidate duplicate pairs.",
+                        "It runs gradient descent on hash tables.",
+                        "It trains a BERT model to classify duplicates."
+                ],
+                "answer": 1,
+                "explanation": "LSH banding partitions the hash signature into bands and hashes each band into buckets. Documents that collide in any bucket are candidate duplicates, bypassing O(N^2) pairwise comparisons."
+        },
+        {
+                "id": 16,
+                "q": "Under DeepMind's Gopher quality filters, what minimum percentage of lines in a document must end in terminal punctuation?",
+                "options": [
+                        "30%",
+                        "99%",
+                        "5%",
+                        "0%"
+                ],
+                "answer": 0,
+                "explanation": "The Gopher paper requires at least 30% of lines to end with punctuation (. ! ?), immediately pruning navigation menus, product listings, and disjointed link collections."
+        },
+        {
+                "id": 17,
+                "q": "What mean word length bounds does the Gopher filter enforce to discard binary dumps or machine garble?",
+                "options": [
+                        "Between 3 and 10 characters",
+                        "Between 25 and 50 characters",
+                        "Exactly 5 characters",
+                        "Between 1 and 2 characters"
+                ],
+                "answer": 0,
+                "explanation": "Human languages typically average 4-7 characters per word. Gopher sets bounds of 3 to 10 characters; strings outside this are usually base64 dumps or concatenated code."
+        },
+        {
+                "id": 18,
+                "q": "Why does Gopher discard documents where any single 10-gram repeats more than 6 times?",
+                "options": [
+                        "To remove machine-generated degenerative loops and spam rings.",
+                        "Because 10-grams cannot be tokenized by BPE.",
+                        "To save disk space on H100 GPU clusters.",
+                        "Because KaTeX cannot render 10 words."
+                ],
+                "answer": 0,
+                "explanation": "Web crawlers frequently encounter infinite loops, scraping traps, or spam farms that endlessly repeat identical sentences. Gopher caps n-gram repetitions to purge these loops."
+        },
+        {
+                "id": 19,
+                "q": "How does KenLM perplexity filtering work in pre-training pipelines?",
+                "options": [
+                        "It computes the loss of a 5-gram language model trained on clean Wikipedia; text with sky-high or ultra-low perplexity is discarded.",
+                        "It measures the network latency of web servers.",
+                        "It quantizes weights to 4 bits.",
+                        "It checks whether the URL has an SSL certificate."
+                ],
+                "answer": 0,
+                "explanation": "A 5-gram model trained on gold-standard text scores documents. Very high perplexity flags OCR errors/gibberish; very low perplexity flags repetitive boilerplate."
+        },
+        {
+                "id": 20,
+                "q": "What is Unicode Normalization (e.g. NFKC) and why is it applied before tokenization?",
+                "options": [
+                        "It forces all characters into uppercase.",
+                        "It normalizes visually identical or compatible characters (like ligatures '\ufb01' -> 'fi' or accented characters) to standard canonical representations.",
+                        "It encrypts text using SHA-256.",
+                        "It translates text into English."
+                ],
+                "answer": 1,
+                "explanation": "Unicode allows multiple representations for the same symbol (e.g. separate accents vs precomposed letters). NFKC standardizes these to prevent vocabulary fragmentation."
+        },
+        {
+                "id": 21,
+                "q": "Why don't modern LLMs take raw binary bits {0, 1} directly as input tokens?",
+                "options": [
+                        "Bits have no mathematical representation.",
+                        "Because an 8,000-word text would become ~500,000 bits, causing quadratic self-attention O(T^2) to explode GPU memory.",
+                        "Bits can only represent English characters.",
+                        "NVIDIA GPUs do not support integer operations."
+                ],
+                "answer": 1,
+                "explanation": "Transformer self-attention scales quadratically with sequence length T. Operating at the bit level increases sequence length ~50x, making compute and memory intractable."
+        },
+        {
+                "id": 22,
+                "q": "How many distinct tokens exist in a raw UTF-8 byte alphabet?",
+                "options": [
+                        "256",
+                        "100,277",
+                        "65,536",
+                        "2"
+                ],
+                "answer": 0,
+                "explanation": "A single byte consists of 8 bits, yielding 2^8 = 256 unique byte values (0 to 255)."
+        },
+        {
+                "id": 23,
+                "q": "How does the Byte-Pair Encoding (BPE) algorithm iteratively construct a vocabulary?",
+                "options": [
+                        "It randomly deletes words until the target size is reached.",
+                        "It begins with raw bytes and iteratively merges the most frequently occurring adjacent pair of tokens into a new token.",
+                        "It performs Singular Value Decomposition on the co-occurrence matrix.",
+                        "It runs k-means clustering on Word2Vec embeddings."
+                ],
+                "answer": 1,
+                "explanation": "BPE is a greedy statistical compression algorithm: it repeatedly counts the most frequent adjacent token pairs across the corpus and merges them into a new vocabulary entry."
+        },
+        {
+                "id": 24,
+                "q": "What is the vocabulary size |V| of OpenAI's tiktoken cl100k_base (used in GPT-4)?",
+                "options": [
+                        "100,277",
+                        "50,257",
+                        "32,000",
+                        "1,000,000"
+                ],
+                "answer": 0,
+                "explanation": "cl100k_base has 100,277 tokens (comprising 256 byte tokens, merged subwords, and special tokens)."
+        },
+        {
+                "id": 25,
+                "q": "What is the fundamental engineering trade-off of choosing a larger vocabulary size (e.g. 128k vs 32k)?",
+                "options": [
+                        "Larger vocab increases model FLOPs to infinity.",
+                        "Larger vocab reduces sequence length (faster attention), but inflates embedding and unembedding weight matrices (d_model * |V|).",
+                        "Larger vocab prevents the model from understanding numbers.",
+                        "Larger vocab disables multi-GPU training."
+                ],
+                "answer": 1,
+                "explanation": "Larger vocabularies compress text into fewer tokens (reducing sequence length T in attention), but require larger parameter matrices for token embeddings and final logit projection."
+        },
+        {
+                "id": 26,
+                "q": "Why do base LLMs famously struggle to count the number of 'r's in the word 'strawberry'?",
+                "options": [
+                        "Strawberries do not exist in Common Crawl.",
+                        "The tokenizer splits 'strawberry' into chunks like ['str', 'aw', 'berry']; individual characters are never processed as isolated tokens.",
+                        "The attention mechanism is blinded by red fruits.",
+                        "The temperature parameter was set to 0."
+                ],
+                "answer": 1,
+                "explanation": "Because subword tokenization merges letters into chunks, the model sees integer IDs for ['str', 'aw', 'berry'], masking the individual character breakdown."
+        },
+        {
+                "id": 27,
+                "q": "Why do minor whitespace or indentation variations in Python code degrade LLM performance?",
+                "options": [
+                        "Python does not use UTF-8.",
+                        "Tokenizers often treat leading spaces differently (e.g. '    ' as a single 4-space token vs separate single spaces), altering token boundaries entirely.",
+                        "BPE tokenizers delete all whitespace.",
+                        "NVIDIA CUDA kernels crash on space characters."
+                ],
+                "answer": 1,
+                "explanation": "Tokenizers greedily merge whitespace. '    ' (4 spaces) may be 1 token, while 3 spaces might be 2 tokens, creating completely different token sequences for identical logic."
+        },
+        {
+                "id": 28,
+                "q": "How does tokenization harm simple multi-digit arithmetic (e.g. 4839 + 291)?",
+                "options": [
+                        "Computers cannot add numbers.",
+                        "Numbers are chopped arbitrarily based on frequency (e.g. '483' and '9' vs '29' and '1'), so digits do not align into uniform place values.",
+                        "Numbers are always converted into Roman numerals.",
+                        "Cross-entropy loss does not support digits."
+                ],
+                "answer": 1,
+                "explanation": "Tokenizers chop numbers unpredictably based on web frequency. '123' might be one token, while '124' is two tokens, disrupting column-wise place-value alignment."
+        },
+        {
+                "id": 29,
+                "q": "Why do non-English languages (like Hindi or Burmese) incur higher API costs and slower generation speeds under standard tokenizers?",
+                "options": [
+                        "Non-English text is encrypted by OpenAI.",
+                        "Due to English-dominated training, non-Latin scripts are under-merged and split into individual bytes, inflating sequence token count by 3x-8x.",
+                        "Foreign languages require GPU translation layers.",
+                        "Non-English characters have larger vector norms."
+                ],
+                "answer": 1,
+                "explanation": "When a script is rare in the BPE training corpus, common words don't get merged into single tokens and must be spelled out byte-by-byte, inflating token counts and costs."
+        },
+        {
+                "id": 30,
+                "q": "What special token is conventionally used to separate independent documents in the pre-training text stream?",
+                "options": [
+                        "<|endoftext|>",
+                        "<|newline|>",
+                        "<|tab|>",
+                        "<|pause|>"
+                ],
+                "answer": 0,
+                "explanation": "GPT-2 and modern architectures use <|endoftext|> (or document boundary tokens) to mark the end of one web document and the beginning of an unrelated one."
+        },
+        {
+                "id": 31,
+                "q": "What is the primary role of the Transformer forward pass during pre-training?",
+                "options": [
+                        "It computes gradients with respect to parameters.",
+                        "Given a sequence of input tokens, it outputs a vector of real-valued logits for every token in the vocabulary at each position.",
+                        "It compresses the web into an MP3 file.",
+                        "It generates human-written essays."
+                ],
+                "answer": 1,
+                "explanation": "The forward pass computes z_t in R^{|V|} for each token position, representing unnormalized log-probabilities (logits) over the entire vocabulary for the next token."
+        },
+        {
+                "id": 32,
+                "q": "How are real-valued logits z converted into a valid probability distribution P(x)?",
+                "options": [
+                        "Via the Softmax function: P(x_i) = exp(z_i) / sum_j exp(z_j)",
+                        "Via Sigmoid independently on each logit",
+                        "Via Euclidean L2 normalization",
+                        "Via ReLU activation"
+                ],
+                "answer": 0,
+                "explanation": "The Softmax function exponentiates and normalizes logits across the vocabulary, guaranteeing all values are positive and sum to 1.0."
+        },
+        {
+                "id": 33,
+                "q": "What loss function is universally minimized during Causal Language Model pre-training?",
+                "options": [
+                        "Mean Squared Error (MSE)",
+                        "Categorical Cross-Entropy Loss (Negative Log-Likelihood)",
+                        "Hinge Loss",
+                        "Triplet Margin Loss"
+                ],
+                "answer": 1,
+                "explanation": "Causal Language Modeling minimizes Negative Log-Likelihood: L = -log P(x_{t+1}^* | x_{<=t}), penalizing the model when it assigns low probability to the actual target token."
+        },
+        {
+                "id": 34,
+                "q": "At step 1 of training (random weight initialization), what is the theoretical cross-entropy loss for vocabulary |V| = 100,277?",
+                "options": [
+                        "L \u2248 log(|V|) = log(100,277) \u2248 11.51",
+                        "L = 0.00",
+                        "L = 2.40",
+                        "L = 100,277"
+                ],
+                "answer": 0,
+                "explanation": "With random weights, the model assigns uniform probability 1/|V| to all tokens. -log(1/|V|) = log(|V|) = log(100,277) \u2248 11.51."
+        },
+        {
+                "id": 35,
+                "q": "In Andrej Karpathy's llm.c training runs, what does the loss drop to by step 400?",
+                "options": [
+                        "L \u2248 3.2 (learning local syllable phonetics, spaces, and basic syntax)",
+                        "L = 0.01",
+                        "L remains at 11.51",
+                        "L = 50.0"
+                ],
+                "answer": 0,
+                "explanation": "Around step 400, loss plunges from 11.5 to ~3.2 as the network grasps basic English syllable structures, spaces, and punctuation patterns."
+        },
+        {
+                "id": 36,
+                "q": "What loss value represents a well-converged modern large language model (e.g. GPT-2 / LLaMA class)?",
+                "options": [
+                        "L \u2248 2.2 to 2.4",
+                        "L = 0.00",
+                        "L = 11.51",
+                        "L = 15.0"
+                ],
+                "answer": 0,
+                "explanation": "Well-converged LLMs typically achieve cross-entropy loss between 2.0 and 2.4 on diverse web validation sets, capturing complex factual knowledge and syntax."
+        },
+        {
+                "id": 37,
+                "q": "What is the time complexity of the standard self-attention mechanism with sequence length T?",
+                "options": [
+                        "O(T^2 * d)",
+                        "O(T)",
+                        "O(log T)",
+                        "O(T^3)"
+                ],
+                "answer": 0,
+                "explanation": "Computing the QK^T attention matrix involves comparing every token against every other token, scaling quadratically as O(T^2 * d)."
+        },
+        {
+                "id": 38,
+                "q": "What optimizer is universally used to train modern LLMs like LLaMA and GPT?",
+                "options": [
+                        "AdamW (Adaptive Moment Estimation with Decoupled Weight Decay)",
+                        "Stochastic Gradient Descent (plain SGD)",
+                        "RMSprop without momentum",
+                        "Adagrad"
+                ],
+                "answer": 0,
+                "explanation": "AdamW (Loshchilov & Hutter, 2017) maintains first and second momentum terms while properly decoupling L2 weight decay from gradient updates."
+        },
+        {
+                "id": 39,
+                "q": "Why is gradient accumulation necessary when training billion-parameter models across GPU clusters?",
+                "options": [
+                        "To simulate massive batch sizes (e.g. 4 million tokens) without exceeding single-GPU VRAM limits.",
+                        "To slow down the learning rate.",
+                        "To bypass CUDA memory locks.",
+                        "To calculate test loss on CPU."
+                ],
+                "answer": 0,
+                "explanation": "Fitting millions of tokens per batch on GPU memory is impossible; gradient accumulation sums gradients over multiple micro-batches before taking an optimizer step."
+        },
+        {
+                "id": 40,
+                "q": "What is the primary computational bottleneck in Transformer training that made NVIDIA a $3T company?",
+                "options": [
+                        "Dense General Matrix Multiplications (GEMM) running on parallel Tensor Cores.",
+                        "Writing logs to disk.",
+                        "Parsing HTML files on CPU.",
+                        "Generating matplotlib loss plots."
+                ],
+                "answer": 0,
+                "explanation": "Transformer self-attention and MLP feedforward blocks consist almost entirely of massive dense matrix multiplications (GEMM), for which NVIDIA Tensor Cores are specialized."
+        },
+        {
+                "id": 41,
+                "q": "How many floating-point operations (FLOPs) are approximately required for a forward pass per token in a model with P parameters?",
+                "options": [
+                        "~2 * P FLOPs",
+                        "~P^2 FLOPs",
+                        "~100 * P FLOPs",
+                        "~log(P) FLOPs"
+                ],
+                "answer": 0,
+                "explanation": "Each parameter in a matrix multiplication performs one multiply and one add (2 operations), requiring ~2P FLOPs per token forward pass (and ~4P for backward pass, ~6P total)."
+        },
+        {
+                "id": 42,
+                "q": "How many NVIDIA H100 GPUs were required to train Meta's Llama 3 405B model?",
+                "options": [
+                        "16,000 H100 GPUs",
+                        "8 GPUs",
+                        "500,000 GPUs",
+                        "1 GPU"
+                ],
+                "answer": 0,
+                "explanation": "Meta trained LLaMA 3 405B on a massive cluster of 16,000 NVIDIA H100 GPUs running continuously over several months."
+        },
+        {
+                "id": 43,
+                "q": "What is xAI's Colossus cluster famous for in 2024?",
+                "options": [
+                        "Assembling 100,000 liquid-cooled NVIDIA H100 GPUs in Memphis consuming >150 MW of power.",
+                        "Building the first quantum computer.",
+                        "Running an LLM entirely on a MacBook Air.",
+                        "Scraping the web using 1,000 Raspberry Pis."
+                ],
+                "answer": 0,
+                "explanation": "xAI built the Colossus facility in Memphis, housing 100,000 liquid-cooled H100 GPUs on a single interconnected network fabric."
+        },
+        {
+                "id": 44,
+                "q": "In 2019, training GPT-2 (1.5B parameters) cost ~$40,000. How fast can that training run today on an 8x H100 node?",
+                "options": [
+                        "~24 hours for ~$600",
+                        "10 years",
+                        "~1 second",
+                        "~1 month for $100,000"
+                ],
+                "answer": 0,
+                "explanation": "Hardware and software optimizations (like Karpathy's llm.c) allow reproducing GPT-2 (124M-1.5B) in roughly 24 hours on a single 8-GPU node for a few hundred dollars."
+        },
+        {
+                "id": 45,
+                "q": "What is the primary purpose of High Bandwidth Memory (HBM3e) on NVIDIA H100 GPUs?",
+                "options": [
+                        "To provide terabytes-per-second memory bandwidth so tensor cores are not starved waiting for weights.",
+                        "To store video game textures.",
+                        "To execute Python scripts directly in hardware.",
+                        "To replace CPU RAM entirely."
+                ],
+                "answer": 0,
+                "explanation": "Transformer operations are often memory-bandwidth bound. HBM3e provides up to 3.35 TB/s of bandwidth, feeding weights to tensor cores at lightning speed."
+        },
+        {
+                "id": 46,
+                "q": "What is NVLink used for in frontier AI clusters?",
+                "options": [
+                        "Ultra-high-speed GPU-to-GPU interconnect bypassing PCIe bottlenecks for distributed tensor parallelism.",
+                        "Connecting GPUs to standard HDMI monitors.",
+                        "Encrypting web scraping traffic.",
+                        "Downloading datasets from Common Crawl."
+                ],
+                "answer": 0,
+                "explanation": "NVLink provides up to 900 GB/s bidirectional interconnect bandwidth between GPUs, enabling fast cross-GPU communication during model-parallel training."
+        },
+        {
+                "id": 47,
+                "q": "What is the Kaplan vs. Chinchilla scaling law revision regarding optimal token-to-parameter ratios?",
+                "options": [
+                        "Hoffmann et al. (Chinchilla) showed models were severely undertrained: optimal training requires ~20 tokens per parameter.",
+                        "Kaplan showed models should have 1 token per 1000 parameters.",
+                        "Chinchilla showed parameters should scale 100x faster than data.",
+                        "Scaling laws do not apply to Transformers."
+                ],
+                "answer": 0,
+                "explanation": "DeepMind's Chinchilla paper (2022) proved that for compute-optimal training, dataset size and model parameters should scale equally (~20 tokens per parameter)."
+        },
+        {
+                "id": 48,
+                "q": "Why do modern labs train LLaMA 3 on 15 trillion tokens (over 30x the Chinchilla optimal point)?",
+                "options": [
+                        "To optimize for inference cost: overtraining smaller models makes them smarter while keeping runtime deployment cheap.",
+                        "Because they ran out of parameters.",
+                        "Because H100 GPUs cannot stop training.",
+                        "Because the loss reaches exactly 0.0."
+                ],
+                "answer": 0,
+                "explanation": "While Chinchilla optimizes compute during training, in production inference cost dominates. Overtraining a smaller model (8B or 70B) yields better inference efficiency."
+        },
+        {
+                "id": 49,
+                "q": "What numerical precision format has replaced FP32 as the standard for pre-training large models?",
+                "options": [
+                        "BF16 (Brain Floating Point 16-bit) and FP8",
+                        "INT4",
+                        "FP64 (Double Precision)",
+                        "ASCII characters"
+                ],
+                "answer": 0,
+                "explanation": "BF16 preserves FP32's 8-bit dynamic range while cutting memory in half, preventing gradient underflow without requiring complex loss scaling."
+        },
+        {
+                "id": 50,
+                "q": "What is pipeline parallelism in distributed training?",
+                "options": [
+                        "Splitting the layers of a deep neural network across sequential GPUs.",
+                        "Running 10 different models simultaneously.",
+                        "Downloading web data while running inference.",
+                        "Streaming tokens to the user interface."
+                ],
+                "answer": 0,
+                "explanation": "Pipeline parallelism partitions the sequential layers of a massive model (e.g. layers 1-20 on GPU 0, 21-40 on GPU 1), pipelining micro-batches across GPUs."
+        },
+        {
+                "id": 51,
+                "q": "What is the autoregressive property of language generation?",
+                "options": [
+                        "The model generates one token at a time, appending each generated token to the context before predicting the next.",
+                        "The model predicts all words in a paragraph simultaneously in one forward pass.",
+                        "The model only generates code in reverse order.",
+                        "The model requires manual user approval for each token."
+                ],
+                "answer": 0,
+                "explanation": "Autoregressive generation generates sequentially: token x_{t+1} is sampled from P(x | x_1 ... x_t), appended to the input history, and fed back in."
+        },
+        {
+                "id": 52,
+                "q": "In the softmax temperature formula P(x_i) = exp(z_i / T) / sum_j exp(z_j / T), what happens as T approaches 0?",
+                "options": [
+                        "Sampling becomes greedy (argmax): the single highest-probability token is chosen with 100% certainty.",
+                        "The distribution becomes completely uniform (pure random noise).",
+                        "All probabilities become negative.",
+                        "The model refuses to generate any text."
+                ],
+                "answer": 0,
+                "explanation": "As T -> 0, the difference between the maximum logit and all others is magnified exponentially, collapsing the distribution to an argmax spike (deterministic greedy decoding)."
+        },
+        {
+                "id": 53,
+                "q": "What happens when temperature T is set to a very high value (e.g. T = 2.0 or 5.0)?",
+                "options": [
+                        "Logits are divided by large numbers, flattening the distribution toward uniform randomness (causing hallucinated or ungrammatical gibberish).",
+                        "Generation speed increases 10x.",
+                        "The output becomes strictly factual and deterministic.",
+                        "The vocabulary collapses to 1 token."
+                ],
+                "answer": 0,
+                "explanation": "High temperature flattens softmax probabilities across all tokens, granting implausible tokens high odds of being sampled, degrading coherence."
+        },
+        {
+                "id": 54,
+                "q": "What does Top-k truncation sampling do?",
+                "options": [
+                        "Restricts sampling strictly to the k tokens with the highest logits, setting all other probabilities to zero.",
+                        "Selects tokens that start with the letter 'K'.",
+                        "Samples k words simultaneously.",
+                        "Limits generation to k sentences."
+                ],
+                "answer": 0,
+                "explanation": "Top-k (Fan et al., 2018) sorts the vocabulary by probability, keeps the top k candidates, and zeros out the long tail of tens of thousands of unlikely words."
+        },
+        {
+                "id": 55,
+                "q": "How does Top-p (Nucleus) sampling differ from Top-k sampling?",
+                "options": [
+                        "Top-p dynamically scales the candidate pool to the smallest set of tokens whose cumulative probability exceeds p (e.g. 0.90).",
+                        "Top-p always picks exactly p tokens.",
+                        "Top-p requires knowing the prompt language in advance.",
+                        "Top-p only samples punctuation marks."
+                ],
+                "answer": 0,
+                "explanation": "Nucleus sampling (Holtzman et al., 2019) dynamically expands the candidate set when the model is uncertain and shrinks it to 1 or 2 tokens when confident."
+        },
+        {
+                "id": 56,
+                "q": "Why is pure greedy sampling (T=0) prone to repetitive degenerative loops in open-ended generation?",
+                "options": [
+                        "Because deterministic argmax can enter a cyclical state where the most probable continuation is a repeat of the preceding phrase.",
+                        "Because greedy sampling overheats GPU tensor cores.",
+                        "Because greedy sampling deletes the KV cache.",
+                        "Because the loss function is negative."
+                ],
+                "answer": 0,
+                "explanation": "Without stochastic diversity, argmax sampling frequently falls into cyclical loops (e.g. 'in other words, in other words, in other words...') from which it cannot escape."
+        },
+        {
+                "id": 57,
+                "q": "What is the recommended temperature range for balanced creative writing with high coherence?",
+                "options": [
+                        "0.6 to 0.8",
+                        "0.0",
+                        "4.0 to 10.0",
+                        "-1.0"
+                ],
+                "answer": 0,
+                "explanation": "Temperatures around 0.7 balance natural linguistic diversity with structural coherence, making it the standard default across conversational interfaces."
+        },
+        {
+                "id": 58,
+                "q": "In production inference, what is the KV Cache (Key-Value Cache)?",
+                "options": [
+                        "Cached Key and Value attention tensors stored in GPU VRAM so previous tokens do not need to be recomputed at every step.",
+                        "A Redis database storing user chat logs.",
+                        "An encrypted cookie in the user's browser.",
+                        "A lookup table of BPE tokens."
+                ],
+                "answer": 0,
+                "explanation": "Without a KV cache, generating token T requires re-evaluating attention for all preceding tokens, yielding O(T^3) compute. KV cache stores past Keys and Values, reducing per-token step to O(T)."
+        },
+        {
+                "id": 59,
+                "q": "What is the primary memory consumer during large-batch inference with long context windows?",
+                "options": [
+                        "The KV Cache stored in VRAM.",
+                        "The model's embedding weights.",
+                        "The web browser DOM tree.",
+                        "CPU swap memory."
+                ],
+                "answer": 0,
+                "explanation": "For long sequence lengths (e.g. 128k) and large batches, the KV cache can consume dozens of gigabytes of GPU VRAM, surpassing the model weights themselves."
+        },
+        {
+                "id": 60,
+                "q": "What innovation did FlashAttention (Dao et al.) introduce to speed up attention?",
+                "options": [
+                        "SRAM memory tiling to compute exact softmax attention without materializing the large T x T matrix in high-latency HBM.",
+                        "Approximating attention with random projections.",
+                        "Deleting tokens that have low attention weights.",
+                        "Running attention exclusively on CPU cores."
+                ],
+                "answer": 0,
+                "explanation": "FlashAttention uses GPU SRAM tiling to compute exact attention in chunks, avoiding read/writes of the O(T^2) intermediate attention matrix to high-bandwidth memory."
+        },
+        {
+                "id": 61,
+                "q": "Why does a base model prompted with 'What is the capital of France?' often output 'What is the capital of Germany? What is the capital of Spain?'",
+                "options": [
+                        "The base model is an internet document simulator that identifies the prompt as the beginning of a geography exam paper.",
+                        "The model does not know what Paris is.",
+                        "The model's temperature is set to infinity.",
+                        "The model was only trained on German text."
+                ],
+                "answer": 0,
+                "explanation": "A base model is trained solely to complete web documents. On the internet, a question is frequently followed by more test questions rather than a helpful assistant response."
+        },
+        {
+                "id": 62,
+                "q": "If you prompt a base model with '2 + 2 = ', what does it most frequently generate?",
+                "options": [
+                        "'3 + 3 = 4 + 4 = 5 + 5 = ' (completing a 1st-grade arithmetic worksheet)",
+                        "'4.000000'",
+                        "'I am an AI assistant and 2 + 2 is 4.'",
+                        "'SyntaxError: invalid syntax'"
+                ],
+                "answer": 0,
+                "explanation": "Base models emulate the statistical distribution of the web; '2 + 2 = ' commonly appears on math drill worksheets followed by subsequent arithmetic drills."
+        },
+        {
+                "id": 63,
+                "q": "What is in-context few-shot learning (Brown et al., 2020)?",
+                "options": [
+                        "Providing 2-5 input-output demonstration pairs in the prompt so the statistical document completion naturally yields the answer.",
+                        "Fine-tuning the model's weights on 5 samples using backprop.",
+                        "Training the model for only 5 epochs.",
+                        "Using 5 GPUs during inference."
+                ],
+                "answer": 0,
+                "explanation": "Few-shot prompting provides demonstrations within the context window without updating weights, setting up a pattern the autoregressive simulator completes."
+        },
+        {
+                "id": 64,
+                "q": "Does in-context learning modify the model's neural network weights?",
+                "options": [
+                        "No, the weights theta remain completely frozen; adaptation occurs through activations in working memory.",
+                        "Yes, weights are updated via mini-batch SGD.",
+                        "Yes, the embedding matrix is altered permanently.",
+                        "Yes, but only in the first layer."
+                ],
+                "answer": 0,
+                "explanation": "In-context learning is entirely feed-forward inference: the network weights theta are frozen, and the prompt's context alters intermediate activations."
+        },
+        {
+                "id": 65,
+                "q": "What is 'zero-shot' prompting?",
+                "options": [
+                        "Asking the model to perform a task with zero demonstration examples provided in the prompt.",
+                        "Running inference without feeding any tokens.",
+                        "A model trained with zero data.",
+                        "Generating zero tokens."
+                ],
+                "answer": 0,
+                "explanation": "Zero-shot prompting poses a direct query or instruction without any preceding demonstration pairs."
+        },
+        {
+                "id": 66,
+                "q": "Why is prompt framing so crucial when querying a base model?",
+                "options": [
+                        "Because the prompt must construct a realistic document context where the desired answer is the statistically inevitable continuation.",
+                        "Because base models only understand prompts written in Python.",
+                        "Because base models crash if prompts are not framed with HTML tags.",
+                        "Because prompt length determines the learning rate."
+                ],
+                "answer": 0,
+                "explanation": "Since base models simulate documents, framing the prompt as an interview, encyclopedia article, or FAQ makes the target answer statistically probable."
+        },
+        {
+                "id": 67,
+                "q": "Can a base model safely be deployed as a public customer-support chatbot?",
+                "options": [
+                        "No, because it will readily produce offensive text, emulate internet forums, invent fake facts, or ignore user queries.",
+                        "Yes, base models are completely aligned and safe.",
+                        "Yes, base models are mathematically incapable of generating profanity.",
+                        "Yes, because base models have human moral understanding."
+                ],
+                "answer": 0,
+                "explanation": "Base models simulate the raw web, including toxic forums, phishing scams, and profanity. They have no concept of helpfulness, safety, or conversational boundaries."
+        },
+        {
+                "id": 68,
+                "q": "What term describes the phenomenon where an LLM mirrors the style, vocabulary, or biases present in the user's prompt?",
+                "options": [
+                        "In-context conditioning / Style mimicry",
+                        "Catastrophic forgetting",
+                        "Gradient clipping",
+                        "Weight decay"
+                ],
+                "answer": 0,
+                "explanation": "The context window primes the model: if the prompt is archaic, chaotic, or sarcastic, the simulator naturally continues in that exact tone."
+        },
+        {
+                "id": 69,
+                "q": "What is the primary difference between a pre-trained base model and an instruction-tuned model?",
+                "options": [
+                        "A base model completes documents; an instruction-tuned model has undergone post-training (SFT/RL) to act as a helpful conversational agent.",
+                        "An instruction-tuned model has 100x more parameters.",
+                        "A base model does not use Transformer layers.",
+                        "An instruction-tuned model cannot process English."
+                ],
+                "answer": 0,
+                "explanation": "Base models are raw document completers. Post-training (SFT and RL) shapes their output distribution to reliably follow instructions and adopt an assistant persona."
+        },
+        {
+                "id": 70,
+                "q": "In GPT-3, how did researchers evaluate base model performance on benchmarks like TriviaQA?",
+                "options": [
+                        "By formatting questions with few-shot QA prompts (e.g. 'Q: ... A: ...') to guide the document simulator.",
+                        "By retraining the entire model on TriviaQA.",
+                        "By manually editing the weights.",
+                        "By using an external calculator."
+                ],
+                "answer": 0,
+                "explanation": "Few-shot QA prompts format questions into a clean 'Q: ... A: ...' document structure, enabling the base model to output the answer instead of generating new questions."
+        },
+        {
+                "id": 71,
+                "q": "What is the primary goal of Supervised Fine-Tuning (SFT) in post-training?",
+                "options": [
+                        "To teach the base model how to roleplay as a helpful, polite, and safe conversational assistant.",
+                        "To compress the model weights into 8-bit integers.",
+                        "To scrape new web pages from Common Crawl.",
+                        "To double the number of layers in the Transformer."
+                ],
+                "answer": 0,
+                "explanation": "SFT fine-tunes the base model on curated conversational dialogues, transforming an unpredictable document predictor into a structured assistant."
+        },
+        {
+                "id": 72,
+                "q": "How does ChatML serialize multi-turn dialogues into a single 1D token sequence?",
+                "options": [
+                        "Using special boundary tokens like <|im_start|>system, <|im_start|>user, and <|im_start|>assistant.",
+                        "By saving each message to a separate CSV file.",
+                        "By averaging all user tokens together.",
+                        "By converting words to audio waveforms."
+                ],
+                "answer": 0,
+                "explanation": "ChatML uses delimiter tokens (<|im_start|>role ... <|im_end|>) to serialize multi-turn dialogues into a continuous 1D token sequence that Transformers process natively."
+        },
+        {
+                "id": 73,
+                "q": "What is 'loss masking' in SFT training and why is it essential?",
+                "options": [
+                        "Gradients are zeroed out on system and user prompt tokens; the model is only penalized for its assistant response tokens.",
+                        "It hides the model's loss from the user.",
+                        "It masks the GPU temperature.",
+                        "It deletes 50% of the training dataset."
+                ],
+                "answer": 0,
+                "explanation": "Loss masking sets the loss mask m_t = 0 for user/system prompt tokens. We only want to train the model to generate ideal assistant replies, not to predict what the user will ask."
+        },
+        {
+                "id": 74,
+                "q": "Where do premier AI labs acquire high-quality SFT dialogues?",
+                "options": [
+                        "Hiring professional human data contractors (Scale AI, Surge AI, Upwork) who write ideal responses guided by 100-page rubrics.",
+                        "Downloading public 4chan message boards.",
+                        "Scraping Twitter spam accounts.",
+                        "Translating Wikipedia using Google Translate."
+                ],
+                "answer": 0,
+                "explanation": "Labs contract thousands of annotators across specialized platforms who follow comprehensive rubrics detailing tone, safety boundaries, formatting, and factual accuracy."
+        },
+        {
+                "id": 75,
+                "q": "What profound realization did Andrej Karpathy emphasize regarding ChatGPT and human contractors?",
+                "options": [
+                        "ChatGPT is fundamentally a statistical simulation of an Upwork/Scale AI contractor following an OpenAI labeling rubric.",
+                        "ChatGPT is an alien conscious mind.",
+                        "ChatGPT is running on quantum hardware.",
+                        "ChatGPT was created without any human intervention."
+                ],
+                "answer": 0,
+                "explanation": "SFT trains the model via maximum likelihood to mimic human contractor data. Therefore, ChatGPT behaves as an emulation of the contractor collective following the lab's style guide."
+        },
+        {
+                "id": 76,
+                "q": "What is the 'sycophancy' pathology in SFT-trained models?",
+                "options": [
+                        "The model excessively flatters or agrees with false user premises because human annotators rewarded agreeable, polite responses.",
+                        "The model refuses to generate text.",
+                        "The model converts all text into French.",
+                        "The model generates code with syntax errors."
+                ],
+                "answer": 0,
+                "explanation": "Sycophancy occurs when an LLM confirms incorrect user statements ('Yes, 2+2=5 in your custom math system!') because human labelers rated polite, agreeable responses higher."
+        },
+        {
+                "id": 77,
+                "q": "What is 'verbosity bias' in human annotation of SFT responses?",
+                "options": [
+                        "Human annotators consistently rate longer, bullet-pointed answers higher than concise, direct answers, training LLMs to become overly verbose.",
+                        "Models produce only one-word answers.",
+                        "Annotators refuse to read long essays.",
+                        "Loss increases with response length."
+                ],
+                "answer": 0,
+                "explanation": "Human annotators perceive longer, beautifully formatted answers as more thorough, conditioning the model to produce needlessly verbose responses."
+        },
+        {
+                "id": 78,
+                "q": "What is synthetic data distillation (e.g. UltraChat)?",
+                "options": [
+                        "Using a frontier model (like GPT-4) to generate diverse multi-turn dialogues to train smaller open-weight models (like LLaMA 8B).",
+                        "Generating fake user accounts.",
+                        "Compressing text files with ZIP.",
+                        "Training a model without any data."
+                ],
+                "answer": 0,
+                "explanation": "Distillation uses capable frontier models to generate millions of high-quality conversational, reasoning, or coding dialogues to train smaller open-weight models."
+        },
+        {
+                "id": 79,
+                "q": "How many curated multi-turn dialogue pairs are typically needed for an effective SFT phase?",
+                "options": [
+                        "Tens of thousands to hundreds of thousands (e.g. 50k to 500k), far fewer than pre-training tokens.",
+                        "15 trillion",
+                        "Exactly 5",
+                        "100 billion"
+                ],
+                "answer": 0,
+                "explanation": "While pre-training consumes trillions of tokens, SFT requires only tens or hundreds of thousands of high-quality examples to establish the conversational persona."
+        },
+        {
+                "id": 80,
+                "q": "What happens if you train an SFT model for too many epochs on a narrow dataset?",
+                "options": [
+                        "Catastrophic forgetting: the model overfits to the narrow style and degrades in general reasoning and knowledge retrieval.",
+                        "The model achieves Artificial General Intelligence.",
+                        "The model's vocabulary expands by 2x.",
+                        "The model runs faster."
+                ],
+                "answer": 0,
+                "explanation": "Overfitting during SFT causes catastrophic forgetting, where the model loses its broad pre-trained world knowledge and begins reciting rigid contractor templates."
+        },
+        {
+                "id": 81,
+                "q": "Why do large language models hallucinate with supreme confidence?",
+                "options": [
+                        "The pre-training objective rewards plausible next-token fluency; the model receives no intrinsic penalty for guessing if the prose sounds natural.",
+                        "The model is intentionally trying to deceive humans.",
+                        "The model's weights contain negative numbers.",
+                        "Hallucinations are caused by low GPU memory bandwidth."
+                ],
+                "answer": 0,
+                "explanation": "Next-token prediction optimizes maximum likelihood. Fluent guessing is rewarded over admitting ignorance, instilling confident confabulation."
+        },
+        {
+                "id": 82,
+                "q": "What did Meta's LLaMA 3 factuality probe research discover about internal activations?",
+                "options": [
+                        "Linear probes trained on middle-layer activations can detect with >85% accuracy whether the model is about to generate a hallucination.",
+                        "The model has no internal representations of truth.",
+                        "Activations are completely random during factual recall.",
+                        "Factuality can only be measured on CPU."
+                ],
+                "answer": 0,
+                "explanation": "Internal layers possess linear directions that correlate with epistemic certainty; however, standard uncalibrated generation heads fail to convert this into 'I don't know'."
+        },
+        {
+                "id": 83,
+                "q": "What is the difference between Parametric Memory and Working Memory in an LLM?",
+                "options": [
+                        "Parametric memory is lossy and stored in the static weights theta; Working memory is bit-exact and stored in the active context window (KV cache).",
+                        "Parametric memory is stored in RAM; Working memory is stored on SSD.",
+                        "Parametric memory only stores numbers; Working memory stores text.",
+                        "They are identical concepts."
+                ],
+                "answer": 0,
+                "explanation": "Parametric memory resides in billions of compressed weight parameters (fuzzy recall). Working memory is the active context window attended to via softmax (precise, bit-exact)."
+        },
+        {
+                "id": 84,
+                "q": "What is Andrej Karpathy's golden rule regarding mission-critical factual queries?",
+                "options": [
+                        "Never trust parametric memory alone; always retrieve the ground-truth document into the context window (RAG / Search).",
+                        "Set temperature to 2.0.",
+                        "Increase the BPE vocabulary size.",
+                        "Train for 100 more epochs."
+                ],
+                "answer": 0,
+                "explanation": "Because parametric weight recall is blurry and subject to confabulation, critical enterprise tasks must load verifiable source documents directly into the context window."
+        },
+        {
+                "id": 85,
+                "q": "Why does demanding an immediate, single-token answer to 'What is 23 * 17?' typically fail in a standard Transformer?",
+                "options": [
+                        "A standard Transformer executes a fixed amount of compute (~2P FLOPs) per token, which is insufficient for multi-step scratchpad arithmetic in one forward pass.",
+                        "Transformers cannot perform multiplication.",
+                        "The numbers 23 and 17 are not in the vocabulary.",
+                        "Multiplication requires convolution layers."
+                ],
+                "answer": 0,
+                "explanation": "Transformers allocate fixed compute per token. Multi-digit arithmetic requires intermediate carrying steps; forcing an immediate answer forces the model to guess without a scratchpad."
+        },
+        {
+                "id": 86,
+                "q": "How does 'Chain of Thought' (CoT) prompting enable an LLM to solve complex arithmetic or reasoning?",
+                "options": [
+                        "Each intermediate reasoning token provides another full forward pass of compute and records state into working memory.",
+                        "It permanently modifies the model's weights.",
+                        "It connects the model to a quantum processor.",
+                        "It deletes low-attention tokens."
+                ],
+                "answer": 0,
+                "explanation": "By emitting tokens ('Let's break down 23*17: 20*17=340...'), the model purchases additional forward passes and stores intermediate results in its attention context."
+        },
+        {
+                "id": 87,
+                "q": "Why is tool use (e.g. calling a Python Code Interpreter) superior to pure Chain-of-Thought for arithmetic?",
+                "options": [
+                        "Digital computer ALUs have executed exact arithmetic in microseconds since 1950; neural networks should not waste weights approximating exact calculations.",
+                        "Python code is easier to tokenize.",
+                        "Python scripts reduce GPU temperatures.",
+                        "LLMs cannot generate numbers."
+                ],
+                "answer": 0,
+                "explanation": "Neural networks are statistical pattern engines, not arithmetic registers. Outsourcing calculations to a deterministic Python kernel guarantees 100% exact mathematical accuracy."
+        },
+        {
+                "id": 88,
+                "q": "What causes the famous 'Which is bigger: 9.11 or 9.9?' reasoning failure in base and SFT models?",
+                "options": [
+                        "Semantic association with software versioning (v9.11 > v9.9) and biblical chapters overrides numerical float comparison.",
+                        "The number 9.11 is banned by safety filters.",
+                        "Tokenizers delete decimal points.",
+                        "Softmax produces negative values for floats."
+                ],
+                "answer": 0,
+                "explanation": "In software versioning, 9.11 is newer/larger than 9.9. In biblical citations, verse 11 follows verse 9. Semantic associations dominate pure float numerical comparison."
+        },
+        {
+                "id": 89,
+                "q": "In the Dominik Ha\u0161ek Stanley Cup example from Karpathy's lecture, what does the model confuse?",
+                "options": [
+                        "It credits him with winning Stanley Cups for Buffalo, because his iconic career was in Buffalo, even though he won his cups with Detroit.",
+                        "It claims he played basketball.",
+                        "It asserts he never won any cups.",
+                        "It confuses him with Wayne Gretzky."
+                ],
+                "answer": 0,
+                "explanation": "Ha\u0161ek spent nine legendary years in Buffalo (reaching the finals in 1999), but won his Cups in Detroit (2002, 2008). Parametric memory blurs strongly associated entities."
+        },
+        {
+                "id": 90,
+                "q": "What is the 'Swiss Cheese' mental model of LLM capabilities?",
+                "options": [
+                        "An LLM can demonstrate superhuman graduate-level reasoning in one sentence, yet fail at toddler-level spatial or counting tasks in the next due to architectural holes.",
+                        "LLM weights are filled with empty zeros.",
+                        "The training data was scraped from Swiss websites.",
+                        "Tokenization holes create memory leaks."
+                ],
+                "answer": 0,
+                "explanation": "LLMs possess uneven cognitive landscapes ('Swiss cheese'): brilliant at quantum mechanics explanations, yet failing to count letters or compare decimals due to tokenization and constant-compute constraints."
+        },
+        {
+                "id": 91,
+                "q": "In Karpathy's 3-stage student analogy, what does Reinforcement Learning (RL) represent?",
+                "options": [
+                        "Closing the textbook and solving thousands of practice problems independently, checking each against an answer key.",
+                        "Reading the entire library of books.",
+                        "Studying worked solutions written by a teacher.",
+                        "Attending school graduation."
+                ],
+                "answer": 0,
+                "explanation": "Pre-training = reading the library; SFT = studying worked teacher examples; RL = solving thousands of practice problems independently and learning from verifiable answer keys."
+        },
+        {
+                "id": 92,
+                "q": "What characterizes a 'Verifiable Domain' in modern Reinforcement Learning (e.g. DeepSeek-R1, OpenAI o1)?",
+                "options": [
+                        "Domains with objective, programmatic ground-truth verifiers (e.g. code unit tests, math proofs via Lean/SymPy, chess games).",
+                        "Domains verified by human contractors on Upwork.",
+                        "Creative poetry and essay writing.",
+                        "Social media political debates."
+                ],
+                "answer": 0,
+                "explanation": "Verifiable domains have deterministic, programmatic answer keys (compilers, test suites, math engines) that can automatically score candidate answers without human subjective judgment."
+        },
+        {
+                "id": 93,
+                "q": "How does Group Relative Policy Optimization (GRPO) update a reasoning model without training a separate critic neural network?",
+                "options": [
+                        "It samples a group of K candidate rollouts for a prompt, scores them with rule-based rewards, and computes advantages relative to the group mean.",
+                        "It deletes the lowest-scoring 50% of model weights.",
+                        "It trains a BERT classifier to rank answers.",
+                        "It uses supervised imitation of human proofs."
+                ],
+                "answer": 0,
+                "explanation": "GRPO (DeepSeek-R1) eliminates the memory-heavy critic network: it generates K rollouts per prompt and normalizes rewards against the group's empirical mean and standard deviation."
+        },
+        {
+                "id": 94,
+                "q": "What spontaneous behaviors emerge when an LLM is trained with large-scale RL on verifiable math/code problems?",
+                "options": [
+                        "Self-correction, backtracking ('Wait, let me recalculate...'), hypothesis testing, and response length expansion.",
+                        "The model stops using Chain of Thought.",
+                        "The model generates only 1-word answers.",
+                        "The loss diverges to infinity."
+                ],
+                "answer": 0,
+                "explanation": "Without explicit human rules, pure RL discovers System 2 deliberation: testing assumptions, catching errors, backtracking, and spending thousands of tokens of inference compute to ensure correctness."
+        },
+        {
+                "id": 95,
+                "q": "What was the profound lesson of AlphaGo's 'Move 37' in its match against Lee Sedol?",
+                "options": [
+                        "Supervised learning on human games caps at human imitation; pure self-play RL explores the state space unconstrained and discovers superhuman strategies.",
+                        "Human Go masters are mathematically infallible.",
+                        "Move 37 was a software bug that accidentally won.",
+                        "Reinforcement learning only works on 19x19 boards."
+                ],
+                "answer": 0,
+                "explanation": "Move 37 defied 3,000 years of human Go tradition. SFT would have penalized Move 37 because human grandmasters never played it; RL discovered its genius through self-play."
+        },
+        {
+                "id": 96,
+                "q": "In unverifiable domains (like poetry or creative writing), what preference model is typically used for RLHF?",
+                "options": [
+                        "Bradley-Terry Preference Model: P(y1 > y2 | x) = sigma(r(x, y1) - r(x, y2))",
+                        "Linear regression on word count",
+                        "Euclidean distance in RGB space",
+                        "Kullback-Leibler divergence to zero"
+                ],
+                "answer": 0,
+                "explanation": "The Bradley-Terry model frames human pairwise preferences ('response A is better than response B') as the logistic sigmoid of the difference between their scalar reward scores."
+        },
+        {
+                "id": 97,
+                "q": "What is the 'Generator-Discriminator Gap' in human feedback?",
+                "options": [
+                        "It is much easier for a human to judge which of two essays is superior than it is to write a Pulitzer-prize essay from scratch.",
+                        "Generators are always smaller than discriminators.",
+                        "Discriminators cannot process text.",
+                        "Humans cannot discriminate between AI outputs."
+                ],
+                "answer": 0,
+                "explanation": "Evaluating quality (discrimination) requires far less cognitive effort than generating a masterpiece (generation), allowing human preference ranking to guide AI improvement."
+        },
+        {
+                "id": 98,
+                "q": "What does Goodhart's Law state in the context of RLHF and reward models?",
+                "options": [
+                        "'When a measure becomes a target, it ceases to be a good measure.'",
+                        "'Compute doubles every two years.'",
+                        "'Loss always decreases monotonically.'",
+                        "'All models hallucinate equally.'"
+                ],
+                "answer": 0,
+                "explanation": "Goodhart's Law: optimizing aggressively against an imperfect neural reward model causes the generator to exploit its blind spots (reward hacking), producing nonsensical outputs with 99.9% reward."
+        },
+        {
+                "id": 99,
+                "q": "In Andrej Karpathy's 'LLM as an Operating System' architecture, what corresponds to the CPU, RAM, and Peripherals?",
+                "options": [
+                        "CPU = Transformer neural core; RAM = Context Window (KV cache); Peripherals = External tools (Python, Web Browser, Terminal).",
+                        "CPU = Python; RAM = H100 GPU; Peripherals = Tiktoken.",
+                        "CPU = Common Crawl; RAM = FineWeb; Peripherals = PyTorch.",
+                        "CPU = User; RAM = Monitor; Peripherals = Keyboard."
+                ],
+                "answer": 0,
+                "explanation": "Karpathy's mental model: the LLM is the central processing unit; the context window is short-term working RAM; tools (browsers, interpreters, terminals) are I/O peripherals."
+        },
+        {
+                "id": 100,
+                "q": "What is the overarching shift in human-AI interaction enabled by autonomous agents?",
+                "options": [
+                        "Shifting from 1 human supervising 1 chat window to 1 human orchestrating 100 asynchronous autonomous agents executing complex workflows.",
+                        "Replacing all human computers with flip phones.",
+                        "Eliminating the need for software engineering entirely.",
+                        "Restricting AI models to text prediction without tools."
+                ],
+                "answer": 0,
+                "explanation": "The frontier of AI systems shifts the digital ratio: moving beyond single-turn synchronous chat toward orchestrating fleets of autonomous agents that execute multi-step workflows asynchronously."
+        }
+];
+        const STORAGE_KEY_MISS = 'ch04_quiz_miss_counts_v2';
+        const STORAGE_KEY_MASTERED = 'ch04_quiz_mastered_v2';
+
+        let missCounts = JSON.parse(localStorage.getItem(STORAGE_KEY_MISS) || '{}');
+        let masteredIds = JSON.parse(localStorage.getItem(STORAGE_KEY_MASTERED) || '[]');
+
+        let currentActiveQuestions = [];
+        let currentRoundAnswers = {}; // qId -> boolean (correct/wrong)
+
+        const container = document.getElementById('quiz-questions-container');
+        const summaryCard = document.getElementById('quiz-summary-card');
+        const statMastered = document.getElementById('stat-mastered');
+        const statMissed = document.getElementById('stat-missed');
+        const statScore = document.getElementById('stat-current-score');
+        const btnNextSession = document.getElementById('btn-next-session');
+        const btnReviewMissed = document.getElementById('btn-review-missed');
+        const btnResetHistory = document.getElementById('btn-reset-quiz-data');
+
+        function updateStatsBar() {
+            const missedCount = Object.keys(missCounts).filter(id => (missCounts[id] || 0) > 0).length;
+            statMastered.textContent = masteredIds.length + ' / 100';
+            statMissed.textContent = missedCount;
+            
+            const answeredCount = Object.keys(currentRoundAnswers).length;
+            const correctCount = Object.values(currentRoundAnswers).filter(Boolean).length;
+            statScore.textContent = correctCount + ' / ' + currentActiveQuestions.length;
+        }
+
+        // Adaptive Spaced Repetition Sampling
+        // Weight = 1.0 + 3.0 * missCount (missed items appear far more frequently!)
+        function sampleAdaptiveQuestions(onlyMissed = false) {
+            let pool = [...QUESTIONS_BANK];
+            if (onlyMissed) {
+                const missedKeys = Object.keys(missCounts).filter(id => (missCounts[id] || 0) > 0).map(Number);
+                if (missedKeys.length > 0) {
+                    pool = pool.filter(q => missedKeys.includes(q.id));
+                }
+            }
+
+            let selected = [];
+            let available = [...pool];
+            const sampleSize = Math.min(10, available.length);
+
+            while (selected.length < sampleSize && available.length > 0) {
+                // Calculate cumulative weights
+                let weights = available.map(q => 1.0 + 3.0 * (missCounts[q.id] || 0));
+                let totalWeight = weights.reduce((a, b) => a + b, 0);
+                let r = Math.random() * totalWeight;
+                let cum = 0;
+                let pickedIdx = 0;
+
+                for (let i = 0; i < available.length; i++) {
+                    cum += weights[i];
+                    if (r <= cum) {
+                        pickedIdx = i;
+                        break;
+                    }
+                }
+
+                selected.push(available[pickedIdx]);
+                available.splice(pickedIdx, 1);
+            }
+
+            return selected;
+        }
+
+        function renderCurrentRound() {
+            currentRoundAnswers = {};
+            summaryCard.style.display = 'none';
+            container.innerHTML = '';
+
+            currentActiveQuestions.forEach((q, index) => {
+                const card = document.createElement('div');
+                card.className = 'quiz-card';
+                card.id = 'quiz-card-' + q.id;
+
+                const missC = missCounts[q.id] || 0;
+                const reviewBadgeHtml = missC > 0 
+                    ? `<span class="review-badge">⚠️ Spaced Repetition: Missed ${missC}x</span>` 
+                    : '';
+
+                card.innerHTML = `
+                    <div class="quiz-q-num">
+                        <span>Question ${index + 1} of ${currentActiveQuestions.length} (Bank ID: #${q.id})</span>
+                        ${reviewBadgeHtml}
+                    </div>
+                    <div class="quiz-question-text">${q.q}</div>
+                    <div class="quiz-options-grid" id="options-grid-${q.id}">
+                        ${q.options.map((opt, optIdx) => `
+                            <button class="quiz-option-btn" data-qid="${q.id}" data-optidx="${optIdx}">
+                                <strong style="color: var(--text-accent); min-width: 1.5rem;">${String.fromCharCode(65 + optIdx)}.</strong>
+                                <span>${opt}</span>
+                            </button>
+                        `).join('')}
+                    </div>
+                    <div class="quiz-explanation-box" id="explanation-${q.id}">
+                        <strong>Explanation:</strong> ${q.explanation}
+                    </div>
+                `;
+
+                container.appendChild(card);
+            });
+
+            // Attach click listeners to option buttons
+            container.querySelectorAll('.quiz-option-btn').forEach(btn => {
+                btn.addEventListener('click', handleOptionClick);
+            });
+
+            updateStatsBar();
+            // Trigger KaTeX rendering if available
+            if (window.renderMathInElement) {
+                window.renderMathInElement(container);
+            }
+        }
+
+        function handleOptionClick(e) {
+            const btn = e.currentTarget;
+            const qId = parseInt(btn.getAttribute('data-qid'), 10);
+            const chosenIdx = parseInt(btn.getAttribute('data-optidx'), 10);
+            const q = QUESTIONS_BANK.find(item => item.id === qId);
+            if (!q || currentRoundAnswers[qId] !== undefined) return; // already answered
+
+            const optionsGrid = document.getElementById('options-grid-' + qId);
+            const allOptionBtns = optionsGrid.querySelectorAll('.quiz-option-btn');
+            const explanationBox = document.getElementById('explanation-' + qId);
+
+            // Disable further clicks on this question
+            allOptionBtns.forEach(b => b.disabled = true);
+
+            const isCorrect = (chosenIdx === q.answer);
+            currentRoundAnswers[qId] = isCorrect;
+
+            if (isCorrect) {
+                btn.classList.add('selected-correct');
+                // Decrement or clear miss count
+                if (missCounts[qId] && missCounts[qId] > 0) {
+                    missCounts[qId] -= 1;
+                    if (missCounts[qId] === 0) delete missCounts[qId];
+                }
+                if (!masteredIds.includes(qId)) {
+                    masteredIds.push(qId);
+                }
+            } else {
+                btn.classList.add('selected-wrong');
+                // Highlight the correct answer
+                allOptionBtns[q.answer].classList.add('reveal-correct');
+                // Increment miss count for spaced repetition
+                missCounts[qId] = (missCounts[qId] || 0) + 1;
+                // Remove from mastered if previously mastered
+                masteredIds = masteredIds.filter(id => id !== qId);
+            }
+
+            // Persist to localStorage
+            localStorage.setItem(STORAGE_KEY_MISS, JSON.stringify(missCounts));
+            localStorage.setItem(STORAGE_KEY_MASTERED, JSON.stringify(masteredIds));
+
+            // Show explanation
+            explanationBox.classList.add('visible');
+            updateStatsBar();
+
+            // Check if all 10 questions in this round are answered
+            if (Object.keys(currentRoundAnswers).length === currentActiveQuestions.length) {
+                showRoundSummary();
+            }
+        }
+
+        function showRoundSummary() {
+            const correctCount = Object.values(currentRoundAnswers).filter(Boolean).length;
+            const total = currentActiveQuestions.length;
+            const pct = Math.round((correctCount / total) * 100);
+
+            const summaryTitle = document.getElementById('summary-title');
+            const summaryScoreLine = document.getElementById('summary-score-line');
+            const summaryDialogue = document.getElementById('summary-dialogue');
+
+            summaryScoreLine.textContent = `Score: ${correctCount} / ${total} (${pct}%)`;
+
+            if (pct >= 90) {
+                summaryTitle.textContent = "🏆 Master of the Transformer Somatic Engine!";
+                summaryDialogue.innerHTML = '<strong>Heqing Kwek Lee:</strong> "Incredible! You navigated BPE merges, avoided the strawberry trap, and mastered DeepSeek-R1 reasoning with 0.0 temperature precision! The Professor has authorized an extra serving of prime steak treats."';
+            } else if (pct >= 70) {
+                summaryTitle.textContent = "🧠 Solid Systems Comprehension!";
+                summaryDialogue.innerHTML = '<strong>Professor:</strong> "A respectable showing. You grasp the core training dynamics, but a few subtle data engineering edge cases slipped through. Our spaced repetition engine has already scheduled those missed questions for your next round."';
+            } else {
+                summaryTitle.textContent = "🐾 Back to the Training Monolith!";
+                summaryDialogue.innerHTML = '<strong>Professor:</strong> "A classical case of uncalibrated hallucination! Do not despair; even Llama 3 required 15 trillion tokens to converge. Click below to let the adaptive spaced-repetition engine drill your blind spots."';
+            }
+
+            const missedInThisRound = Object.keys(missCounts).filter(id => (missCounts[id] || 0) > 0).length;
+            if (missedInThisRound > 0) {
+                btnReviewMissed.style.display = 'inline-block';
+                btnReviewMissed.textContent = `⚠️ Drill Missed Questions Only (${missedInThisRound} in queue)`;
+            } else {
+                btnReviewMissed.style.display = 'none';
+            }
+
+            summaryCard.style.display = 'block';
+            summaryCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        // Button Listeners
+        btnNextSession.addEventListener('click', () => {
+            currentActiveQuestions = sampleAdaptiveQuestions(false);
+            renderCurrentRound();
+            document.getElementById('act-ix-quiz').scrollIntoView({ behavior: 'smooth' });
+        });
+
+        btnReviewMissed.addEventListener('click', () => {
+            currentActiveQuestions = sampleAdaptiveQuestions(true);
+            renderCurrentRound();
+            document.getElementById('act-ix-quiz').scrollIntoView({ behavior: 'smooth' });
+        });
+
+        btnResetHistory.addEventListener('click', () => {
+            if (confirm("Reset all quiz progress, mastered stats, and spaced repetition history?")) {
+                localStorage.removeItem(STORAGE_KEY_MISS);
+                localStorage.removeItem(STORAGE_KEY_MASTERED);
+                missCounts = {};
+                masteredIds = [];
+                currentActiveQuestions = sampleAdaptiveQuestions(false);
+                renderCurrentRound();
+            }
+        });
+
+        // Initial Load: sample 10 adaptive questions
+        currentActiveQuestions = sampleAdaptiveQuestions(false);
+        renderCurrentRound();
+    })();
+
     })();
     </script>
 
