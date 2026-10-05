@@ -110,7 +110,7 @@
                         How do petabytes of raw internet HTML compress down to 44 TB of pristine text? Production pre-training pipelines deploy an intensive 5-stage filtering funnel:
                     </p>
                     <p style="font-size: 0.9rem; color: var(--text-muted); font-style: italic;">
-                        💡 <em>Tip: Click any dashed term below to launch a deep-dive interactive modal explaining the advanced under-the-hood engineering.</em>
+                        💡 <em>Tip: Mouse over any underlined term below for an instant mathematical and architectural explanation.</em>
                     </p>
                     <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem; margin: 1rem 0;">
                         <thead>
@@ -123,27 +123,106 @@
                         <tbody>
                             <tr style="border-bottom: 1px solid var(--border-color);">
                                 <td style="padding: 0.6rem;"><strong>1. URL Blocklisting</strong></td>
-                                <td style="padding: 0.6rem;">Domain-level curated filters matching spam databases, malware registries, and adult domain repositories from <span class="explainer-trigger" onclick="openModal('modal-warc')">Common Crawl WARC dumps</span>.</td>
+                                <td style="padding: 0.6rem;">
+                                    Domain-level curated filters matching spam databases, malware registries, and adult domain repositories from 
+                                    <span class="term-tooltip"><strong>Common Crawl WARC dumps</strong>
+                                        <span class="tooltip-bubble bubble-bottom">
+                                            <span class="tooltip-title">WARC vs WET vs WAT Formats</span>
+                                            <strong>WARC (Web ARChive):</strong> Raw petabyte-scale HTTP request/response payloads, headers, and unparsed HTML.
+                                            <br><strong>WET:</strong> Naive plain text (too noisy for frontier models).
+                                            <br><strong>WAT:</strong> Extracted link graph & metadata records. Top labs always re-extract text directly from raw WARCs!
+                                        </span>
+                                    </span>.
+                                </td>
                                 <td style="padding: 0.6rem;">Ad networks, clickbait farms, phishing sites, adult domains.</td>
                             </tr>
                             <tr style="border-bottom: 1px solid var(--border-color);">
                                 <td style="padding: 0.6rem;"><strong>2. Text Extraction</strong></td>
-                                <td style="padding: 0.6rem;">Parsing raw <span class="explainer-trigger" onclick="openModal('modal-dom')">DOM trees</span>; extracting primary editorial body text using <span class="explainer-trigger" onclick="openModal('modal-layout')">layout heuristics</span> (<span class="explainer-trigger" onclick="openModal('modal-trafilatura')">Trafilatura &amp; Resiliparse</span>).</td>
+                                <td style="padding: 0.6rem;">
+                                    Parsing raw 
+                                    <span class="term-tooltip"><strong>DOM trees</strong>
+                                        <span class="tooltip-bubble bubble-bottom">
+                                            <span class="tooltip-title">What is a DOM Tree?</span>
+                                            The <strong>Document Object Model</strong> is a hierarchical tree of in-memory node objects parsed from HTML tags.
+                                            <br><br>
+                                            <strong>Why Regex Fails:</strong> Simple regex tag-stripping (<code>re.sub</code>) is fatal because &gt;75% of web text is navigation bars, cookie banners ("Accept all cookies"), and footers. These get glued to the article text unless you traverse the DOM tree to isolate the editorial <code>&lt;article&gt;</code> container!
+                                        </span>
+                                    </span>; extracting primary editorial body text using 
+                                    <span class="term-tooltip"><strong>layout heuristics</strong>
+                                        <span class="tooltip-bubble bubble-bottom">
+                                            <span class="tooltip-title">What are Layout Heuristics?</span>
+                                            Algorithmic decision rules evaluating DOM node geometry:
+                                            <br>&bull; <strong>Link Density:</strong> Discard if &gt;25% of text is wrapped in <code>&lt;a&gt;</code> tags (menus, ad blocks).
+                                            <br>&bull; <strong>Text-to-Tag Ratio:</strong> Articles have long text with few tags; navigation has tiny 2-word links wrapped in deep tags.
+                                            <br>&bull; <strong>Visual CSS:</strong> Prunes <code>display: none</code>, 0px fonts, and off-screen SEO spam.
+                                        </span>
+                                    </span> 
+                                    (<span class="term-tooltip"><strong>Trafilatura &amp; Resiliparse</strong>
+                                        <span class="tooltip-bubble bubble-bottom">
+                                            <span class="tooltip-title">Trafilatura vs. Resiliparse</span>
+                                            <strong>Trafilatura (Python/Cython):</strong> Highest F1-score (0.91) for accurately separating main body text from comments/sidebars. Powers Hugging Face FineWeb.
+                                            <br><br>
+                                            <strong>Resiliparse (C++/Cython):</strong> Bare-metal speed for parsing Common Crawl archives at hundreds of MB/s per core, fixing malformed UTF-8/Windows-1252 encodings.
+                                        </span>
+                                    </span>).
+                                </td>
                                 <td style="padding: 0.6rem;">HTML tags (`&lt;div&gt;`, `&lt;style&gt;`), JavaScript scripts, navigation headers, cookie consent banners, copyright footers.</td>
                             </tr>
                             <tr style="border-bottom: 1px solid var(--border-color);">
                                 <td style="padding: 0.6rem;"><strong>3. Language Classification</strong></td>
-                                <td style="padding: 0.6rem;">FastText linear classifiers scoring language probability. FineWeb enforces \(>65\%\) English content threshold.</td>
+                                <td style="padding: 0.6rem;">
+                                    FastText linear classifiers scoring language probability. FineWeb enforces \(>65\%\) English content threshold.
+                                </td>
                                 <td style="padding: 0.6rem;">Corrupted encodings, non-target languages, gibberish strings. <em>(Note: Models trained on English-filtered data will underperform in Spanish or Mandarin!)</em></td>
                             </tr>
                             <tr style="border-bottom: 1px solid var(--border-color);">
                                 <td style="padding: 0.6rem;"><strong>4. De-Duplication</strong></td>
-                                <td style="padding: 0.6rem;"><span class="explainer-trigger" onclick="openModal('modal-minhash')">MinHash &amp; Locality-Sensitive Hashing (LSH)</span> grouping documents by <span class="explainer-trigger" onclick="openModal('modal-shingles-jaccard')">Jaccard similarity of 5-gram shingles</span>.</td>
+                                <td style="padding: 0.6rem;">
+                                    <span class="term-tooltip"><strong>MinHash &amp; LSH</strong>
+                                        <span class="tooltip-bubble">
+                                            <span class="tooltip-title">MinHash & LSH Math</span>
+                                            Pairwise comparison of 3 billion docs would take <strong>142 years</strong> (\(4.5 \times 10^{18}\) pairs).
+                                            <br><br>
+                                            <strong>MinHash (Broder 1997):</strong> Compresses each doc into 128 hash integers where \(P(h_k(A) = h_k(B)) = \text{Jaccard}(A, B)\).
+                                            <br><strong>LSH Banding:</strong> Groups hashes into buckets, collapsing deduplication from \(\mathcal{O}(N^2)\) to \(\mathcal{O}(N)\) (hours on a cluster!).
+                                        </span>
+                                    </span> 
+                                    grouping documents by 
+                                    <span class="term-tooltip"><strong>Jaccard similarity of 5-gram shingles</strong>
+                                        <span class="tooltip-bubble">
+                                            <span class="tooltip-title">5-Gram Shingles & Jaccard</span>
+                                            <strong>5-Gram Shingle:</strong> A sliding window of 5 consecutive words. A 1,000-word essay becomes a mathematical set \(S\) of ~996 shingles.
+                                            <br><br>
+                                            <strong>Jaccard Similarity:</strong> \(J(A, B) = \frac{|A \cap B|}{|A \cup B|}\). If \(J \ge 0.80\), the documents are flagged as syndicated/plagiarized copies, and one is discarded.
+                                        </span>
+                                    </span>.
+                                </td>
                                 <td style="padding: 0.6rem;">Syndicated news articles, boilerplate legal disclaimers, identical scraped spam mirrored across thousands of domains.</td>
                             </tr>
                             <tr>
                                 <td style="padding: 0.6rem;"><strong>5. Quality &amp; PII Filtering</strong></td>
-                                <td style="padding: 0.6rem;">Regex/NER sensitive data masking; <span class="explainer-trigger" onclick="openModal('modal-gopher')">DeepMind Gopher quality heuristics</span> and <span class="explainer-trigger" onclick="openModal('modal-perplexity')">KenLM perplexity filtering</span> against Wikipedia.</td>
+                                <td style="padding: 0.6rem;">
+                                    Regex/NER sensitive data masking; 
+                                    <span class="term-tooltip"><strong>DeepMind Gopher quality heuristics</strong>
+                                        <span class="tooltip-bubble">
+                                            <span class="tooltip-title">Gopher Heuristic Rules</span>
+                                            Battle-tested rules from DeepMind (Rae et al., 2021):
+                                            <br>&bull; <strong>Punctuation:</strong> &ge;30% of lines must end in a period/question/exclamation mark (cuts menus/lists).
+                                            <br>&bull; <strong>Word Length:</strong> Mean length must be 3–10 chars (cuts base64 dumps).
+                                            <br>&bull; <strong>Symbols:</strong> &lt;10% of words can have symbols (cuts spam/ASCII art).
+                                            <br>&bull; <strong>Repetition:</strong> Discards text if any 10-gram repeats &gt;6 times.
+                                        </span>
+                                    </span> 
+                                    and 
+                                    <span class="term-tooltip"><strong>KenLM perplexity filtering</strong>
+                                        <span class="tooltip-bubble">
+                                            <span class="tooltip-title">Perplexity (PPL) Filtering</span>
+                                            Train a 5-gram language model on clean Wikipedia + books.
+                                            <br><br>
+                                            <strong>Two-Sided Trim:</strong> Discards <em>ultra-high perplexity</em> (machine translation garble, typos, OCR errors) AND <em>ultra-low perplexity</em> (robotic boilerplate loops like "Terms of Service...").
+                                        </span>
+                                    </span> against Wikipedia.
+                                </td>
                                 <td style="padding: 0.6rem;">Social Security numbers, credit card strings, private email directories, repetitive spam loops, low-quality machine garble.</td>
                             </tr>
                         </tbody>
@@ -1007,281 +1086,8 @@ Therefore, 23 * 17 = 391."</code></pre>
 
         // Initial draw
         drawDistribution();
-    
-        // ==========================================
-        // Modal Controller Functions
-        // ==========================================
-        window.openModal = function(id) {
-            const el = document.getElementById(id);
-            if (el) {
-                el.classList.add('active');
-                document.body.style.overflow = 'hidden';
-            }
-        };
-
-        window.closeModal = function(id) {
-            const el = document.getElementById(id);
-            if (el) {
-                el.classList.remove('active');
-                document.body.style.overflow = '';
-            }
-        };
-
-        window.closeModalOnBackdrop = function(e, id) {
-            if (e.target.id === id) {
-                window.closeModal(id);
-            }
-        };
-
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                document.querySelectorAll('.modal-backdrop.active').forEach(function(modal) {
-                    modal.classList.remove('active');
-                });
-                document.body.style.overflow = '';
-            }
-        });
-
     })();
     </script>
 
-    <!-- ========================================== -->
-    <!-- INTERACTIVE EXPLAINER MODAL DIALOGUES      -->
-    <!-- ========================================== -->
-
-    <!-- Modal 1: DOM Tree -->
-    <div id="modal-dom" class="modal-backdrop" onclick="closeModalOnBackdrop(event, 'modal-dom')">
-        <div class="modal-card">
-            <button class="modal-close-btn" onclick="closeModal('modal-dom')">&times;</button>
-            <span class="modal-badge">Web Architecture &amp; Scraping</span>
-            <h3 class="modal-title">🌲 What is a DOM Tree?</h3>
-            <p>
-                When a web browser (or scraper like Common Crawl) downloads a web page, it receives an unstructured string of HTML tags. 
-                The browser's parser converts this markup into a <strong>Document Object Model (DOM) Tree</strong>: a hierarchically linked graph of in-memory node objects representing every element on the page.
-            </p>
-            <div class="modal-code">
-HTML Text:
-&lt;html&gt;
-  &lt;body&gt;
-    &lt;nav&gt;Home | About | Privacy Policy&lt;/nav&gt;
-    &lt;article&gt;
-      &lt;h1&gt;Black-Scholes Volatility&lt;/h1&gt;
-      &lt;p&gt;Under geometric Brownian motion, option prices...&lt;/p&gt;
-    &lt;/article&gt;
-    &lt;footer&gt;&copy; 2026 Quant LLC. All rights reserved.&lt;/footer&gt;
-  &lt;/body&gt;
-&lt;/html&gt;
-
-Parsed In-Memory DOM Tree:
-Document
- └── html
-      └── body
-           ├── nav (Navigation menu - 100% boilerplate)
-           ├── article (Primary content node!)
-           │    ├── h1 (Headline)
-           │    └── p  (Actual paragraph)
-           └── footer (Legal disclaimer - 100% boilerplate)
-            </div>
-            <div class="modal-callout">
-                <strong>💡 Why a College Student Wouldn't Expect This:</strong><br>
-                Many students assume cleaning internet text is as easy as running a regular expression like <code>re.sub(r'&lt;.*?&gt;', '', raw_html)</code>. 
-                If you do that, the words <em>"Home About Privacy Policy"</em>, <em>"Sign in to leave a comment"</em>, and <em>"Accept tracking cookies"</em> get glued straight onto the first sentence of the article!
-                In raw web scrapes, <strong>over 75% of text characters on a page belong to menus, cookie banners, tracking scripts, and sidebars</strong>. Without parsing the DOM tree to isolate the editorial <code>&lt;article&gt;</code> or <code>&lt;main&gt;</code> container, your LLM will hallucinate cookie policies into its training weights.
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal 2: Layout Heuristics -->
-    <div id="modal-layout" class="modal-backdrop" onclick="closeModalOnBackdrop(event, 'modal-layout')">
-        <div class="modal-card">
-            <button class="modal-close-btn" onclick="closeModal('modal-layout')">&times;</button>
-            <span class="modal-badge">Content Extraction Algorithms</span>
-            <h3 class="modal-title">📐 What are Layout Heuristics?</h3>
-            <p>
-                A <strong>layout heuristic</strong> is an algorithmic decision rule that inspects the structural geometry, tag density, and styling of DOM tree nodes to deduce whether a block of text is legitimate editorial prose or junk chrome.
-            </p>
-            <div class="modal-callout">
-                <strong>Key Heuristics Used in Modern Pipelines:</strong>
-                <ul>
-                    <li><strong>Link Density Metric:</strong> Defined as:
-                        \[ \text{LinkDensity}(\text{node}) = \frac{\text{Number of characters inside } &lt;a&gt; \text{ tags}}{\text{Total characters inside node}} \]
-                        If \(\text{LinkDensity} > 0.25\), the block is discarded as a navigation menu, blogroll, or link farm.
-                    </li>
-                    <li><strong>Text-to-Tag Ratio:</strong> True articles have long sentences with few HTML tags (high ratio). Sidebars and footers have dozens of nested <code>&lt;div&gt;</code>, <code>&lt;span&gt;</code>, and <code>&lt;li&gt;</code> tags wrapping tiny 2-word fragments (low ratio).</li>
-                    <li><strong>Visual CSS Filtering:</strong> Stripping any DOM subtree with computed styles <code>display: none</code>, <code>visibility: hidden</code>, <code>font-size: 0px</code>, or absolute off-screen coordinates (frequently used for SEO keyword stuffing).</li>
-                    <li><strong>Stopword &amp; Punctuation Proportions:</strong> Real human paragraphs have a steady cadence of commas, periods, and common function words ("the", "which", "after"). Menus and product listings consist of unpunctuated title-cased nouns.</li>
-                </ul>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal 3: Trafilatura & Resiliparse -->
-    <div id="modal-trafilatura" class="modal-backdrop" onclick="closeModalOnBackdrop(event, 'modal-trafilatura')">
-        <div class="modal-card">
-            <button class="modal-close-btn" onclick="closeModal('modal-trafilatura')">&times;</button>
-            <span class="modal-badge">High-Throughput Web Engines</span>
-            <h3 class="modal-title">⚡ Trafilatura &amp; Resiliparse: The Industry Workhorses</h3>
-            <p>
-                When scraping 2.7 billion pages, standard tools like BeautifulSoup or Newspaper3k are far too slow or inaccurate. Modern frontier datasets (like Hugging Face's <strong>FineWeb</strong> and <strong>RefinedWeb</strong>) rely on two specialized engines:
-            </p>
-            <div class="concept-grid" style="margin: 1rem 0;">
-                <div class="concept-card">
-                    <h4>Trafilatura (Python / Cython)</h4>
-                    <p>
-                        Developed by Adrien Barbaresi at BBAW. It scores DOM trees using linguistic heuristics, text-to-tag ratios, and semantic tagging. In empirical academic benchmarks across 10,000 diverse multilingual web pages, Trafilatura achieves the <strong>highest F1-score (0.91)</strong> for precision text recovery. It is the primary extractor powering FineWeb!
-                    </p>
-                </div>
-                <div class="concept-card">
-                    <h4>Resiliparse (C++ / Cython)</h4>
-                    <p>
-                        Developed for the ChatNoir search engine. Written in bare-metal C++ with zero-copy string parsing, it can chew through Common Crawl WARC archives at <strong>hundreds of megabytes per second per CPU core</strong>. It provides hyper-fast HTML lexing, DOM traversal, and encoding detection (handling malformed UTF-8/Windows-1252 corrupted encodings).
-                    </p>
-                </div>
-            </div>
-            <div class="modal-callout">
-                <strong>Why You Wouldn't Learn This in CS 101:</strong><br>
-                Computer science curricula teach general-purpose compilers and regex parsers, but rarely the brutal engineering reality of web data extraction. Modern LLM labs spend hundreds of thousands of CPU core-hours running Trafilatura and Resiliparse over AWS clusters just to turn 500 TB of messy WARC dumps into clean plain text!
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal 4: MinHash & LSH -->
-    <div id="modal-minhash" class="modal-backdrop" onclick="closeModalOnBackdrop(event, 'modal-minhash')">
-        <div class="modal-card">
-            <button class="modal-close-btn" onclick="closeModal('modal-minhash')">&times;</button>
-            <span class="modal-badge">Sub-Quadratic Algorithms</span>
-            <h3 class="modal-title">🧮 MinHash &amp; Locality-Sensitive Hashing (LSH)</h3>
-            <p>
-                <strong>The Quadratic Catastrophe:</strong> Common Crawl contains \(N \approx 3 \times 10^9\) documents. If you compare every document against every other document to detect duplicates, you must perform:
-                \[ \binom{N}{2} = \frac{N(N-1)}{2} \approx \frac{(3 \times 10^9)^2}{2} = 4.5 \times 10^{18} \text{ comparisons!} \]
-                Even at 1 billion comparisons per second, this pairwise check would run continuously for <strong>142 years</strong>!
-            </p>
-            <div class="modal-callout">
-                <strong>The MinHash Miracle (Andrei Broder, 1997):</strong><br>
-                Instead of comparing entire documents, we generate a compact "fingerprint" of \(K=128\) integers using random hash permutations \(h_1, \dots, h_K\):
-                \[ s_k(D) = \min_{w \in D} h_k(w) \]
-                Remarkably, the probability that two documents produce the same minimum hash value is <em>identically equal</em> to their Jaccard similarity:
-                \[ P\big(s_k(A) = s_k(B)\big) = J(A, B) = \frac{|A \cap B|}{|A \cup B|} \]
-            </div>
-            <div class="modal-callout">
-                <strong>Locality-Sensitive Hashing (LSH) Banding:</strong><br>
-                We divide the 128 hash integers into \(b=16\) bands of \(r=8\) rows each (\(16 \times 8 = 128\)).
-                Each band is hashed into a hash table bucket. If two documents match on <em>all 8 rows in even one band</em>, they collide in that bucket and are marked as candidate duplicates!
-                <br><br>
-                <strong>Result:</strong> LSH collapses computational complexity from \(\mathcal{O}(N^2)\) down to nearly linear \(\mathcal{O}(N)\), completing global web deduplication in hours rather than centuries!
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal 5: 5-Gram Shingles & Jaccard Similarity -->
-    <div id="modal-shingles-jaccard" class="modal-backdrop" onclick="closeModalOnBackdrop(event, 'modal-shingles-jaccard')">
-        <div class="modal-card">
-            <button class="modal-close-btn" onclick="closeModal('modal-shingles-jaccard')">&times;</button>
-            <span class="modal-badge">Set Theory &amp; NLP</span>
-            <h3 class="modal-title">🪓 5-Gram Shingles &amp; Jaccard Set Similarity</h3>
-            <p>
-                How do we mathematically compare two essays to see if one is a plagiarized or syndicated copy of the other?
-            </p>
-            <div class="modal-callout">
-                <strong>1. What is a "Shingle"?</strong><br>
-                In carpentry, shingles are overlapping wooden tiles on a roof. In NLP, a <strong>shingle</strong> (or word \(n\)-gram) is a sliding window of \(n\) consecutive words:
-                <div class="modal-code">
-Document: "The golden retriever chased the ball across the park"
-
-5-Gram Shingles:
-S1 = {"The", "golden", "retriever", "chased", "the"}
-S2 = {"golden", "retriever", "chased", "the", "ball"}
-S3 = {"retriever", "chased", "the", "ball", "across"}
-S4 = {"chased", "the", "ball", "across", "the"}
-S5 = {"the", "ball", "across", "the", "park"}
-                </div>
-                A document of 1,000 words becomes a mathematical set of \(\approx 996\) distinct shingles.
-            </div>
-            <div class="modal-callout">
-                <strong>2. Jaccard Similarity Coefficient:</strong><br>
-                For two document shingle sets \(A\) and \(B\), the Jaccard similarity measures their proportional overlap:
-                \[ J(A, B) = \frac{|A \cap B|}{|A \cup B|} \in [0, 1] \]
-                If \(J(A, B) = 1.0\), the documents are verbatim clones. In FineWeb and Llama pre-training pipelines, any pair with \(J(A, B) \ge 0.75\) or \(0.80\) is treated as a near-duplicate, and one of the copies is purged.
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal 6: Gopher Quality Heuristics -->
-    <div id="modal-gopher" class="modal-backdrop" onclick="closeModalOnBackdrop(event, 'modal-gopher')">
-        <div class="modal-card">
-            <button class="modal-close-btn" onclick="closeModal('modal-gopher')">&times;</button>
-            <span class="modal-badge">DeepMind Quality Filters</span>
-            <h3 class="modal-title">🛡️ DeepMind Gopher Quality Heuristics</h3>
-            <p>
-                In 2021, DeepMind published the seminal <em>Gopher</em> paper (Rae et al.), introducing the definitive suite of rule-based heuristic filters that almost every lab (including Hugging Face FineWeb) uses today.
-            </p>
-            <div class="modal-callout">
-                <strong>The Battle-Tested Gopher Filter Rules:</strong>
-                <ul>
-                    <li><strong>Terminal Punctuation Ratio:</strong> At least <strong>30%</strong> of lines must end in a terminal punctuation mark (<code>.</code>, <code>!</code>, <code>?</code>, or quotation mark). Discards navigation sidebars, menus, and shopping lists!</li>
-                    <li><strong>Word Length Bounds:</strong> Mean word length must be between <strong>3 and 10 characters</strong>. Rejects raw machine base64 dumps and concatenated strings.</li>
-                    <li><strong>Symbol-to-Word Ratio:</strong> Less than <strong>10%</strong> of words may contain non-alphanumeric symbols (e.g. <code>#</code>, <code>$</code>, <code>%</code>, <code>~</code>). Rejects obfuscated spam and ASCII diagrams.</li>
-                    <li><strong>Bullet Point Cap:</strong> No more than <strong>90%</strong> of lines can begin with a bullet symbol or numbering.</li>
-                    <li><strong>Repetition / Degenerative Loop Defense:</strong> Discard document if:
-                        <ul>
-                            <li>Any single 10-gram repeats more than 6 times.</li>
-                            <li>The top 2-gram covers more than 20% of the entire document.</li>
-                            <li>Duplicate paragraphs make up more than 30% of total text.</li>
-                        </ul>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal 7: Common Crawl WARC / WET Files -->
-    <div id="modal-warc" class="modal-backdrop" onclick="closeModalOnBackdrop(event, 'modal-warc')">
-        <div class="modal-card">
-            <button class="modal-close-btn" onclick="closeModal('modal-warc')">&times;</button>
-            <span class="modal-badge">Dataset Engineering</span>
-            <h3 class="modal-title">📦 Common Crawl Internals: WARC, WET, &amp; WAT</h3>
-            <p>
-                Common Crawl does not give you clean CSV files. Every monthly dump is split across thousands of compressed archive files hosted on Amazon S3. Understanding their file formats is essential:
-            </p>
-            <div class="concept-grid" style="margin: 1rem 0;">
-                <div class="concept-card">
-                    <h4>WARC (Web ARChive)</h4>
-                    <p>The raw payload. Stores the exact HTTP request, HTTP response headers, server status codes, and raw unparsed HTML/binary bodies. Huge (petabytes), but contains the ground truth.</p>
-                </div>
-                <div class="concept-card">
-                    <h4>WET (Extracted Text)</h4>
-                    <p>Common Crawl's automated plain-text extraction. However, its built-in extractor is simplistic and retains significant ad noise. Frontier labs ignore WET files and re-extract directly from WARC using Trafilatura!</p>
-                </div>
-                <div class="concept-card">
-                    <h4>WAT (Metadata Records)</h4>
-                    <p>JSON records containing parsed HTTP headers, detected MIME types, hyperlinks, and HTML metadata for graph analysis.</p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal 8: KenLM Perplexity Filtering -->
-    <div id="modal-perplexity" class="modal-backdrop" onclick="closeModalOnBackdrop(event, 'modal-perplexity')">
-        <div class="modal-card">
-            <button class="modal-close-btn" onclick="closeModal('modal-perplexity')">&times;</button>
-            <span class="modal-badge">Statistical Filtering</span>
-            <h3 class="modal-title">📉 KenLM Perplexity Filtering &amp; Model Scoring</h3>
-            <p>
-                How do labs determine if an English web page is well-written journalism vs low-grade machine-translated gibberish?
-            </p>
-            <div class="modal-callout">
-                <strong>The 5-Gram Language Model Benchmark:</strong><br>
-                1. Train a fast, smoothed 5-gram language model using <strong>KenLM</strong> on a gold-standard reference corpus (e.g. Wikipedia + curated scientific books).<br>
-                2. Calculate the <strong>Perplexity (PPL)</strong> of each incoming web page:
-                \[ \text{PPL}(D) = \exp\left( -\frac{1}{N} \sum_{i=1}^N \log P(w_i \mid w_{i-4}, \dots, w_{i-1}) \right) \]
-                3. <strong>The Two-Sided Trim:</strong>
-                <ul>
-                    <li><strong>Ultra-High Perplexity:</strong> Discard! High perplexity indicates OCR errors, typo-ridden forums, or random character spam that the reference model finds bizarre.</li>
-                    <li><strong>Ultra-Low Perplexity:</strong> Discard! Extremely low perplexity usually represents robotic, boilerplate repetitions (e.g. <em>"Terms of service... Terms of service..."</em>).</li>
-                </ul>
-            </div>
-        </div>
-    </div>
-
-</body>
+    </body>
 </html>
